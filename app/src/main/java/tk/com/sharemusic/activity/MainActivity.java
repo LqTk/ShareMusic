@@ -1,0 +1,133 @@
+package tk.com.sharemusic.activity;
+
+import android.content.Intent;
+import android.graphics.Color;
+import android.net.Uri;
+import android.os.Bundle;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+
+import com.next.easynavigation.view.EasyNavigationBar;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
+import tk.com.sharemusic.R;
+import tk.com.sharemusic.ShareApplication;
+import tk.com.sharemusic.entity.SocialPublicEntity;
+import tk.com.sharemusic.entity.User;
+import tk.com.sharemusic.event.ChangeFragmentEvent;
+import tk.com.sharemusic.event.UpLoadSocialSuccess;
+import tk.com.sharemusic.fragment.ChatFragment;
+import tk.com.sharemusic.fragment.MineFragment;
+import tk.com.sharemusic.fragment.PartnerFragment;
+import tk.com.sharemusic.fragment.SocialPublic;
+import tk.com.sharemusic.network.HttpMethod;
+import tk.com.sharemusic.network.NetWorkService;
+import tk.com.sharemusic.network.RxSchedulers;
+import tk.com.sharemusic.network.response.GetPublicDataShareIdVo;
+import tk.com.sharemusic.network.rxjava.BaseObserver;
+
+public class MainActivity extends AppCompatActivity {
+
+    private List<Fragment> fragments = new ArrayList<>();
+    private String[] navTitle = {"好友","公场","消息","我的"};
+
+    @BindView(R.id.bottom_bar)
+    EasyNavigationBar bottomBar;
+    private Unbinder bind;
+    private NetWorkService service;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        bind = ButterKnife.bind(this);
+        EventBus.getDefault().register(this);
+
+        service = HttpMethod.getInstance().create(NetWorkService.class);
+        getIntentData();
+        initView();
+    }
+
+    private void initView() {
+        fragments.add(PartnerFragment.newInstance());
+        fragments.add(SocialPublic.newInstance());
+        fragments.add(ChatFragment.newInstance());
+        fragments.add(MineFragment.newInstance("",""));
+        bottomBar.titleItems(navTitle)
+                .fragmentList(fragments)
+                .fragmentManager(getSupportFragmentManager())
+                .selectTextColor(Color.parseColor("#1296DB"))
+                .normalTextColor(Color.parseColor("#8a8a8a"))
+                .build();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        bind.unbind();
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Subscribe
+    public void changePage(ChangeFragmentEvent event){
+        if (event!=null){
+            bottomBar.selectTab(event.page,true);
+        }
+    }
+
+    private void getIntentData(){
+
+        Intent intent = getIntent();
+        if (intent!=null) {
+            String action = intent.getAction();
+            String type = intent.getType();
+            if (Intent.ACTION_SEND.equals(action) && type!=null){
+                Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                Bundle extras = intent.getExtras();
+                if ("audio/".equals(type)) {
+                    // 处理发送来音频
+                    Toast.makeText(this,"audio",Toast.LENGTH_SHORT).show();
+                } else if (type.startsWith("video/")) {
+                    // 处理发送来的视频
+                    Toast.makeText(this,"video",Toast.LENGTH_SHORT).show();
+                } else if (type.startsWith("*/")) {
+                    //处理发送过来的其他文件
+                    Toast.makeText(this,"other",Toast.LENGTH_SHORT).show();
+                }else if (type.startsWith("text/")){
+                    String string = extras.getString("android.intent.extra.TEXT");
+                    Intent intent1 = new Intent(this,ShareActivity.class);
+                    intent1.putExtra("sharetext",string);
+                    startActivity(intent1);
+                }
+            } else if (Intent.ACTION_SEND_MULTIPLE.equals(action) && type != null) {
+                ArrayList<Uri> arrayList = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+                if (type.startsWith("audio/")) {
+                    // 处理发送来的多个音频
+                    Toast.makeText(this,"audio",Toast.LENGTH_SHORT).show();
+                } else if (type.startsWith("video/")) {
+                    //处理发送过来的多个视频
+                    Toast.makeText(this,"video",Toast.LENGTH_SHORT).show();
+                } else if (type.startsWith("*/")) {
+                    //处理发送过来的多个文件
+                    Toast.makeText(this,"other",Toast.LENGTH_SHORT).show();
+                }else if (type.startsWith("text/")){
+                    Toast.makeText(this,"text",Toast.LENGTH_SHORT).show();
+                }
+            }
+            setIntent(null);
+        }
+    }
+
+}

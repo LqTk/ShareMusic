@@ -1,0 +1,108 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion "29.0.3"
+
+    defaultConfig {
+        applicationId "tk.com.sharemusic"
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            //选择要添加的对应 cpu 类型的 .so 库。
+            abiFilters 'armeabi', 'armeabi-v7a', 'arm64-v8a'
+            // 还可以添加 'x86', 'x86_64', 'mips', 'mips64'
+        }
+
+        manifestPlaceholders = [
+                JPUSH_PKGNAME : applicationId,
+                JPUSH_APPKEY : "a84a9b231dc2696f5eeff4ad", //极光开发平台上注册的包名对应的appkey.
+                JPUSH_CHANNEL : "developer-default", //暂时填写默认值即可.
+        ]
+
+    }
+
+    /*flavorDimensions "company"
+    productFlavors{
+        shareMusic{
+            applicationId "tk.com.sharemusic"
+            versionCode 1
+            versionName "1.0"
+            resValue "string", "app_name", "ShareMusic"
+            manifestPlaceholders = [
+                    JPUSH_PKGNAME : applicationId,
+                    JPUSH_APPKEY : "46e1c21ea828ba30dd8e951e", //JPush 上注册的包名对应的 Appkey.
+                    JPUSH_CHANNEL : "developer-default", //暂时填写默认值即可.
+            ]
+            dimension "company"
+        }
+    }*/
+
+
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+
+    // Okhttp库
+    implementation 'com.squareup.okhttp3:okhttp:4.4.0'
+    //retrofit2.x
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.7.1'
+    //输出网络访问的日志到 log中 查阅登记V ，关键字Okhttp
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.4.0'
+    //rxjava2.x
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.8'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    //处理rxjava可能造成的内存泄漏
+    implementation 'com.trello.rxlifecycle2:rxlifecycle:2.2.2'
+    implementation 'com.trello.rxlifecycle2:rxlifecycle-components:2.2.2'
+    //图片加载库
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
+    implementation 'com.github.bumptech.glide:okhttp3-integration:4.11.0'
+    //图片处理包括裁剪，选择，拍照等。。。
+    implementation 'com.github.LuckSiege.PictureSelector:picture_library:v2.4.9'
+    //控件绑定
+    implementation 'com.jakewharton:butterknife:10.2.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.1'
+    //权限插件
+    implementation 'com.github.tbruyelle:rxpermissions:0.10.2'
+    //底部导航栏
+    implementation 'com.github.Vincent7Wong:EasyNavigation:2.0.5'
+    //刷新控件
+    implementation 'com.scwang.smartrefresh:SmartRefreshLayout:1.1.0'  //1.0.5及以前版本的老用户升级需谨慎，API改动过大
+    implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:3.0.4'
+    implementation 'androidx.recyclerview:recyclerview:1.2.0-alpha05'
+    //网页内容抓取
+    implementation 'org.jsoup:jsoup:1.13.1'
+    //eventBus事件更新
+    implementation 'org.greenrobot:eventbus:3.2.0'
+
+    //推送库
+    implementation 'cn.jiguang.sdk:jpush:3.8.6'  // 此处以JPush 3.8.6 版本为例。
+    implementation 'cn.jiguang.sdk:jcore:2.6.0'  // 此处以JCore 2.6.0 版本为例。
+}

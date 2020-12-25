@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#6200EE</color>
+    <color name="colorPrimaryDark">#3700B3</color>
+    <color name="colorAccent">#03DAC5</color>
+    <color name="white">#ffffff</color>
+    <color name="whiteGrey">#aa999999</color>
+    <color name="whiteBg">#dddddd</color>
+    <color name="transWhite">#aadddddd</color>
+
+    <color name="buleBg">#0A91FB</color>
+
+    <color name="bg_touch">#dcdcdc</color>
+    <color name="lineGrey">#3a3a3a</color>
+    <color name="transparent">#00000000</color>
+    <color name="color_f4f4f4">#f4f4f4</color>
+    <color name="main_grey">#8d91a2</color>
+    <color name="light_gray">#999999</color>
+    <color name="hint_text">#ffae3e</color>
+
+    <color name="textColorBlack">#222222</color>
+    <color name="textColorGrey">#939393</color>
+    <color name="white_press">#f0f0f0</color>
+
+</resources>
