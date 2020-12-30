@@ -4,11 +4,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/white"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="44dp"
+        android:layout_height="@dimen/dp_44"
         android:background="@color/white">
 
         <ImageView
@@ -17,7 +18,7 @@
             android:layout_height="match_parent"
             android:layout_alignParentLeft="true"
             android:focusable="false"
-            android:padding="10dp"
+            android:padding="@dimen/dp_10"
             android:src="@drawable/ic_back"/>
 
         <LinearLayout
@@ -34,17 +35,18 @@
                 android:gravity="center"
                 android:text="name"
                 android:textColor="@color/textColorBlack"
-                android:textSize="16sp"/>
+                android:textSize="@dimen/sp_16"/>
 
             <TextView
                 android:id="@+id/tv_title"
-                android:layout_width="match_parent"
+                android:layout_width="@dimen/dp_150"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
+                android:layout_marginTop="@dimen/dp_3"
                 android:gravity="center"
                 android:text="online"
+                android:ellipsize="end"
                 android:textColor="@color/textColorGrey"
-                android:textSize="13sp"/>
+                android:textSize="@dimen/sp_13"/>
 
         </LinearLayout>
 
@@ -56,7 +58,7 @@
             android:layout_alignParentRight="true"
             android:focusable="false"
             android:layout_centerVertical="true"
-            android:padding="10dp"
+            android:padding="@dimen/dp_10"
             android:text="资料"
             android:background="@drawable/selector_list_item_pressed"/>
 
@@ -86,7 +88,7 @@
                 android:background="@color/color_f4f4f4"
                 android:divider="@null"
                 android:listSelector="@color/transparent"
-                android:paddingBottom="20dp"/>
+                android:paddingBottom="@dimen/dp_20"/>
 
         </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
@@ -96,10 +98,10 @@
             android:layout_height="match_parent"
             android:background="@color/color_f4f4f4"
             android:gravity="center_horizontal"
-            android:paddingTop="70dp"
+            android:paddingTop="@dimen/dp_70"
             android:text="您已关注医生，可以给医生留言了!"
             android:textColor="@color/hint_text"
-            android:textSize="12sp"
+            android:textSize="@dimen/sp_12"
             android:visibility="gone"/>
 
         <RelativeLayout
@@ -117,8 +119,8 @@
                 android:orientation="vertical">
 
                 <RelativeLayout
-                    android:layout_width="120dp"
-                    android:layout_height="120dp">
+                    android:layout_width="@dimen/dp_120"
+                    android:layout_height="@dimen/dp_120">
 
                     <LinearLayout
                         android:id="@+id/ll_recorder_anim"
@@ -129,14 +131,14 @@
 
                         <ImageView
                             android:layout_width="wrap_content"
-                            android:layout_height="60dp"
+                            android:layout_height="@dimen/dp_60"
                             android:src="@drawable/ic_mic"/>
 
                         <ImageView
                             android:id="@+id/icon_status"
-                            android:layout_width="30dp"
-                            android:layout_height="50dp"
-                            android:layout_marginLeft="10dp"
+                            android:layout_width="@dimen/dp_30"
+                            android:layout_height="@dimen/dp_50"
+                            android:layout_marginLeft="@dimen/dp_10"
                             android:background="@drawable/recorder"
                             android:visibility="visible"/>
                     </LinearLayout>
@@ -146,7 +148,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_centerInParent="true"
-                        android:layout_margin="5dp"
+                        android:layout_margin="@dimen/dp_5"
                         android:gravity="center"
                         android:text="0"
                         android:textColor="@color/white"
@@ -167,7 +169,7 @@
         android:layout_height="wrap_content"
         android:gravity="bottom"
         android:background="@color/white"
-        android:minHeight="48dp"
+        android:minHeight="@dimen/dp_48"
         android:orientation="horizontal">
 
         <LinearLayout
@@ -175,15 +177,15 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="bottom"
-            android:minHeight="40dp"
+            android:minHeight="@dimen/dp_40"
             android:orientation="horizontal"
             android:paddingBottom="2dp">
 
             <ImageView
                 android:id="@+id/tv_switch"
-                android:layout_width="25dp"
-                android:layout_height="25dp"
-                android:layout_margin="10dp"
+                android:layout_width="@dimen/dp_25"
+                android:layout_height="@dimen/dp_25"
+                android:layout_margin="@dimen/dp_10"
                 android:src="@drawable/ic_voice"
                 android:visibility="visible" />
 
@@ -195,7 +197,7 @@
             android:layout_height="match_parent"
             android:gravity="bottom"
             android:orientation="horizontal"
-            android:padding="5dp">
+            android:padding="@dimen/dp_5">
 
             <EditText
                 android:id="@+id/et_content"
@@ -206,33 +208,33 @@
                 android:hint="输入消息内容"
                 android:imeOptions="actionSend"
                 android:textColorHint="@color/main_grey"
-                android:lineSpacingExtra="2dp"
+                android:lineSpacingExtra="@dimen/dp_2"
                 android:maxLines="4"
-                android:minHeight="40dp"
-                android:padding="3dp"
+                android:minHeight="@dimen/dp_40"
+                android:padding="@dimen/dp_3"
                 android:textColor="@color/light_gray"
-                android:textSize="13sp"/>
+                android:textSize="@dimen/sp_13"/>
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:minHeight="40dp"
+                android:minHeight="@dimen/dp_40"
                 android:orientation="horizontal">
 
                 <ImageView
                     android:id="@+id/iv_faces"
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:layout_marginLeft="10dp"
+                    android:layout_width="@dimen/dp_25"
+                    android:layout_height="@dimen/dp_25"
+                    android:layout_marginLeft="@dimen/dp_10"
                     android:visibility="gone"/>
 
                 <ImageView
                     android:id="@+id/iv_functions"
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="10dp"
+                    android:layout_width="@dimen/dp_25"
+                    android:layout_height="@dimen/dp_25"
+                    android:layout_marginLeft="@dimen/dp_10"
+                    android:layout_marginRight="@dimen/dp_10"
                     android:src="@drawable/ic_functions"
                     android:visibility="visible"/>
 
@@ -240,13 +242,12 @@
                     android:id="@+id/btn_send"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingBottom="5dp"
-                    android:paddingLeft="10dp"
-                    android:paddingRight="10dp"
-                    android:paddingTop="5dp"
                     android:text="发送"
-                    android:textColor="@color/textColorBlack"
-                    android:visibility="gone"/>
+                    android:visibility="gone"
+                    android:layout_marginLeft="@dimen/dp_10"
+                    android:layout_marginRight="@dimen/dp_10"
+                    android:background="@drawable/send_bg"
+                    android:textColor="@color/textColorBlack"/>
 
             </LinearLayout>
 
@@ -256,17 +257,16 @@
             android:id="@+id/btn_press_to_speak"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="5dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginTop="5dp"
-            android:padding="4dp"
+            android:layout_marginBottom="@dimen/dp_5"
+            android:layout_marginRight="@dimen/dp_10"
+            android:layout_marginTop="@dimen/dp_5"
+            android:padding="@dimen/dp_4"
             android:background="@drawable/selector_white_round_rect_bg"
-            android:minHeight="40dp"
+            android:minHeight="@dimen/dp_40"
             android:gravity="center"
             android:text="按住说话"
             android:textColor="@color/light_gray"
             android:visibility="gone"/>
-
     </LinearLayout>
 
 </LinearLayout>

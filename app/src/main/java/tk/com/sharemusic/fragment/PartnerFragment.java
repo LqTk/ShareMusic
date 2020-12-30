@@ -20,7 +20,6 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import butterknife.BindView;
@@ -30,14 +29,13 @@ import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.activity.ChatActivity;
 import tk.com.sharemusic.adapter.PartnerAdapter;
-import tk.com.sharemusic.entity.PeopleEntity;
+import tk.com.sharemusic.entity.MsgEntiti;
 import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.event.RefreshPartnerEvent;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
 import tk.com.sharemusic.network.RxSchedulers;
 import tk.com.sharemusic.network.response.PartnerVo;
-import tk.com.sharemusic.network.response.PeopleVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
 
 /**
@@ -60,7 +58,7 @@ public class PartnerFragment extends Fragment {
     private Unbinder bind;
     private NetWorkService service;
     private PartnerAdapter adapter;
-    private List<PeopleEntity> peopleEntities = new ArrayList<>();
+    private List<MsgEntiti> peopleEntities = new ArrayList<>();
 
     public PartnerFragment() {
         // Required empty public constructor
@@ -119,7 +117,7 @@ public class PartnerFragment extends Fragment {
                 .subscribe(new BaseObserver<PartnerVo>() {
                     @Override
                     public void onSuccess(PartnerVo peopleVo) {
-                        List<PeopleEntity> data = peopleVo.getData();
+                        List<MsgEntiti> data = peopleVo.getData();
                         if (data!=null) {
                             peopleEntities.clear();
                             peopleEntities.addAll(data);

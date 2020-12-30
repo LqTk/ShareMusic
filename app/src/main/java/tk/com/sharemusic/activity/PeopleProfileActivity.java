@@ -25,7 +25,7 @@ import butterknife.OnClick;
 import butterknife.Unbinder;
 import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
-import tk.com.sharemusic.entity.PeopleEntity;
+import tk.com.sharemusic.entity.MsgEntiti;
 import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.enums.Gender;
 import tk.com.sharemusic.event.RefreshPartnerEvent;
@@ -87,7 +87,7 @@ public class PeopleProfileActivity extends AppCompatActivity {
                 .subscribe(new BaseObserver<PeopleVo>() {
                     @Override
                     public void onSuccess(PeopleVo peopleVo) {
-                        PeopleEntity data = peopleVo.getData();
+                        MsgEntiti data = peopleVo.getData();
                         Glide.with(context)
                                 .load(TextUtils.isEmpty(data.getPeopleHead()) ? Gender.getImage(data.getPeopleSex()) : NetWorkService.homeUrl+data.getPeopleHead())
                                 .apply(new RequestOptions()

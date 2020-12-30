@@ -1,5 +1,6 @@
 package tk.com.sharemusic;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
@@ -11,6 +12,10 @@ import android.util.Log;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.luck.picture.lib.PictureSelector;
+import com.luck.picture.lib.config.PictureConfig;
+import com.luck.picture.lib.config.PictureMimeType;
+
 import javax.net.ssl.HttpsURLConnection;
 
 import cn.jpush.android.api.JPushInterface;
@@ -18,12 +23,15 @@ import cn.jpush.android.ups.JPushUPSManager;
 import cn.jpush.android.ups.TokenResult;
 import cn.jpush.android.ups.UPSRegisterCallBack;
 import tk.com.sharemusic.entity.User;
+import tk.com.sharemusic.utils.GlideEngine;
 import tk.com.sharemusic.utils.NetworkStatusManager;
 import tk.com.sharemusic.utils.SSLSocketFactoryUtils;
 
 public class ShareApplication extends Application {
 
     private static User user;
+    public static final int ACTION_TYPE_ALBUM = 0;
+    public static final int ACTION_TYPE_PHOTO = 1;
 
     @Override
     public void onCreate() {
@@ -90,5 +98,56 @@ public class ShareApplication extends Application {
         startActivity(intent);
     }
 
+    /**
+     * 选择图片/拍照
+     *
+     * @param position
+     */
+    public static void goToSelectPicture(int position, Activity context) {
+        switch (position) {
+            case ACTION_TYPE_PHOTO:
+                PictureSelector.create(context)
+                        .openCamera(PictureMimeType.ofImage())
+                        .enableCrop(true)
+                        .isDragFrame(true)// 是否可拖动裁剪框
+                        .freeStyleCropEnabled(true)// 裁剪框是否可拖拽 true or false
+                        .withAspectRatio(1,1)// int 裁剪比例 如16:9 3:2 3:4 1:1 可自定义
+                        .circleDimmedLayer(false)// 是否圆形裁剪 true or false
+                        .showCropFrame(false)// 是否显示裁剪矩形边框 圆形裁剪时建议设为false   true or false
+                        .showCropGrid(false)// 是否显示裁剪矩形网格 圆形裁剪时建议设为false    true or false
+                        .forResult(PictureConfig.CHOOSE_REQUEST);
+                break;
+            case ACTION_TYPE_ALBUM:
+                PictureSelector.create(context)
+                        .openGallery(PictureMimeType.ofImage())//全部.PictureMimeType.ofAll()、图片.ofImage()、视频.ofVideo()、音频.ofAudio()
+                        .loadImageEngine(GlideEngine.createGlideEngine())
+//                .theme()//主题样式(不设置为默认样式) 也可参考demo values/styles下 例如：R.style.picture.white.style
+                        .maxSelectNum(1)// 最大图片选择数量 int
+                        .minSelectNum(1)// 最小选择数量 int
+                        .imageSpanCount(3)// 每行显示个数 int
+                        .selectionMode(PictureConfig.SINGLE)// 多选 or 单选 PictureConfig.MULTIPLE or PictureConfig.SINGLE
+                        .isCamera(false)// 是否显示拍照按钮 true or false
+                        .enableCrop(true)
+                        .isDragFrame(true)// 是否可拖动裁剪框
+                        .freeStyleCropEnabled(true)// 裁剪框是否可拖拽 true or false
+                        .withAspectRatio(1,1)// int 裁剪比例 如16:9 3:2 3:4 1:1 可自定义
+                        .circleDimmedLayer(false)// 是否圆形裁剪 true or false
+                        .showCropFrame(false)// 是否显示裁剪矩形边框 圆形裁剪时建议设为false   true or false
+                        .showCropGrid(false)// 是否显示裁剪矩形网格 圆形裁剪时建议设为false    true or false
+                        .forResult(PictureConfig.CHOOSE_REQUEST);//结果回调onActivityResult code
+                break;
+            default:
+                break;
+        }
+    }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public static boolean isGrantPermission(String[] permissions, Context context){
+        for (String permission:permissions){
+            if (context.checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED){
+                return false;
+            }
+        }
+        return true;
+    }
 }

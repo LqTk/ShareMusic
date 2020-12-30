@@ -1,13 +1,13 @@
 package tk.com.sharemusic.entity;
 
-public class PeopleEntity {
+public class MsgEntiti {
     private String peopleName;
     private String peopleId;
     private String peopleHead;
     private int peopleSex;
     private String peopleDes;
 
-    public PeopleEntity(String peopleName, String peopleId, String peopleHead, int peopleSex, String peopleDes) {
+    public MsgEntiti(String peopleName, String peopleId, String peopleHead, int peopleSex, String peopleDes) {
         this.peopleName = peopleName;
         this.peopleId = peopleId;
         this.peopleHead = peopleHead;

@@ -105,4 +105,7 @@ dependencies {
     //推送库
     implementation 'cn.jiguang.sdk:jpush:3.8.6'  // 此处以JPush 3.8.6 版本为例。
     implementation 'cn.jiguang.sdk:jcore:2.6.0'  // 此处以JCore 2.6.0 版本为例。
+
+    //viewPager滑动小圆点
+    implementation 'me.relex:circleindicator:2.1.4'
 }
