@@ -4,15 +4,23 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import org.greenrobot.eventbus.EventBus;
+
 import cn.jpush.android.api.CustomMessage;
 import cn.jpush.android.api.NotificationMessage;
 import cn.jpush.android.service.JPushMessageReceiver;
+import tk.com.sharemusic.event.RefreshChatListEvent;
+import tk.com.sharemusic.event.RefreshPartnerMsgEvent;
 
 public class PushMessageReceiver extends JPushMessageReceiver {
     @Override
     public void onMessage(Context context, CustomMessage customMessage) {
         super.onMessage(context, customMessage);
         Log.d("pushSReceiver","onMessage message=="+customMessage);
+        if (customMessage.title.equals("有新消息")){
+            EventBus.getDefault().post(new RefreshChatListEvent());
+            EventBus.getDefault().post(new RefreshPartnerMsgEvent());
+        }
     }
 
     @Override

@@ -2,14 +2,14 @@ package tk.com.sharemusic.network.response;
 
 import java.util.List;
 
-import tk.com.sharemusic.entity.MsgEntity;
+import tk.com.sharemusic.entity.ChatEntity;
 
-public class ChatMsgVo {
-    private int status;
-    private String msg;
-    private List<MsgEntity> data;
+public class SendMsgVo {
+    int status;
+    String msg;
+    ChatEntity data;
 
-    public ChatMsgVo(int status, String msg, List<MsgEntity> data) {
+    public SendMsgVo(int status, String msg, ChatEntity data) {
         this.status = status;
         this.msg = msg;
         this.data = data;
@@ -31,11 +31,11 @@ public class ChatMsgVo {
         this.msg = msg;
     }
 
-    public List<MsgEntity> getData() {
+    public ChatEntity getData() {
         return data;
     }
 
-    public void setData(List<MsgEntity> data) {
+    public void setData(ChatEntity data) {
         this.data = data;
     }
 }

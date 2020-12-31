@@ -1,13 +1,13 @@
 package tk.com.sharemusic.network.response;
 
-import tk.com.sharemusic.entity.MsgEntiti;
+import tk.com.sharemusic.entity.MsgEntity;
 
 public class PeopleVo {
     private int status;
     private String msg;
-    private MsgEntiti data;
+    private MsgEntity data;
 
-    public PeopleVo(int status, String msg, MsgEntiti data) {
+    public PeopleVo(int status, String msg, MsgEntity data) {
         this.status = status;
         this.msg = msg;
         this.data = data;
@@ -29,11 +29,11 @@ public class PeopleVo {
         this.msg = msg;
     }
 
-    public MsgEntiti getData() {
+    public MsgEntity getData() {
         return data;
     }
 
-    public void setData(MsgEntiti data) {
+    public void setData(MsgEntity data) {
         this.data = data;
     }
 }

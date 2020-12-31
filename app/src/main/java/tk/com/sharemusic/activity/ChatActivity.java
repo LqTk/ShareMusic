@@ -25,6 +25,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.luck.picture.lib.PictureSelector;
@@ -32,6 +33,9 @@ import com.luck.picture.lib.config.PictureConfig;
 import com.luck.picture.lib.entity.LocalMedia;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.tbruyelle.rxpermissions2.RxPermissions;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,17 +58,21 @@ import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
+import tk.com.sharemusic.adapter.ChatAdapter;
 import tk.com.sharemusic.config.Constants;
+import tk.com.sharemusic.entity.ChatEntity;
 import tk.com.sharemusic.entity.HeadItem;
-import tk.com.sharemusic.entity.MsgEntiti;
 import tk.com.sharemusic.entity.MsgEntity;
 import tk.com.sharemusic.entity.User;
+import tk.com.sharemusic.event.RefreshPartnerMsgEvent;
 import tk.com.sharemusic.myview.dialog.PagerMenuGridPicker;
 import tk.com.sharemusic.network.BaseResult;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
 import tk.com.sharemusic.network.RxSchedulers;
+import tk.com.sharemusic.network.response.ChatListVo;
 import tk.com.sharemusic.network.response.PeopleVo;
+import tk.com.sharemusic.network.response.SendMsgVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
 import tk.com.sharemusic.utils.PopWinUtil;
 
@@ -139,8 +147,10 @@ public class ChatActivity extends AppCompatActivity {
     };
     private String imgPath;
     private int openType;
-    private MsgEntiti partnerInfo;
+    private MsgEntity partnerInfo;
     private User user;
+    private List<ChatEntity> chatLists = new ArrayList<>();
+    private ChatAdapter chatAdapter;
 
     class CountdownHandler extends Handler {
         private final WeakReference<ChatActivity> mActivity;
@@ -166,6 +176,7 @@ public class ChatActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_chat);
         bind = ButterKnife.bind(this);
+        EventBus.getDefault().register(this);
         service = HttpMethod.getInstance().create(NetWorkService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermission(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA
@@ -175,7 +186,39 @@ public class ChatActivity extends AppCompatActivity {
         initView();
         initData();
         initPicker();
+        loadData(true);
         initPressToSpeak();
+    }
+
+    private void loadData(boolean firstLoad) {
+        reLogin();
+        HashMap map = new HashMap();
+        map.put("userId",user.getUserId());
+        map.put("partnerId",partnerId);
+        service.getPartnerChat(map)
+                .compose(RxSchedulers.<ChatListVo>compose(this))
+                .subscribe(new BaseObserver<ChatListVo>() {
+                    @Override
+                    public void onSuccess(ChatListVo chatListVo) {
+                        refreshView.finishRefresh();
+                        refreshView.finishLoadMore();
+                        List<ChatEntity> voData = chatListVo.getData();
+                        if (firstLoad){
+                            chatLists.clear();
+                        }
+                        if (voData!=null && voData.size()>0) {
+                            chatLists.addAll(voData);
+                        }
+                        chatAdapter.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onFailed(String msg) {
+                        Toast.makeText(mContext,msg,Toast.LENGTH_SHORT).show();
+                        refreshView.finishRefresh();
+                        refreshView.finishLoadMore();
+                    }
+                });
     }
 
     private void initView() {
@@ -201,6 +244,24 @@ public class ChatActivity extends AppCompatActivity {
                 }
             }
         });
+
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        rcvChat.setLayoutManager(linearLayoutManager);
+
+        chatAdapter = new ChatAdapter(R.layout.item_chat_content, chatLists);
+        chatAdapter.addChildClickViewIds(R.id.tv_voice,R.id.tv_voice_left,R.id.iv_pic,R.id.iv_pic_left);
+        rcvChat.setAdapter(chatAdapter);
+    }
+
+    private void reLogin(){
+        if (user==null){
+            Intent intent = new Intent(mContext, LoginActivity.class);
+            startActivity(intent);
+            Toast.makeText(mContext,"请先登录",Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
     }
 
     private void initData() {
@@ -209,13 +270,7 @@ public class ChatActivity extends AppCompatActivity {
         uiPopWinUtil.setShade(false);
 
         user = ShareApplication.getUser();
-        if (user==null){
-            Intent intent = new Intent(mContext, LoginActivity.class);
-            startActivity(intent);
-            Toast.makeText(mContext,"请先登录",Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
+        reLogin();
 
         partnerId = getIntent().getStringExtra("partnerId");
         if (TextUtils.isEmpty(partnerId))
@@ -240,7 +295,6 @@ public class ChatActivity extends AppCompatActivity {
                     }
                 });
     }
-
 
     private void play(String url) {
         if (!isVoicePlaying) {
@@ -377,7 +431,7 @@ public class ChatActivity extends AppCompatActivity {
         map.put("toid",partnerInfo.getPeopleId());
         map.put("msgtype",msgType);
         MultipartBody.Part part = null;
-        Observable<BaseResult> baseResultObservable = null;
+        Observable<SendMsgVo> baseResultObservable = null;
         switch (msgType){
             case Constants.MODE_IMAGE:
                 part = getFilePart(content);
@@ -393,11 +447,13 @@ public class ChatActivity extends AppCompatActivity {
                 baseResultObservable = service.sendMsg(map);
                 break;
         }
-        baseResultObservable.compose(RxSchedulers.<BaseResult>compose(mContext))
-                .subscribe(new BaseObserver<BaseResult>() {
+        baseResultObservable.compose(RxSchedulers.<SendMsgVo>compose(mContext))
+                .subscribe(new BaseObserver<SendMsgVo>() {
                     @Override
-                    public void onSuccess(BaseResult baseResult) {
+                    public void onSuccess(SendMsgVo baseResult) {
                         Toast.makeText(mContext,"消息发送成功",Toast.LENGTH_SHORT).show();
+                        chatLists.add(baseResult.getData());
+                        chatAdapter.notifyDataSetChanged();
                     }
 
                     @Override
@@ -575,6 +631,7 @@ public class ChatActivity extends AppCompatActivity {
                 } else {
                     send(Constants.MODE_TEXT, etContent.getText().toString(), "");
                 }
+                etContent.setText("");
                 break;
         }
     }
@@ -646,9 +703,17 @@ public class ChatActivity extends AppCompatActivity {
         }
     }
 
+    @Subscribe
+    public void refreshData(RefreshPartnerMsgEvent event){
+        if (event!=null){
+            loadData(false);
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         bind.unbind();
+        EventBus.getDefault().unregister(this);
     }
 }

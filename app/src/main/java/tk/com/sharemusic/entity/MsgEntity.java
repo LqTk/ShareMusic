@@ -1,100 +1,57 @@
 package tk.com.sharemusic.entity;
 
-import java.util.Date;
-
 public class MsgEntity {
-    private String chatid;
+    private String peopleName;
+    private String peopleId;
+    private String peopleHead;
+    private int peopleSex;
+    private String peopleDes;
 
-    private String talkid;
-
-    private String toid;
-
-    private String msgtype;
-
-    private String msgcontent;
-
-    private String voicetime;
-
-    private String filepath;
-
-    private Date chattime;
-
-    public MsgEntity(String chatid, String talkid, String toid, String msgtype, String msgcontent, String voicetime, String filepath, Date chattime) {
-        this.chatid = chatid;
-        this.talkid = talkid;
-        this.toid = toid;
-        this.msgtype = msgtype;
-        this.msgcontent = msgcontent;
-        this.voicetime = voicetime;
-        this.filepath = filepath;
-        this.chattime = chattime;
+    public MsgEntity(String peopleName, String peopleId, String peopleHead, int peopleSex, String peopleDes) {
+        this.peopleName = peopleName;
+        this.peopleId = peopleId;
+        this.peopleHead = peopleHead;
+        this.peopleSex = peopleSex;
+        this.peopleDes = peopleDes;
     }
 
-    public MsgEntity() {
-        super();
+    public String getPeopleName() {
+        return peopleName;
     }
 
-    public String getChatid() {
-        return chatid;
+    public void setPeopleName(String peopleName) {
+        this.peopleName = peopleName;
     }
 
-    public void setChatid(String chatid) {
-        this.chatid = chatid == null ? null : chatid.trim();
+    public String getPeopleId() {
+        return peopleId;
     }
 
-    public String getTalkid() {
-        return talkid;
+    public void setPeopleId(String peopleId) {
+        this.peopleId = peopleId;
     }
 
-    public void setTalkid(String talkid) {
-        this.talkid = talkid == null ? null : talkid.trim();
+    public String getPeopleHead() {
+        return peopleHead;
     }
 
-    public String getToid() {
-        return toid;
+    public void setPeopleHead(String peopleHead) {
+        this.peopleHead = peopleHead;
     }
 
-    public void setToid(String toid) {
-        this.toid = toid == null ? null : toid.trim();
+    public int getPeopleSex() {
+        return peopleSex;
     }
 
-    public String getMsgtype() {
-        return msgtype;
+    public void setPeopleSex(int peopleSex) {
+        this.peopleSex = peopleSex;
     }
 
-    public void setMsgtype(String msgtype) {
-        this.msgtype = msgtype == null ? null : msgtype.trim();
+    public String getPeopleDes() {
+        return peopleDes;
     }
 
-    public String getMsgcontent() {
-        return msgcontent;
-    }
-
-    public void setMsgcontent(String msgcontent) {
-        this.msgcontent = msgcontent == null ? null : msgcontent.trim();
-    }
-
-    public String getVoicetime() {
-        return voicetime;
-    }
-
-    public void setVoicetime(String voicetime) {
-        this.voicetime = voicetime;
-    }
-
-    public String getFilepath() {
-        return filepath;
-    }
-
-    public void setFilepath(String filepath) {
-        this.filepath = filepath == null ? null : filepath.trim();
-    }
-
-    public Date getChattime() {
-        return chattime;
-    }
-
-    public void setChattime(Date chattime) {
-        this.chattime = chattime;
+    public void setPeopleDes(String peopleDes) {
+        this.peopleDes = peopleDes;
     }
 }

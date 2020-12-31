@@ -29,7 +29,7 @@ import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.activity.ChatActivity;
 import tk.com.sharemusic.adapter.PartnerAdapter;
-import tk.com.sharemusic.entity.MsgEntiti;
+import tk.com.sharemusic.entity.MsgEntity;
 import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.event.RefreshPartnerEvent;
 import tk.com.sharemusic.network.HttpMethod;
@@ -58,7 +58,7 @@ public class PartnerFragment extends Fragment {
     private Unbinder bind;
     private NetWorkService service;
     private PartnerAdapter adapter;
-    private List<MsgEntiti> peopleEntities = new ArrayList<>();
+    private List<MsgEntity> peopleEntities = new ArrayList<>();
 
     public PartnerFragment() {
         // Required empty public constructor
@@ -117,7 +117,7 @@ public class PartnerFragment extends Fragment {
                 .subscribe(new BaseObserver<PartnerVo>() {
                     @Override
                     public void onSuccess(PartnerVo peopleVo) {
-                        List<MsgEntiti> data = peopleVo.getData();
+                        List<MsgEntity> data = peopleVo.getData();
                         if (data!=null) {
                             peopleEntities.clear();
                             peopleEntities.addAll(data);

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="@dimen/dp_10">
+        <tk.com.sharemusic.myview.CircleImage
+            android:layout_width="@dimen/dp_50"
+            android:layout_height="@dimen/dp_50"
+            android:src="@drawable/default_head_girl"
+            android:id="@+id/iv_partner_head"/>
+        <LinearLayout
+            android:layout_marginLeft="@dimen/dp_10"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="center_vertical">
+            <TextView
+                android:id="@+id/tv_partner_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/textColorBlack"
+                android:textSize="@dimen/sp_16"
+                android:text=""/>
+            <TextView
+                android:id="@+id/tv_partner_chat"
+                android:layout_marginTop="@dimen/dp_5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/textColorGrey"
+                android:textSize="@dimen/sp_13"
+                android:text=""
+                android:singleLine="true"
+                android:ellipsize="end"/>
+        </LinearLayout>
+    </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_1"
+        android:background="@color/whiteGrey"/>
+</LinearLayout>
