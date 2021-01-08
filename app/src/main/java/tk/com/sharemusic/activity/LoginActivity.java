@@ -36,7 +36,7 @@ import tk.com.sharemusic.network.RxSchedulers;
 import tk.com.sharemusic.network.response.LoginVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends CommonActivity {
 
     @BindView(R.id.et_name)
     EditText etName;
@@ -89,6 +89,8 @@ public class LoginActivity extends AppCompatActivity {
                 }
                 break;
             case R.id.tv_register:
+                Intent intent = new Intent(this,RegisterActivity.class);
+                startActivity(intent);
                 break;
             case R.id.tv_forget:
                 break;

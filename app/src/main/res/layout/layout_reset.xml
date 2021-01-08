@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/round_white_bg">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="title"
+        android:id="@+id/tv_title"
+        android:gravity="center"
+        android:padding="@dimen/dp_10"
+        android:textSize="@dimen/sp_18"/>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_1"
+        android:background="@color/lineGrey"/>
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_100"
+        android:id="@+id/et_content"
+        android:hint="用户名不超过6个字"
+        android:layout_margin="@dimen/dp_5"
+        android:background="@color/transWhite"
+        android:textColor="@color/textColorBlack"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="确定"
+        android:id="@+id/btn_commit"
+        android:enabled="false"/>
+</LinearLayout>

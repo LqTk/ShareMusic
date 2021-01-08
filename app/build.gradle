@@ -108,4 +108,10 @@ dependencies {
 
     //viewPager滑动小圆点
     implementation 'me.relex:circleindicator:2.1.4'
+
+    //3D滚轮控件
+    implementation 'com.contrarywind:Android-PickerView:4.1.9'
+
+    //自动换行布局
+    implementation 'com.google.android:flexbox:0.2.6'
 }

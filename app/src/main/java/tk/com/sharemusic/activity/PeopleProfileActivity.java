@@ -1,6 +1,7 @@
 package tk.com.sharemusic.activity;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -37,7 +38,7 @@ import tk.com.sharemusic.network.RxSchedulers;
 import tk.com.sharemusic.network.response.PeopleVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
 
-public class PeopleProfileActivity extends AppCompatActivity {
+public class PeopleProfileActivity extends CommonActivity {
 
     @BindView(R.id.rl_head)
     RelativeLayout rlHead;
@@ -66,6 +67,7 @@ public class PeopleProfileActivity extends AppCompatActivity {
     private NetWorkService service;
     private Context context;
     private String peopleId;
+    private boolean isOpenedChat = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +76,15 @@ public class PeopleProfileActivity extends AppCompatActivity {
         bind = ButterKnife.bind(this);
         service = HttpMethod.getInstance().create(NetWorkService.class);
         context = this;
+
+        String from = getIntent().getStringExtra("from");
+        if (!TextUtils.isEmpty(from)){
+            if (from.equals("chat")){
+                isOpenedChat = true;
+            }else {
+                isOpenedChat = false;
+            }
+        }
 
         initData();
     }
@@ -108,13 +119,23 @@ public class PeopleProfileActivity extends AppCompatActivity {
 
     @OnClick({R.id.rl_publish, R.id.tv_add, R.id.tv_chat})
     public void onViewClicked(View view) {
+        Intent intent;
         switch (view.getId()) {
             case R.id.rl_publish:
+                intent = new Intent(this, MyPublishActivity.class);
+                intent.putExtra("userId",peopleId);
+                startActivity(intent);
                 break;
             case R.id.tv_add:
                 addPartner();
                 break;
             case R.id.tv_chat:
+                if (!isOpenedChat){
+                    intent = new Intent(this,ChatActivity.class);
+                    intent.putExtra("partnerId",peopleId);
+                    startActivity(intent);
+                }
+                this.finish();
                 break;
         }
     }

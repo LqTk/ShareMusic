@@ -4,7 +4,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 import org.greenrobot.eventbus.EventBus;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import cn.jpush.android.api.CustomMessage;
 import cn.jpush.android.api.NotificationMessage;
@@ -16,9 +20,16 @@ public class PushMessageReceiver extends JPushMessageReceiver {
     @Override
     public void onMessage(Context context, CustomMessage customMessage) {
         super.onMessage(context, customMessage);
-        Log.d("pushSReceiver","onMessage message=="+customMessage);
+        Log.d("pushSReceiver","onMessage message=="+customMessage+",extra = "+customMessage.extra);
         if (customMessage.title.equals("有新消息")){
-            EventBus.getDefault().post(new RefreshChatListEvent());
+            String talkId = "";
+            try {
+                JSONObject object = new JSONObject(customMessage.extra);
+                talkId = (String)object.get("talkId");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            EventBus.getDefault().post(new RefreshChatListEvent(talkId));
             EventBus.getDefault().post(new RefreshPartnerMsgEvent());
         }
     }

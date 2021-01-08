@@ -77,6 +77,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/dp_10"
                     android:text="这是个人描述"
+                    android:maxLines="4"
+                    android:ellipsize="end"
                     android:textSize="@dimen/sp_15" />
             </LinearLayout>
 

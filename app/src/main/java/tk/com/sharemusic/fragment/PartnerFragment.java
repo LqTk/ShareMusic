@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -58,7 +60,10 @@ public class PartnerFragment extends Fragment {
     private Unbinder bind;
     private NetWorkService service;
     private PartnerAdapter adapter;
+    private View emptyView;
     private List<MsgEntity> peopleEntities = new ArrayList<>();
+    private TextView tvEmptyDes;
+    private ImageView ivShow;
 
     public PartnerFragment() {
         // Required empty public constructor
@@ -100,6 +105,11 @@ public class PartnerFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         service = HttpMethod.getInstance().create(NetWorkService.class);
+        emptyView = LayoutInflater.from(getContext()).inflate(R.layout.layout_empty,null);
+        tvEmptyDes = emptyView.findViewById(R.id.tv_empty_des);
+        ivShow = emptyView.findViewById(R.id.iv_show);
+        ivShow.setImageResource(R.drawable.partner_bg);
+        tvEmptyDes.setText("暂时没有好友哟~\n快去添加吧");
 
         EventBus.getDefault().register(this);
         initView();
@@ -141,6 +151,7 @@ public class PartnerFragment extends Fragment {
         adapter = new PartnerAdapter(R.layout.partner_item_layout,peopleEntities);
         rcvPart.setAdapter(adapter);
 
+        adapter.setEmptyView(emptyView);
         adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(@NonNull BaseQuickAdapter<?, ?> adapter, @NonNull View view, int position) {

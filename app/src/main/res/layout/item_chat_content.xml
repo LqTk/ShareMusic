@@ -55,7 +55,7 @@
             <RelativeLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_10"
+                android:layout_marginTop="@dimen/dp_5"
                 android:layout_below="@+id/tv_time">
 
                 <TextView
@@ -64,10 +64,12 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentRight="true"
                     android:background="@drawable/ic_dialogbox"
-                    android:gravity="center"
-                    android:text="d"
-                    android:paddingLeft="@dimen/dp_5"
-                    android:paddingRight="@dimen/dp_15"
+                    android:gravity="left"
+                    android:text=""
+                    android:paddingLeft="@dimen/dp_10"
+                    android:paddingTop="@dimen/dp_15"
+                    android:paddingBottom="@dimen/dp_10"
+                    android:paddingRight="@dimen/dp_30"
                     android:textColor="@color/white"
                     android:textSize="@dimen/sp_14"
                     android:visibility="visible"/>
@@ -83,6 +85,10 @@
                     android:gravity="center"
                     android:singleLine="true"
                     android:text="1'"
+                    android:paddingLeft="@dimen/dp_10"
+                    android:paddingTop="@dimen/dp_15"
+                    android:paddingBottom="@dimen/dp_10"
+                    android:paddingRight="@dimen/dp_30"
                     android:textColor="@color/white"
                     android:textSize="@dimen/sp_14"
                     android:visibility="gone"/>
@@ -157,10 +163,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/ic_dialogbox2"
-                    android:gravity="center"
+                    android:gravity="left"
                     android:text=""
-                    android:paddingRight="@dimen/dp_5"
+                    android:paddingTop="@dimen/dp_15"
                     android:paddingLeft="@dimen/dp_15"
+                    android:paddingRight="@dimen/dp_5"
+                    android:paddingBottom="@dimen/dp_10"
                     android:textColor="@color/textColorGrey"
                     android:textSize="@dimen/sp_14"
                     android:visibility="visible"/>
@@ -175,6 +183,10 @@
                     android:gravity="center|right"
                     android:singleLine="true"
                     android:text="1'"
+                    android:paddingTop="@dimen/dp_15"
+                    android:paddingLeft="@dimen/dp_15"
+                    android:paddingRight="@dimen/dp_5"
+                    android:paddingBottom="@dimen/dp_10"
                     android:textColor="@color/textColorGrey"
                     android:textSize="@dimen/sp_14"
                     android:visibility="gone"/>

@@ -38,8 +38,12 @@ import tk.com.sharemusic.network.RxSchedulers;
 import tk.com.sharemusic.network.response.GetPublicDataShareIdVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends CommonActivity {
 
+    public static int PAGE_PARTNER = 0;
+    public static int PAGE_PUBLIC = 1;
+    public static int PAGE_MESSAGE = 2;
+    public static int PAGE_MINE = 3;
     private List<Fragment> fragments = new ArrayList<>();
     private String[] navTitle = {"好友","公场","消息","我的"};
 

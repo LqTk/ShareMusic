@@ -46,4 +46,25 @@ public class ChatListAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder
             baseViewHolder.setText(R.id.tv_partner_chat, chatEntity.msgContent);
         }
     }
+
+    @Override
+    protected void convert(@NotNull BaseViewHolder holder, ChatEntity item, @NotNull List<?> payloads) {
+        if (payloads.isEmpty()){
+            convert(holder,item);
+            return;
+        }
+        for (Object payload:payloads){
+            switch (String.valueOf(payload)){
+                case "des":
+                    if (item.msgType.equals(Constants.MODE_IMAGE)) {
+                        holder.setText(R.id.tv_partner_chat, "[图片]");
+                    }else if (item.msgType.equals(Constants.MODE_VOICE)){
+                        holder.setText(R.id.tv_partner_chat, "[语音]");
+                    }else {
+                        holder.setText(R.id.tv_partner_chat, item.msgContent);
+                    }
+                    break;
+            }
+        }
+    }
 }

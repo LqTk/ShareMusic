@@ -4,35 +4,35 @@ import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.config.Constants;
 
 public class ChatEntity {
-    public String chatid;
+    public String chatId;
 
     public String msgContent;
 
     public String msgType = Constants.MODE_TEXT; //
 
-    public String voicetime;
+    public String voiceTime;
     public String senderId;
     public String senderAvatar;
     public String senderName;
-    public long chattime;
+    public long chatTime;
 
-    public ChatEntity(String chatid, String msgContent, String msgType, String voicetime, String senderId, String senderAvatar, String senderName, long chattime) {
-        this.chatid = chatid;
+    public ChatEntity(String chatId, String msgContent, String msgType, String voiceTime, String senderId, String senderAvatar, String senderName, long chatTime) {
+        this.chatId = chatId;
         this.msgContent = msgContent;
         this.msgType = msgType;
-        this.voicetime = voicetime;
+        this.voiceTime = voiceTime;
         this.senderId = senderId;
         this.senderAvatar = senderAvatar;
         this.senderName = senderName;
-        this.chattime = chattime;
+        this.chatTime = chatTime;
     }
 
-    public String getChatid() {
-        return chatid;
+    public String getChatId() {
+        return chatId;
     }
 
-    public void setChatid(String chatid) {
-        this.chatid = chatid;
+    public void setChatId(String chatId) {
+        this.chatId = chatId;
     }
 
     public String getMsgContent() {
@@ -51,12 +51,12 @@ public class ChatEntity {
         this.msgType = msgType;
     }
 
-    public String getVoicetime() {
-        return voicetime;
+    public String getVoiceTime() {
+        return voiceTime;
     }
 
-    public void setVoicetime(String voicetime) {
-        this.voicetime = voicetime;
+    public void setVoiceTime(String voiceTime) {
+        this.voiceTime = voiceTime;
     }
 
     public String getSenderId() {
@@ -83,12 +83,12 @@ public class ChatEntity {
         this.senderName = senderName;
     }
 
-    public long getChattime() {
-        return chattime;
+    public long getChatTime() {
+        return chatTime;
     }
 
-    public void setChattime(long chattime) {
-        this.chattime = chattime;
+    public void setChatTime(long chatTime) {
+        this.chatTime = chatTime;
     }
 
     private boolean isMyContent = false;

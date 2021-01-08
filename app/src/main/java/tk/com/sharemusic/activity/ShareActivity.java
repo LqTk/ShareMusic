@@ -30,7 +30,7 @@ import tk.com.sharemusic.network.RxSchedulers;
 import tk.com.sharemusic.network.response.GetPublicDataShareIdVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
 
-public class ShareActivity extends AppCompatActivity {
+public class ShareActivity extends CommonActivity {
 
     @BindView(R.id.et_context)
     EditText etContext;
@@ -106,7 +106,7 @@ public class ShareActivity extends AppCompatActivity {
             return;
         }
         SocialPublicEntity socialPublicEntity = new SocialPublicEntity(user.getUserId(),user.getUserName(),
-                user.getHeadImg(),user.getSex(),title,url,string,1,0,0);
+                user.getHeadImg(),user.getSex(),title,url,string,1,new ArrayList<>(),new ArrayList<>());
         upLoadSocialPublid(socialPublicEntity);
     }
 

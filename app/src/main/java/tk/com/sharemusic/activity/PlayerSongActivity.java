@@ -20,7 +20,7 @@ import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import tk.com.sharemusic.R;
 
-public class PlayerSongActivity extends AppCompatActivity {
+public class PlayerSongActivity extends CommonActivity {
 
     @BindView(R.id.web)
     WebView web;

@@ -8,13 +8,16 @@ import android.graphics.drawable.AnimationDrawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
@@ -24,10 +27,14 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.chad.library.adapter.base.listener.OnItemChildClickListener;
 import com.luck.picture.lib.PictureSelector;
 import com.luck.picture.lib.config.PictureConfig;
 import com.luck.picture.lib.entity.LocalMedia;
@@ -64,9 +71,10 @@ import tk.com.sharemusic.entity.ChatEntity;
 import tk.com.sharemusic.entity.HeadItem;
 import tk.com.sharemusic.entity.MsgEntity;
 import tk.com.sharemusic.entity.User;
+import tk.com.sharemusic.event.MyChatEntityEvent;
 import tk.com.sharemusic.event.RefreshPartnerMsgEvent;
+import tk.com.sharemusic.myview.dialog.ImgPreviewDIalog;
 import tk.com.sharemusic.myview.dialog.PagerMenuGridPicker;
-import tk.com.sharemusic.network.BaseResult;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
 import tk.com.sharemusic.network.RxSchedulers;
@@ -74,9 +82,14 @@ import tk.com.sharemusic.network.response.ChatListVo;
 import tk.com.sharemusic.network.response.PeopleVo;
 import tk.com.sharemusic.network.response.SendMsgVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
+import tk.com.sharemusic.utils.Config;
+import tk.com.sharemusic.utils.DownloadVoiceManager;
+import tk.com.sharemusic.utils.IConfig;
 import tk.com.sharemusic.utils.PopWinUtil;
+import tk.com.sharemusic.utils.PreferenceConfig;
+import tk.com.sharemusic.utils.SaveFileUtil;
 
-public class ChatActivity extends AppCompatActivity {
+public class ChatActivity extends CommonActivity {
 
     @BindView(R.id.btn_back)
     ImageView btnBack;
@@ -151,6 +164,7 @@ public class ChatActivity extends AppCompatActivity {
     private User user;
     private List<ChatEntity> chatLists = new ArrayList<>();
     private ChatAdapter chatAdapter;
+    private PreferenceConfig preferenceConfig;
 
     class CountdownHandler extends Handler {
         private final WeakReference<ChatActivity> mActivity;
@@ -177,11 +191,19 @@ public class ChatActivity extends AppCompatActivity {
         setContentView(R.layout.layout_chat);
         bind = ButterKnife.bind(this);
         EventBus.getDefault().register(this);
+        mContext = this;
         service = HttpMethod.getInstance().create(NetWorkService.class);
+        preferenceConfig = ShareApplication.getInstance().getConfig();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermission(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA
                     , Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE});
         }
+
+        user = ShareApplication.getUser();
+        reLogin();
+        partnerId = getIntent().getStringExtra("partnerId");
+
+        chatLists = preferenceConfig.getArrayList(user.getUserId()+partnerId+Config.CHAT_PARTNER_LIST,ChatEntity.class);
 
         initView();
         initData();
@@ -203,13 +225,12 @@ public class ChatActivity extends AppCompatActivity {
                         refreshView.finishRefresh();
                         refreshView.finishLoadMore();
                         List<ChatEntity> voData = chatListVo.getData();
-                        if (firstLoad){
-                            chatLists.clear();
-                        }
                         if (voData!=null && voData.size()>0) {
                             chatLists.addAll(voData);
+                            saveData();
                         }
                         chatAdapter.notifyDataSetChanged();
+                        rcvChat.smoothScrollToPosition(chatLists.size());
                     }
 
                     @Override
@@ -219,6 +240,10 @@ public class ChatActivity extends AppCompatActivity {
                         refreshView.finishLoadMore();
                     }
                 });
+    }
+
+    private void saveData(){
+        preferenceConfig.setObject(user.getUserId()+partnerId+Config.CHAT_PARTNER_LIST,chatLists);
     }
 
     private void initView() {
@@ -252,6 +277,54 @@ public class ChatActivity extends AppCompatActivity {
         chatAdapter = new ChatAdapter(R.layout.item_chat_content, chatLists);
         chatAdapter.addChildClickViewIds(R.id.tv_voice,R.id.tv_voice_left,R.id.iv_pic,R.id.iv_pic_left);
         rcvChat.setAdapter(chatAdapter);
+        chatAdapter.setOnItemChildClickListener(new OnItemChildClickListener() {
+            @Override
+            public void onItemChildClick(@NonNull BaseQuickAdapter adapter, @NonNull View view, int position) {
+                switch (view.getId()){
+                    case R.id.tv_voice:
+                    case R.id.tv_voice_left:
+                        String url = chatLists.get(position).getMsgContent();
+                        String fileName = url.split("/")[2];
+                        File voiceFile =  SaveFileUtil.getVoiceFile(mContext,user.getUserId(),partnerId);
+                        File file = new File(voiceFile, fileName);
+                        if (file.exists()){
+                            play(file.getAbsolutePath());
+                        }else {
+                            DownloadVoiceManager voiceManager = new DownloadVoiceManager(mContext);
+                            voiceManager.setOnDownloadFinishListener(new DownloadVoiceManager.OnDownloadFinishListener() {
+                                @Override
+                                public void onDownloadSuccess(String path) {
+                                    play(path);
+                                }
+
+                                @Override
+                                public void onDownloadFailed() {
+                                    Toast.makeText(mContext,"加载语音失败!",Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    voiceManager.download(NetWorkService.homeUrl,url,user.getUserId(),partnerId);
+                                }
+                            }).start();
+                        }
+                        break;
+                    case R.id.iv_pic:
+                    case R.id.iv_pic_left:
+                        ImgPreviewDIalog dialog = new ImgPreviewDIalog(mContext);
+                        dialog.setPhotoViewClick(new ImgPreviewDIalog.PhotoViewClick() {
+                            @Override
+                            public void ImgClick() {
+                                dialog.dismiss();
+                            }
+                        });
+                        dialog.setImageView(chatLists.get(position).getMsgContent());
+                        dialog.show();
+                        break;
+                }
+            }
+        });
     }
 
     private void reLogin(){
@@ -265,14 +338,9 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void initData() {
-        mContext = this;
         uiPopWinUtil = new PopWinUtil(this);
         uiPopWinUtil.setShade(false);
 
-        user = ShareApplication.getUser();
-        reLogin();
-
-        partnerId = getIntent().getStringExtra("partnerId");
         if (TextUtils.isEmpty(partnerId))
             return;
         service.getPeopleInfo(partnerId)
@@ -315,11 +383,11 @@ public class ChatActivity extends AppCompatActivity {
 
                 mMediaPlayer.reset();
                 mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-               /* try {
-                    mMediaPlayer.setDataSource(mContext, uri, header);
+                try {
+                    mMediaPlayer.setDataSource(url);
                 } catch (IOException e) {
                     e.printStackTrace();
-                }*/
+                }
                 mMediaPlayer.prepare();
                 mMediaPlayer.start();
                 mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
@@ -374,12 +442,12 @@ public class ChatActivity extends AppCompatActivity {
         mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        if (!new File(Constants.DEFAULT_SAVE_FILE_PATH).exists()) {
-            new File(Constants.DEFAULT_SAVE_FILE_PATH).mkdirs();
+        if(!SaveFileUtil.getVoiceFile(mContext,user.getUserId(),partnerId).exists()){
+            SaveFileUtil.getVoiceFile(mContext,user.getUserId(),partnerId).mkdirs();
         }
         try {
-            tmpFileName = fileName + System.currentTimeMillis();
-            iRecAudioFile = File.createTempFile(tmpFileName, ".mp3", new File(Constants.DEFAULT_SAVE_FILE_PATH));
+            tmpFileName = user.getUserId()+System.currentTimeMillis();
+            iRecAudioFile = File.createTempFile(tmpFileName, ".mp3", SaveFileUtil.getVoiceFile(mContext,user.getUserId(),partnerId));
             mRecorder.setOutputFile(iRecAudioFile.getAbsolutePath());
 
             mRecorder.prepare();
@@ -434,11 +502,19 @@ public class ChatActivity extends AppCompatActivity {
         Observable<SendMsgVo> baseResultObservable = null;
         switch (msgType){
             case Constants.MODE_IMAGE:
+                if (TextUtils.isEmpty(content)){
+                    Toast.makeText(mContext,"获取失败",Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 part = getFilePart(content);
                 baseResultObservable = service.sendMsg(map,part);
                 break;
             case Constants.MODE_VOICE:
                 map.put("voicetime",voiceTime);
+                if (TextUtils.isEmpty(content)){
+                    Toast.makeText(mContext,"获取失败",Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 part = getFilePart(content);
                 baseResultObservable = service.sendMsg(map,part);
                 break;
@@ -451,9 +527,13 @@ public class ChatActivity extends AppCompatActivity {
                 .subscribe(new BaseObserver<SendMsgVo>() {
                     @Override
                     public void onSuccess(SendMsgVo baseResult) {
+                        ChatEntity data = baseResult.getData();
                         Toast.makeText(mContext,"消息发送成功",Toast.LENGTH_SHORT).show();
                         chatLists.add(baseResult.getData());
+                        EventBus.getDefault().post(new MyChatEntityEvent(data,partnerInfo));
+                        saveData();
                         chatAdapter.notifyDataSetChanged();
+                        rcvChat.smoothScrollToPosition(chatLists.size());
                     }
 
                     @Override
@@ -464,6 +544,7 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private MultipartBody.Part getFilePart(String path) {
+        Log.d("picFile",path);
         File file = new File(path);
         RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
         MultipartBody.Part part = MultipartBody.Part.createFormData("file", file.getName(), requestFile);
@@ -534,10 +615,10 @@ public class ChatActivity extends AppCompatActivity {
                                     requestPermissions(PERMISSIONS, Constants.PERMISSION_REQUEST_CODE);
                                     openType = Constants.IMAGE_TAKE_PHOTO;
                                 } else {
-                                    ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_PHOTO, mContext);
+                                    ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_PHOTO, mContext, false);
                                 }
                             } else {
-                                ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_PHOTO, mContext);
+                                ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_PHOTO, mContext, false);
                             }
                             break;
                         case Constants.IMAGE_CHOOSE_FROM_ALBUM:
@@ -547,10 +628,10 @@ public class ChatActivity extends AppCompatActivity {
                                     requestPermissions(PERMISSIONS, Constants.PERMISSION_REQUEST_CODE);
                                     openType = Constants.IMAGE_CHOOSE_FROM_ALBUM;
                                 } else {
-                                    ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_ALBUM, mContext);
+                                    ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_ALBUM, mContext, false);
                                 }
                             } else {
-                                ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_ALBUM, mContext);
+                                ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_ALBUM, mContext, false);
                             }
                             break;
                     }
@@ -601,6 +682,10 @@ public class ChatActivity extends AppCompatActivity {
                 finish();
                 break;
             case R.id.btn_profile:
+                Intent intent1 = new Intent(mContext, PeopleProfileActivity.class);
+                intent1.putExtra("peopleId", partnerId);
+                intent1.putExtra("from","chat");
+                startActivity(intent1);
                 break;
             case R.id.refresh_view:
                 break;
@@ -681,7 +766,11 @@ public class ChatActivity extends AppCompatActivity {
                 // 2.media.getCutPath();为裁剪后path，需判断media.isCut();是否为true  注意：音视频除外
                 // 3.media.getCompressPath();为压缩后path，需判断media.isCompressed();是否为true  注意：音视频除外
                 // 如果裁剪并压缩了，以取压缩路径为准，因为是先裁剪后压缩的
-                imgPath = selectList.get(0).getCutPath();
+                if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.Q) {
+                    imgPath = selectList.get(0).getAndroidQToPath();
+                }else {
+                    imgPath = selectList.get(0).getPath();
+                }
                 send(Constants.MODE_IMAGE, imgPath, "");
                 break;
             case Constants.PERMISSION_REQUEST_CODE:
@@ -691,10 +780,10 @@ public class ChatActivity extends AppCompatActivity {
                     } else {
                         switch (openType) {
                             case Constants.IMAGE_TAKE_PHOTO:
-                                ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_PHOTO, mContext);
+                                ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_PHOTO, mContext, false);
                                 break;
                             case Constants.IMAGE_CHOOSE_FROM_ALBUM:
-                                ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_ALBUM, mContext);
+                                ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_ALBUM, mContext, false);
                                 break;
                         }
                     }

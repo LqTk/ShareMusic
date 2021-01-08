@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="@dimen/dp_10">
 
     <View
         android:layout_width="match_parent"
@@ -12,22 +13,34 @@
         android:id="@+id/ll_share_people"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="@dimen/dp_10">
+        android:orientation="horizontal">
         <tk.com.sharemusic.myview.CircleImage
             android:layout_width="@dimen/dp_50"
             android:layout_height="@dimen/dp_50"
             android:src="@drawable/default_head_boy"
             android:id="@+id/iv_head"/>
-        <TextView
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/tv_name"
-            android:textSize="@dimen/sp_18"
-            android:layout_gravity="center_vertical"
-            android:textColor="@color/textColorBlack"
-            android:text="王小二"
-            android:layout_marginLeft="@dimen/dp_20"/>
+            android:orientation="vertical"
+            android:layout_marginLeft="@dimen/dp_20"
+            android:layout_gravity="center_vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/tv_name"
+                android:textSize="@dimen/sp_18"
+                android:textColor="@color/textColorBlack"
+                android:text="王小二"/>
+            <TextView
+                android:id="@+id/tv_time"
+                android:layout_marginTop="@dimen/dp_5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/main_grey"
+                android:text="刚刚"
+                android:textSize="@dimen/sp_12"/>
+        </LinearLayout>
     </LinearLayout>
     <LinearLayout
         android:id="@+id/ll_share_content"
@@ -50,5 +63,40 @@
             android:textColor="@color/textColorGrey"
             android:textSize="@dimen/sp_12"
             android:text="我是王小二"/>
+    </LinearLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentRight="true">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/goods_bg"/>
+            <ImageView
+                android:layout_marginLeft="@dimen/dp_20"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/review_bg"/>
+            <ImageView
+                android:layout_marginLeft="@dimen/dp_20"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/share_bg"/>
+        </LinearLayout>
+    </RelativeLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/dp_5"
+        android:background="@color/whiteBg">
+        <com.google.android.flexbox.FlexboxLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/flex_good"/>
     </LinearLayout>
 </LinearLayout>

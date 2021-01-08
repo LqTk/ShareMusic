@@ -15,6 +15,7 @@ import retrofit2.http.Part;
 import retrofit2.http.Path;
 import retrofit2.http.QueryMap;
 import tk.com.sharemusic.entity.SocialPublicEntity;
+import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.network.response.ChatListVo;
 import tk.com.sharemusic.network.response.GetPublicDataShareIdVo;
 import tk.com.sharemusic.network.response.GetPublicDataTenVo;
@@ -25,11 +26,18 @@ import tk.com.sharemusic.network.response.SendMsgVo;
 import tk.com.sharemusic.network.response.UpLoadHeadVo;
 
 public interface NetWorkService {
-    public static String homeUrl = "http://192.168.2.196:8080/";
+//    public static String homeUrl = "http://192.168.2.196:8080/";
+    public static String homeUrl = "http://192.168.2.162:8080/";
     public static String BaseUrl = homeUrl+"SocialService/";
 
     @POST("user/login")
     Observable<LoginVo> login(@Body Map<String,String> map);
+
+    @POST("user/register")
+    Observable<BaseResult> register(@Body Map user);
+
+    @POST("user/updataInfo")
+    Observable<BaseResult> updataInfo(@Body Map map);
 
     @Multipart
     @POST("user/uploadHead")

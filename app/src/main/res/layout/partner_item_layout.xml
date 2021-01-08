@@ -38,6 +38,8 @@
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/sp_12"
                 android:text="挨打的"
+                android:maxLines="1"
+                android:ellipsize="end"
                 android:textColor="@color/textColorGrey"/>
         </LinearLayout>
     </LinearLayout>

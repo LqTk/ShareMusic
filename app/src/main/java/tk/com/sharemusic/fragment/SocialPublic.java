@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -35,11 +36,14 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
 import tk.com.sharemusic.R;
+import tk.com.sharemusic.ShareApplication;
+import tk.com.sharemusic.activity.MainActivity;
 import tk.com.sharemusic.activity.PeopleProfileActivity;
 import tk.com.sharemusic.activity.PlayerSongActivity;
 import tk.com.sharemusic.activity.ShareActivity;
 import tk.com.sharemusic.adapter.PublicSocialAdapter;
 import tk.com.sharemusic.entity.SocialPublicEntity;
+import tk.com.sharemusic.event.ChangeFragmentEvent;
 import tk.com.sharemusic.event.RefreshPublicData;
 import tk.com.sharemusic.event.UpLoadSocialSuccess;
 import tk.com.sharemusic.network.HttpMethod;
@@ -85,6 +89,9 @@ public class SocialPublic extends Fragment {
         }
     };
     private boolean noMore = false;
+    private View emptyView;
+    private TextView tvEmptyDes;
+    private ImageView ivShow;
 
     public SocialPublic() {
         // Required empty public constructor
@@ -125,6 +132,20 @@ public class SocialPublic extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         service = HttpMethod.getInstance().create(NetWorkService.class);
+        emptyView = LayoutInflater.from(getContext()).inflate(R.layout.layout_empty,null);
+        tvEmptyDes = emptyView.findViewById(R.id.tv_empty_des);
+        ivShow = emptyView.findViewById(R.id.iv_show);
+        ivShow.setBackground(getResources().getDrawable(R.drawable.add_publish));
+        ivShow.setImageResource(android.R.drawable.ic_input_add);
+        tvEmptyDes.setText("暂无人分享~\n去分享一个吧~");
+        ivShow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent1 = new Intent(getContext(), ShareActivity.class);
+                intent1.putExtra("sharetext","");
+                startActivity(intent1);
+            }
+        });
         initView();
         initRecyView();
         initData(true);
@@ -197,20 +218,26 @@ public class SocialPublic extends Fragment {
 
         cyclerView.setAdapter(socialAdapter);
 
+        socialAdapter.setEmptyView(emptyView);
         socialAdapter.addChildClickViewIds(R.id.ll_share_content,R.id.ll_share_people);
         socialAdapter.setOnItemChildClickListener(new OnItemChildClickListener() {
             @Override
             public void onItemChildClick(@NonNull BaseQuickAdapter adapter, @NonNull View view, int position) {
                 switch (view.getId()){
                     case R.id.ll_share_people:
+                        if (entityList.get(position).getUserId().equals(ShareApplication.user.getUserId())){
+                            EventBus.getDefault().post(new ChangeFragmentEvent(MainActivity.PAGE_MINE));
+                            return;
+                        }
                         Intent intent1 = new Intent(getContext(), PeopleProfileActivity.class);
-                        intent1.putExtra("peopleId", entityList.get(position).getUserid());
+                        intent1.putExtra("peopleId", entityList.get(position).getUserId());
+                        intent1.putExtra("from","public");
                         startActivity(intent1);
                         break;
                     case R.id.ll_share_content:
                         SocialPublicEntity socialPublicEntity = entityList.get(position);
                         Intent intent = new Intent(getContext(), PlayerSongActivity.class);
-                        intent.putExtra("url", socialPublicEntity.getShareurl());
+                        intent.putExtra("url", socialPublicEntity.getShareUrl());
                         startActivity(intent);
                         break;
                 }
@@ -235,7 +262,8 @@ public class SocialPublic extends Fragment {
     @Subscribe
     public void refreshSuccessData(UpLoadSocialSuccess event) {
         if (event != null) {
-            entityList.add(event.socialPublicEntity);
+            entityList.add(0,event.socialPublicEntity);
+//            entityList.add(event.socialPublicEntity);
             mHandler.sendEmptyMessage(0);
         }
     }

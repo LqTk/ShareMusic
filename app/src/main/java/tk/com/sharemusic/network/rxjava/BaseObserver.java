@@ -1,12 +1,23 @@
 package tk.com.sharemusic.network.rxjava;
 
 import android.content.Context;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
@@ -36,8 +47,29 @@ public abstract class BaseObserver<T> implements Observer<T> {
 
     @Override
     public void onNext(T t) {
-        String json = new Gson().toJson(t);
-        BaseResult baseResult = new Gson().fromJson(json,BaseResult.class);
+        Gson gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.STATIC,
+                Modifier.TRANSIENT,
+                Modifier.VOLATILE)
+                .registerTypeAdapter(Date.class,
+                        new JsonDeserializer<Date>() {
+                            public Date deserialize(JsonElement json,
+                                                    Type typeOfT,
+                                                    JsonDeserializationContext context) throws JsonParseException {
+                                /*SimpleDateFormat format = new SimpleDateFormat(pattern);
+                                String dateStr = json.getAsString();
+                                try {
+                                    return format.parse(dateStr);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                    Log.w("***response error***", e.getMessage());
+                                }
+                                return null;*/
+                                return new Date(json.getAsJsonPrimitive().getAsLong());
+                            }
+                        })
+                .create();
+        String json = gson.toJson(t);
+        BaseResult baseResult = gson.fromJson(json,BaseResult.class);
         if (baseResult.getStatus()==0){
             onSuccess(t);
         }else {

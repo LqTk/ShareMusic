@@ -12,6 +12,12 @@
         <item name="windowNoTitle">true</item>
         <item name="android:windowBackground">@color/picture_color_transparent</item>
     </style>
+
+    <style name="imgPreviewDialog" parent="ThemeOverlay.AppCompat.Dark">
+        <item name="android:windowFrame">@null</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/picture_color_black</item>
+    </style>
     <style name="popuStyle">
         <item name="android:windowEnterAnimation">@anim/popup_anim_in</item>
         <item name="android:windowExitAnimation">@anim/popup_anim_out</item>

@@ -1,144 +1,157 @@
 package tk.com.sharemusic.entity;
 
+import java.util.Date;
+import java.util.List;
+
 public class SocialPublicEntity {
-    private String shareid;
+    private String shareId;
 
-    private String userid;
+    private String userId;
 
-    private String username;
+    private String userName;
 
-    private String userhead;
+    private String userHead;
 
-    private Integer usersex;
+    private Integer userSex;
 
-    private String sharename;
+    private String shareName;
 
-    private String shareurl;
+    private String shareUrl;
 
-    private String sharetext;
+    private String shareText;
 
-    private Integer ispublic;
+    private long createTime;
 
-    private Integer goodscount;
+    private Integer isPublic;
 
-    private Integer reviewcount;
+    private List<GoodsEntity> goodsList;
 
-    public SocialPublicEntity(String shareid, String userid, String username, String userhead, Integer usersex, String sharename, String shareurl, String sharetext, Integer ispublic, Integer goodscount, Integer reviewcount) {
-        this.shareid = shareid;
-        this.userid = userid;
-        this.username = username;
-        this.userhead = userhead;
-        this.usersex = usersex;
-        this.sharename = sharename;
-        this.shareurl = shareurl;
-        this.sharetext = sharetext;
-        this.ispublic = ispublic;
-        this.goodscount = goodscount;
-        this.reviewcount = reviewcount;
+    private List<ReviewEntity> reviewEntities;
+
+    public SocialPublicEntity(String shareId, String userId, String userName, String userHead, Integer userSex, String shareName, String shareUrl, String shareText, long createTime, Integer isPublic, List<GoodsEntity> goodsList, List<ReviewEntity> reviewEntities) {
+        this.shareId = shareId;
+        this.userId = userId;
+        this.userName = userName;
+        this.userHead = userHead;
+        this.userSex = userSex;
+        this.shareName = shareName;
+        this.shareUrl = shareUrl;
+        this.shareText = shareText;
+        this.createTime = createTime;
+        this.isPublic = isPublic;
+        this.goodsList = goodsList;
+        this.reviewEntities = reviewEntities;
     }
 
-    public SocialPublicEntity(String userid, String username, String userhead, Integer usersex, String sharename, String shareurl, String sharetext, Integer ispublic, Integer goodscount, Integer reviewcount) {
-        this.userid = userid;
-        this.username = username;
-        this.userhead = userhead;
-        this.usersex = usersex;
-        this.sharename = sharename;
-        this.shareurl = shareurl;
-        this.sharetext = sharetext;
-        this.ispublic = ispublic;
-        this.goodscount = goodscount;
-        this.reviewcount = reviewcount;
+    public SocialPublicEntity(String userId, String userName, String userHead, Integer userSex, String shareName, String shareUrl, String shareText, Integer isPublic, List<GoodsEntity> goodsList, List<ReviewEntity> reviewEntities) {
+        this.userId = userId;
+        this.userName = userName;
+        this.userHead = userHead;
+        this.userSex = userSex;
+        this.shareName = shareName;
+        this.shareUrl = shareUrl;
+        this.shareText = shareText;
+        this.isPublic = isPublic;
+        this.goodsList = goodsList;
+        this.reviewEntities = reviewEntities;
     }
 
     public SocialPublicEntity() {
-        super();
     }
 
-    public String getShareid() {
-        return shareid;
+    public String getShareId() {
+        return shareId;
     }
 
-    public void setShareid(String shareid) {
-        this.shareid = shareid == null ? null : shareid.trim();
+    public void setShareId(String shareId) {
+        this.shareId = shareId;
     }
 
-    public String getUserid() {
-        return userid;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setUserid(String userid) {
-        this.userid = userid == null ? null : userid.trim();
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
-    public String getUsername() {
-        return username;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setUsername(String username) {
-        this.username = username == null ? null : username.trim();
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
-    public String getUserhead() {
-        return userhead;
+    public String getUserHead() {
+        return userHead;
     }
 
-    public void setUserhead(String userhead) {
-        this.userhead = userhead == null ? null : userhead.trim();
+    public void setUserHead(String userHead) {
+        this.userHead = userHead;
     }
 
-    public Integer getUsersex() {
-        return usersex;
+    public Integer getUserSex() {
+        return userSex;
     }
 
-    public void setUsersex(Integer usersex) {
-        this.usersex = usersex;
+    public void setUserSex(Integer userSex) {
+        this.userSex = userSex;
     }
 
-    public String getSharename() {
-        return sharename;
+    public String getShareName() {
+        return shareName;
     }
 
-    public void setSharename(String sharename) {
-        this.sharename = sharename == null ? null : sharename.trim();
+    public void setShareName(String shareName) {
+        this.shareName = shareName;
     }
 
-    public String getShareurl() {
-        return shareurl;
+    public String getShareUrl() {
+        return shareUrl;
     }
 
-    public void setShareurl(String shareurl) {
-        this.shareurl = shareurl == null ? null : shareurl.trim();
+    public void setShareUrl(String shareUrl) {
+        this.shareUrl = shareUrl;
     }
 
-    public String getSharetext() {
-        return sharetext;
+    public String getShareText() {
+        return shareText;
     }
 
-    public void setSharetext(String sharetext) {
-        this.sharetext = sharetext == null ? null : sharetext.trim();
+    public void setShareText(String shareText) {
+        this.shareText = shareText;
     }
 
-    public Integer getIspublic() {
-        return ispublic;
+    public long getCreateTime() {
+        return createTime;
     }
 
-    public void setIspublic(Integer ispublic) {
-        this.ispublic = ispublic;
+    public void setCreateTime(long createTime) {
+        this.createTime = createTime;
     }
 
-    public Integer getGoodscount() {
-        return goodscount;
+    public Integer getIsPublic() {
+        return isPublic;
     }
 
-    public void setGoodscount(Integer goodscount) {
-        this.goodscount = goodscount;
+    public void setIsPublic(Integer isPublic) {
+        this.isPublic = isPublic;
     }
 
-    public Integer getReviewcount() {
-        return reviewcount;
+    public List<GoodsEntity> getGoodsList() {
+        return goodsList;
     }
 
-    public void setReviewcount(Integer reviewcount) {
-        this.reviewcount = reviewcount;
+    public void setGoodsList(List<GoodsEntity> goodsList) {
+        this.goodsList = goodsList;
+    }
+
+    public List<ReviewEntity> getReviewEntities() {
+        return reviewEntities;
+    }
+
+    public void setReviewEntities(List<ReviewEntity> reviewEntities) {
+        this.reviewEntities = reviewEntities;
     }
 }

@@ -2,15 +2,21 @@ package tk.com.sharemusic.fragment;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Layout;
 import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -20,6 +26,9 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 
+import com.bigkoo.pickerview.builder.TimePickerBuilder;
+import com.bigkoo.pickerview.listener.OnTimeSelectListener;
+import com.bigkoo.pickerview.view.TimePickerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.Request;
 import com.bumptech.glide.request.RequestOptions;
@@ -29,8 +38,11 @@ import com.luck.picture.lib.config.PictureMimeType;
 import com.luck.picture.lib.entity.LocalMedia;
 
 import java.io.File;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -48,11 +60,14 @@ import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.enums.Gender;
 import tk.com.sharemusic.myview.CircleImage;
 import tk.com.sharemusic.myview.dialog.CommonDialog;
+import tk.com.sharemusic.myview.dialog.ResetDialog;
+import tk.com.sharemusic.network.BaseResult;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
 import tk.com.sharemusic.network.RxSchedulers;
 import tk.com.sharemusic.network.response.UpLoadHeadVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
+import tk.com.sharemusic.utils.DateUtil;
 import tk.com.sharemusic.utils.GlideEngine;
 import tk.com.sharemusic.utils.StringUtils;
 
@@ -79,6 +94,8 @@ public class MineFragment extends Fragment {
     RelativeLayout rlName;
     @BindView(R.id.tv_sex)
     TextView tvSex;
+    @BindView(R.id.tv_age)
+    TextView tvAge;
     @BindView(R.id.rl_sex)
     RelativeLayout rlSex;
     @BindView(R.id.tv_des)
@@ -93,6 +110,7 @@ public class MineFragment extends Fragment {
     private String mParam2;
     private Unbinder bind;
     private NetWorkService service;
+    private int updataType = 0;
     private User user;
     private final static String[] PERMISSIONS = new String[]{
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -170,6 +188,10 @@ public class MineFragment extends Fragment {
             user.setSex(0);
         }
 
+        if (user.getAge()!=null){
+            tvAge.setText(user.getAge()+"");
+        }
+
         Glide.with(getContext())
                 .load(TextUtils.isEmpty(user.getHeadImg())?Gender.getImage(user.getSex()):NetWorkService.homeUrl+user.getHeadImg())
                 .apply(options)
@@ -189,8 +211,18 @@ public class MineFragment extends Fragment {
         bind.unbind();
     }
 
-    @OnClick({R.id.iv_back, R.id.rl_head, R.id.rl_name, R.id.rl_sex, R.id.rl_des, R.id.rl_change_password, R.id.rl_my_public})
+    @OnClick({R.id.iv_back, R.id.rl_head, R.id.rl_name, R.id.rl_sex, R.id.rl_age, R.id.rl_des, R.id.rl_change_password,
+            R.id.rl_my_public, R.id.rl_logout})
     public void onViewClicked(View view) {
+        ResetDialog dialog = new ResetDialog(getContext());
+        dialog.setListener(new ResetDialog.CommitListener() {
+            @Override
+            public void commit(String reslut) {
+                if (!TextUtils.isEmpty(reslut))
+                updataInfo(reslut);
+                dialog.dismiss();
+            }
+        });
         switch (view.getId()) {
             case R.id.iv_back:
 
@@ -199,18 +231,114 @@ public class MineFragment extends Fragment {
                 handleSelectPicture();
                 break;
             case R.id.rl_name:
+                dialog.setTitle("修改用户名");
+                dialog.setHint("请输入用户名");
+                updataType = 1;
+                dialog.show();
                 break;
             case R.id.rl_sex:
+                updataType = 2;
+                CommonDialog commonDialog = new CommonDialog(getContext());
+                commonDialog.setTitle("选择性别");
+                commonDialog.setText1("男");
+                commonDialog.setText2("女");
+                commonDialog.setOnClick(new CommonDialog.OnClick() {
+                    @Override
+                    public void tv1Onclick() {
+                        updataInfo("男");
+                        commonDialog.dismiss();
+                    }
+
+                    @Override
+                    public void tv2Onclick() {
+                        updataInfo("女");
+                        commonDialog.dismiss();
+                    }
+
+                    @Override
+                    public void tvCancelClick() {
+                        commonDialog.dismiss();
+                    }
+                });
+                commonDialog.show();
+                break;
+            case R.id.rl_age:
+                updataType = 4;
+                selectBirthday();
                 break;
             case R.id.rl_des:
+                dialog.setTitle("个人描述");
+                dialog.setHint("输入个人描述");
+                updataType = 3;
+                dialog.show();
                 break;
             case R.id.rl_change_password:
+
                 break;
             case R.id.rl_my_public:
                 Intent intent = new Intent(getContext(), MyPublishActivity.class);
+                intent.putExtra("userId",user.getUserId());
                 startActivity(intent);
                 break;
+            case R.id.rl_logout:
+                ShareApplication.clearActivity();
+                startActivity(new Intent(getContext(),LoginActivity.class));
+                break;
         }
+    }
+
+    private void updataInfo(String str){
+        Map map = new HashMap();
+        if (updataType==0){
+            return;
+        }
+        map.put("userId",user.getUserId());
+        if (updataType==1){
+            map.put("name",str);
+        }else if (updataType==2){
+            map.put("sex",Gender.getCode(str));
+        }else if (updataType==3){
+            map.put("des",str);
+        }else if (updataType==4){
+            String[] split = str.split("-");
+            map.put("year",split[0]);
+            map.put("month",split[1]);
+            map.put("day",split[2]);
+        }
+        service.updataInfo(map)
+                .compose(RxSchedulers.<BaseResult>compose(getContext()))
+                .subscribe(new BaseObserver<BaseResult>() {
+                    @Override
+                    public void onSuccess(BaseResult baseResult) {
+                        switch (updataType){
+                            case 1:
+                                tvName.setText(str);
+                                user.setUserName(str);
+                                ShareApplication.user.setUserName(str);
+                                break;
+                            case 2:
+                                tvSex.setText(str);
+                                user.setSex(Gender.getCode(str));
+                                ShareApplication.user.setSex(Gender.getCode(str));
+                                break;
+                            case 3:
+                                tvDes.setText(str);
+                                user.setDes(str);
+                                ShareApplication.user.setDes(str);
+                                break;
+                            case 4:
+                                tvAge.setText((DateUtil.getCurrentDay(DateUtil.TYPE_YEAR)-Integer.valueOf(str.split("-")[0]))+"");
+                                user.setAge(DateUtil.getCurrentDay(DateUtil.TYPE_YEAR)-Integer.valueOf(str.split("-")[0]));
+                                ShareApplication.user.setAge(user.getAge());
+                                break;
+                        }
+                    }
+
+                    @Override
+                    public void onFailed(String msg) {
+                        Toast.makeText(getContext(),msg,Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
 
@@ -357,7 +485,7 @@ public class MineFragment extends Fragment {
                         UpLoadHead data = upLoadHeadVo.getData();
                         if (data!=null && upLoadHeadVo.getData().isSuccess()){
                             user.setHeadImg(upLoadHeadVo.getData().getUrl());
-                            ShareApplication.setUser(user);
+                            ShareApplication.user.setHeadImg(upLoadHeadVo.getData().getUrl());
                             Glide.with(getContext())
                                     .load(NetWorkService.homeUrl+data.getUrl())
                                     .apply(options)
@@ -372,6 +500,64 @@ public class MineFragment extends Fragment {
                         Toast.makeText(getContext(),msg,Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void selectBirthday(){
+        Calendar selectedDate = Calendar.getInstance();
+        selectedDate.set(1994,0,1);
+
+        Calendar startDate = Calendar.getInstance();
+        Calendar endDate = Calendar.getInstance();
+
+        int nowYear = DateUtil.getCurrentDay(DateUtil.TYPE_YEAR);
+        int nowMonth = DateUtil.getCurrentDay(DateUtil.TYPE_MONTH);
+        int nowDay = DateUtil.getCurrentDay(DateUtil.TYPE_DAY);
+        startDate.set(nowYear-100,0,1);
+        endDate.set(nowYear,nowMonth-1,nowDay);
+
+        TimePickerView timePickerView = new TimePickerBuilder(getContext(), new OnTimeSelectListener() {
+            @Override
+            public void onTimeSelect(Date date, View v) {
+                //选中事件
+                updataInfo(DateUtil.birthdayDate.format(date));
+            }
+        })
+                .setType(new boolean[]{true, true, true, false, false, false})
+                .setCancelText("取消")
+                .setSubmitText("确定")
+                .setContentTextSize(18)
+                .setTitleSize(20)
+                .setTitleText("选择出生日期")
+                .setOutSideCancelable(true)
+                .isCyclic(false)//是否循环滚动显示
+                .setTitleColor(Color.BLACK)
+                .setSubmitColor(Color.BLUE)
+                .setCancelColor(Color.GRAY)
+                .setTitleBgColor(0xff666666)
+                .setDate(selectedDate)
+                .setRangDate(startDate, endDate)
+                .setLabel("年", "月", "日", "时", "分", "秒")
+                .isCenterLabel(false)
+                .isDialog(true)
+                .build();
+        Dialog mDialog = timePickerView.getDialog();
+        if (mDialog!=null){
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    Gravity.BOTTOM
+            );
+            params.leftMargin=0;
+            params.rightMargin = 0;
+            timePickerView.getDialogContainerLayout().setLayoutParams(params);
+            Window dialogWindow = mDialog.getWindow();
+            if (dialogWindow!=null){
+                dialogWindow.setWindowAnimations(com.bigkoo.pickerview.R.style.picker_view_slide_anim);
+                dialogWindow.setGravity(Gravity.BOTTOM);
+                dialogWindow.setDimAmount(0.1f);
+            }
+            mDialog.show();
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)

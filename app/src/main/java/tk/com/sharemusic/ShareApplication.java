@@ -10,11 +10,15 @@ import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.luck.picture.lib.PictureSelector;
 import com.luck.picture.lib.config.PictureConfig;
 import com.luck.picture.lib.config.PictureMimeType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -25,17 +29,22 @@ import cn.jpush.android.ups.UPSRegisterCallBack;
 import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.utils.GlideEngine;
 import tk.com.sharemusic.utils.NetworkStatusManager;
+import tk.com.sharemusic.utils.PreferenceConfig;
 import tk.com.sharemusic.utils.SSLSocketFactoryUtils;
 
 public class ShareApplication extends Application {
 
-    private static User user;
+    public static User user;
     public static final int ACTION_TYPE_ALBUM = 0;
     public static final int ACTION_TYPE_PHOTO = 1;
+    private PreferenceConfig mCurrentConfig;
+    private static ShareApplication mContext;
+    private static List<AppCompatActivity> activityList = new ArrayList<>();
 
     @Override
     public void onCreate() {
         super.onCreate();
+        mContext = this;
         NetworkStatusManager.init(this);
         if (!isNotificationEnabled(this)) {
             gotoSet();//去设置开启通知
@@ -53,6 +62,10 @@ public class ShareApplication extends Application {
         trustAllSSL();
     }
 
+    public static ShareApplication getInstance(){
+        return mContext;
+    }
+
     public static User getUser() {
         return user;
     }
@@ -60,6 +73,16 @@ public class ShareApplication extends Application {
     public static void setUser(User user) {
         ShareApplication.user = user;
     }
+
+
+    public PreferenceConfig getConfig() {
+        mCurrentConfig = PreferenceConfig.getPreferenceConfig(this);
+        if (!mCurrentConfig.isLoadConfig()) {
+            mCurrentConfig.loadConfig();
+        }
+        return mCurrentConfig;
+    }
+
 
     private void trustAllSSL(){
         HttpsURLConnection.setDefaultSSLSocketFactory(SSLSocketFactoryUtils.createSSLSocketFactory());
@@ -103,12 +126,12 @@ public class ShareApplication extends Application {
      *
      * @param position
      */
-    public static void goToSelectPicture(int position, Activity context) {
+    public static void goToSelectPicture(int position, Activity context, boolean isCrop) {
         switch (position) {
             case ACTION_TYPE_PHOTO:
                 PictureSelector.create(context)
                         .openCamera(PictureMimeType.ofImage())
-                        .enableCrop(true)
+                        .enableCrop(isCrop)
                         .isDragFrame(true)// 是否可拖动裁剪框
                         .freeStyleCropEnabled(true)// 裁剪框是否可拖拽 true or false
                         .withAspectRatio(1,1)// int 裁剪比例 如16:9 3:2 3:4 1:1 可自定义
@@ -127,7 +150,7 @@ public class ShareApplication extends Application {
                         .imageSpanCount(3)// 每行显示个数 int
                         .selectionMode(PictureConfig.SINGLE)// 多选 or 单选 PictureConfig.MULTIPLE or PictureConfig.SINGLE
                         .isCamera(false)// 是否显示拍照按钮 true or false
-                        .enableCrop(true)
+                        .enableCrop(isCrop)
                         .isDragFrame(true)// 是否可拖动裁剪框
                         .freeStyleCropEnabled(true)// 裁剪框是否可拖拽 true or false
                         .withAspectRatio(1,1)// int 裁剪比例 如16:9 3:2 3:4 1:1 可自定义
@@ -138,6 +161,22 @@ public class ShareApplication extends Application {
                 break;
             default:
                 break;
+        }
+    }
+
+    public static void addActivity(AppCompatActivity appCompatActivity){
+        activityList.add(appCompatActivity);
+    }
+
+    public static void removeActivity(AppCompatActivity appCompatActivity){
+        if (activityList.contains(appCompatActivity)){
+            activityList.remove(appCompatActivity);
+        }
+    }
+
+    public static void clearActivity(){
+        for (AppCompatActivity activity:activityList){
+            activity.finish();
         }
     }
 

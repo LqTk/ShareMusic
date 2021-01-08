@@ -1,7 +1,6 @@
 package tk.com.sharemusic.adapter;
 
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
@@ -65,14 +64,14 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
             baseViewHolder.setVisible(R.id.tv_voice,true);
             baseViewHolder.setGone(R.id.iv_pic,true);
 
-            int voiceTime = Integer.parseInt(msgEntity.voicetime);
+            int voiceTime = Integer.parseInt(msgEntity.voiceTime);
 
             StringBuffer blank = new StringBuffer();
             if (voiceTime > 20) voiceTime = 20;
             for (int i = 0 ; i < voiceTime ; i++ ) {
                 blank.append("\t");
             }
-            baseViewHolder.setText(R.id.tv_voice,msgEntity.voicetime + "'" + blank.toString());
+            baseViewHolder.setText(R.id.tv_voice,msgEntity.voiceTime + "'" + blank.toString());
         } else if (msgEntity.msgType.equals(Constants.MODE_IMAGE)) {
             baseViewHolder.setGone(R.id.tv_content,true);
             baseViewHolder.setGone(R.id.tv_voice,true);
@@ -101,14 +100,14 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
             baseViewHolder.setVisible(R.id.tv_voice_left,true);
             baseViewHolder.setGone(R.id.iv_pic_left,true);
 
-            int voiceTime = Integer.parseInt(msgEntity.voicetime);
+            int voiceTime = Integer.parseInt(msgEntity.voiceTime);
 
             StringBuffer blank = new StringBuffer();
             if (voiceTime > 20) voiceTime = 20;
             for (int i = 0 ; i < voiceTime ; i++ ) {
                 blank.append("\t");
             }
-            baseViewHolder.setText(R.id.tv_voice_left,msgEntity.voicetime + "'" + blank.toString());
+            baseViewHolder.setText(R.id.tv_voice_left,msgEntity.voiceTime + "'" + blank.toString());
 
         } else if (msgEntity.msgType.equals(Constants.MODE_IMAGE)) {
             baseViewHolder.setGone(R.id.tv_content_left,true);
@@ -129,18 +128,18 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
         baseViewHolder.setGone(R.id.tv_name,true);
         baseViewHolder.setGone(R.id.tv_name_left,true);
 
-        if (TextUtils.isEmpty(msgEntity.voicetime)) {
+        if (TextUtils.isEmpty(msgEntity.voiceTime)) {
             baseViewHolder.setVisible(R.id.tv_time,false);
         } else {
             baseViewHolder.setVisible(R.id.tv_time,true);
         }
-        baseViewHolder.setText(R.id.tv_time,msgEntity.voicetime);
+        baseViewHolder.setText(R.id.tv_time,msgEntity.voiceTime);
 
-        if (TextUtils.isEmpty(msgEntity.voicetime)) {
+        if (TextUtils.isEmpty(msgEntity.voiceTime)) {
             baseViewHolder.setVisible(R.id.tv_time_left,false);
         } else {
             baseViewHolder.setVisible(R.id.tv_time_left,true);
         }
-        baseViewHolder.setText(R.id.tv_time_left,msgEntity.voicetime);
+        baseViewHolder.setText(R.id.tv_time_left,msgEntity.voiceTime);
     }
 }
