@@ -35,6 +35,7 @@ import tk.com.sharemusic.network.NetWorkService;
 import tk.com.sharemusic.network.RxSchedulers;
 import tk.com.sharemusic.network.response.LoginVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
+import tk.com.sharemusic.utils.ToastUtil;
 
 public class LoginActivity extends CommonActivity {
 
@@ -66,6 +67,14 @@ public class LoginActivity extends CommonActivity {
             if (!isGrantPermission(PERMISSIONS)){
                 requestPermissions(PERMISSIONS,111);
             }
+        }
+
+        String name = ShareApplication.getInstance().getConfig().getString("userName","");
+        String password = ShareApplication.getInstance().getConfig().getString("password","");
+        if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(password)){
+            etName.setText(name);
+            etPassword.setText(password);
+            login();
         }
     }
 
@@ -99,7 +108,7 @@ public class LoginActivity extends CommonActivity {
 
     private void login(){
         if (TextUtils.isEmpty(etName.getText().toString()) || TextUtils.isEmpty(etPassword.getText().toString())){
-            Toast.makeText(this,"请确保用户名或密码输入完整！",Toast.LENGTH_SHORT).show();
+            ToastUtil.showShortMessage(this,"请确保用户名或密码输入完整");
             return;
         }
         HashMap map = new HashMap();
@@ -120,13 +129,15 @@ public class LoginActivity extends CommonActivity {
                                 @Override
                                 public void onSuccess(BaseResult baseResult) {
                                     ShareApplication.setUser(loginVo.getData());
+                                    ShareApplication.getInstance().getConfig().setString("userName",etName.getText().toString());
+                                    ShareApplication.getInstance().getConfig().setString("password",etPassword.getText().toString());
                                     startActivity(new Intent(LoginActivity.this,MainActivity.class));
                                     LoginActivity.this.finish();
                                 }
 
                                 @Override
                                 public void onFailed(String msg) {
-                                    Toast.makeText(LoginActivity.this,"登录失败",Toast.LENGTH_SHORT).show();
+                                    ToastUtil.showShortMessage(LoginActivity.this,"登录失败");
                                 }
                             });
                         }
@@ -134,7 +145,7 @@ public class LoginActivity extends CommonActivity {
 
                     @Override
                     public void onFailed(String msg) {
-                        Toast.makeText(LoginActivity.this,msg,Toast.LENGTH_SHORT).show();
+                        ToastUtil.showShortMessage(LoginActivity.this,msg);
                     }
                 });
     }
@@ -157,7 +168,7 @@ public class LoginActivity extends CommonActivity {
                 case PERMISSION_REQUEST_CODE:
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         if (!isGrantPermission(PERMISSIONS)) {
-                            Toast.makeText(this, "权限不足", Toast.LENGTH_SHORT).show();
+                            ToastUtil.showShortMessage(LoginActivity.this,"权限不足");
                         } else {
                             login();
                         }

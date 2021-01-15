@@ -41,16 +41,26 @@ import tk.com.sharemusic.activity.MainActivity;
 import tk.com.sharemusic.activity.PeopleProfileActivity;
 import tk.com.sharemusic.activity.PlayerSongActivity;
 import tk.com.sharemusic.activity.ShareActivity;
+import tk.com.sharemusic.activity.ShareDetailActivity;
 import tk.com.sharemusic.adapter.PublicSocialAdapter;
+import tk.com.sharemusic.entity.GoodsEntity;
 import tk.com.sharemusic.entity.SocialPublicEntity;
 import tk.com.sharemusic.event.ChangeFragmentEvent;
 import tk.com.sharemusic.event.RefreshPublicData;
 import tk.com.sharemusic.event.UpLoadSocialSuccess;
+import tk.com.sharemusic.myview.dialog.ClickMenuView;
+import tk.com.sharemusic.network.BaseResult;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
 import tk.com.sharemusic.network.RxSchedulers;
+import tk.com.sharemusic.network.response.GetPublicDataShareIdVo;
 import tk.com.sharemusic.network.response.GetPublicDataTenVo;
+import tk.com.sharemusic.network.response.GoodsResultVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
+import tk.com.sharemusic.utils.PopWinUtil;
+import tk.com.sharemusic.utils.ToastUtil;
+
+import static android.app.Activity.RESULT_OK;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -78,20 +88,14 @@ public class SocialPublic extends Fragment {
     private List<SocialPublicEntity> entityList = new ArrayList<>();
     private NetWorkService service;
 
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(@NonNull Message msg) {
-            switch (msg.what) {
-                case 0:
-                    socialAdapter.notifyDataSetChanged();
-                    break;
-            }
-        }
-    };
     private boolean noMore = false;
     private View emptyView;
     private TextView tvEmptyDes;
     private ImageView ivShow;
+    public final static int CODE_TODETAIL = 1000;
+    private int toPos;
+    private String shareId;
+    private PopWinUtil uiPopWinUtil;
 
     public SocialPublic() {
         // Required empty public constructor
@@ -146,6 +150,8 @@ public class SocialPublic extends Fragment {
                 startActivity(intent1);
             }
         });
+        uiPopWinUtil = new PopWinUtil(getActivity());
+        uiPopWinUtil.setShade(true);
         initView();
         initRecyView();
         initData(true);
@@ -164,7 +170,7 @@ public class SocialPublic extends Fragment {
             @Override
             public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
                 if (noMore){
-                    Toast.makeText(getContext(),"没有更多了...",Toast.LENGTH_SHORT).show();
+                    ToastUtil.showShortMessage(getContext(),"没有更多了...");
                     srf.finishLoadMore();
                     return;
                 }
@@ -188,18 +194,17 @@ public class SocialPublic extends Fragment {
                         }else {
                             noMore = false;
                         }
-                        entityList.addAll(data);
+                        socialAdapter.addData(data);
                         if (isRefresh) {
                             srf.finishRefresh();
                         } else {
                             srf.finishLoadMore();
                         }
-                        mHandler.sendEmptyMessage(0);
                     }
 
                     @Override
                     public void onFailed(String msg) {
-                        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+                        ToastUtil.showShortMessage(getContext(),msg);
                         if (isRefresh) {
                             srf.finishRefresh();
                         } else {
@@ -219,7 +224,7 @@ public class SocialPublic extends Fragment {
         cyclerView.setAdapter(socialAdapter);
 
         socialAdapter.setEmptyView(emptyView);
-        socialAdapter.addChildClickViewIds(R.id.ll_share_content,R.id.ll_share_people);
+        socialAdapter.addChildClickViewIds(R.id.ll_share_content,R.id.ll_share_people,R.id.iv_good,R.id.iv_review,R.id.iv_share,R.id.iv_more);
         socialAdapter.setOnItemChildClickListener(new OnItemChildClickListener() {
             @Override
             public void onItemChildClick(@NonNull BaseQuickAdapter adapter, @NonNull View view, int position) {
@@ -240,9 +245,136 @@ public class SocialPublic extends Fragment {
                         intent.putExtra("url", socialPublicEntity.getShareUrl());
                         startActivity(intent);
                         break;
+                    case R.id.iv_good:
+                        List<GoodsEntity> goodsList = entityList.get(position).getGoodsList();
+                        boolean ishave = false;
+                        for (int i=0; i<goodsList.size();i++){
+                            GoodsEntity goodsEntity = goodsList.get(i);
+                            if (goodsEntity.getPeopleId().equals(ShareApplication.user.getUserId())){
+                                service.goodsCancel(goodsEntity.getGoodsId())
+                                        .compose(RxSchedulers.<BaseResult>compose(getContext()))
+                                        .subscribe(new BaseObserver<BaseResult>() {
+                                            @Override
+                                            public void onSuccess(BaseResult baseResult) {
+                                                entityList.get(position).getGoodsList().remove(goodsEntity);
+                                                adapter.notifyItemChanged(position,"goods");
+                                            }
+
+                                            @Override
+                                            public void onFailed(String msg) {
+                                                ToastUtil.showShortMessage(getContext(),"取消失败");
+                                            }
+                                        });
+                                ishave = true;
+                                break;
+                            }
+                        }
+                        if (!ishave){
+                            GoodsEntity goodsEntity = new GoodsEntity();
+                            goodsEntity.setPeopleId(ShareApplication.user.getUserId());
+                            goodsEntity.setPeopleName(ShareApplication.user.getUserName());
+                            goodsEntity.setPeopleHead(ShareApplication.user.getHeadImg());
+                            goodsEntity.setPublicId(entityList.get(position).getShareId());
+                            service.goodsAdd(goodsEntity)
+                                    .compose(RxSchedulers.<GoodsResultVo>compose(getContext()))
+                                    .subscribe(new BaseObserver<GoodsResultVo>() {
+                                        @Override
+                                        public void onSuccess(GoodsResultVo goodsResultVo) {
+                                            entityList.get(position).getGoodsList().add(goodsResultVo.getData());
+                                            adapter.notifyItemChanged(position,"goods");
+                                            ToastUtil.showShortMessage(getContext(),"点赞成功");
+                                        }
+
+                                        @Override
+                                        public void onFailed(String msg) {
+                                            ToastUtil.showShortMessage(getContext(),"点赞失败");
+                                        }
+                                    });
+                        }
+                        break;
+                    case R.id.iv_review:
+                        Intent detailIntent = new Intent(getContext(), ShareDetailActivity.class);
+                        detailIntent.putExtra("shareId",entityList.get(position).getShareId());
+                        detailIntent.putExtra("position",position);
+                        toPos = position;
+                        shareId = entityList.get(position).getShareId();
+                        startActivityForResult(detailIntent,CODE_TODETAIL);
+                        break;
+                    case R.id.iv_share:
+                        break;
+                    case R.id.iv_more:
+                        showChoose(entityList.get(position),position);
+                        break;
                 }
             }
         });
+    }
+
+    private void showChoose(SocialPublicEntity socialPublicEntity, int position){
+        ClickMenuView menuView = new ClickMenuView(getContext());
+        if (!socialPublicEntity.getUserId().equals(ShareApplication.user.getUserId())){
+            menuView.setShowItemDelete(false);
+        }
+        menuView.setClickListener(new ClickMenuView.ItemClickListener() {
+            @Override
+            public void cancel() {
+                uiPopWinUtil.dismissMenu();
+            }
+
+            @Override
+            public void delete() {
+                deletePublish(socialPublicEntity,position);
+                uiPopWinUtil.dismissMenu();
+            }
+
+            @Override
+            public void report() {
+                uiPopWinUtil.dismissMenu();
+            }
+        });
+        uiPopWinUtil.showPopupBottom(menuView.getView(),R.id.fl_public);
+    }
+
+    private void deletePublish(SocialPublicEntity socialPublicEntity, int itemPos){
+        service.pulishPublic(socialPublicEntity.getShareId())
+                .compose(RxSchedulers.<BaseResult>compose(getContext()))
+                .subscribe(new BaseObserver<BaseResult>() {
+                    @Override
+                    public void onSuccess(BaseResult baseResult) {
+                        socialAdapter.removeAt(itemPos);
+                    }
+
+                    @Override
+                    public void onFailed(String msg) {
+                        ToastUtil.showShortMessage(getContext(),msg);
+                    }
+                });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        switch (requestCode){
+            case CODE_TODETAIL:
+                getData(shareId);
+                break;
+        }
+    }
+
+    private void getData(String shareId) {
+        service.getByShareId(shareId)
+                .compose(RxSchedulers.<GetPublicDataShareIdVo>compose(getContext()))
+                .subscribe(new BaseObserver<GetPublicDataShareIdVo>() {
+                    @Override
+                    public void onSuccess(GetPublicDataShareIdVo getPublicDataShareIdVo) {
+                        entityList.set(toPos,getPublicDataShareIdVo.getData());
+                        socialAdapter.notifyItemChanged(toPos);
+                    }
+
+                    @Override
+                    public void onFailed(String msg) {
+                        ToastUtil.showShortMessage(getContext(), msg);
+                    }
+                });
     }
 
     @Override
@@ -262,9 +394,7 @@ public class SocialPublic extends Fragment {
     @Subscribe
     public void refreshSuccessData(UpLoadSocialSuccess event) {
         if (event != null) {
-            entityList.add(0,event.socialPublicEntity);
-//            entityList.add(event.socialPublicEntity);
-            mHandler.sendEmptyMessage(0);
+            socialAdapter.addData(0,event.socialPublicEntity);
         }
     }
 

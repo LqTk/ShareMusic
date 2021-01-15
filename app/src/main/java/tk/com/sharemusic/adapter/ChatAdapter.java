@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import tk.com.sharemusic.R;
+import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.config.Constants;
 import tk.com.sharemusic.entity.ChatEntity;
 import tk.com.sharemusic.enums.Gender;
@@ -24,28 +25,32 @@ import tk.com.sharemusic.network.NetWorkService;
 
 public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
 
-    public ChatAdapter(int layoutResId, @Nullable List<ChatEntity> data) {
+    private String partnerHead;
+    private RequestOptions options;
+
+    public ChatAdapter(int layoutResId, @Nullable List<ChatEntity> data, String partnerHead) {
         super(layoutResId, data);
+        this.partnerHead = partnerHead;
     }
 
     @Override
     protected void convert(@NotNull BaseViewHolder baseViewHolder, ChatEntity msgEntity) {
         String avatar = msgEntity.senderAvatar;
 
-        RequestOptions options = new RequestOptions()
+        options = new RequestOptions()
                 .centerCrop()
-                .error(R.drawable.default_head_boy);
+                .error(R.drawable.default_head_girl);
 
         if (msgEntity.isMyContent()) {
             Glide.with(getContext())
-                    .load(TextUtils.isEmpty(avatar)? Gender.getImage(0): NetWorkService.homeUrl+avatar)
+                    .load(TextUtils.isEmpty(ShareApplication.user.getHeadImg())? Gender.getImage(0): NetWorkService.homeUrl+ShareApplication.user.getHeadImg())
                     .apply(options)
                     .into((CircleImage) baseViewHolder.getView(R.id.iv_avatar));
             baseViewHolder.setVisible(R.id.layout_right, true);
             baseViewHolder.setGone(R.id.layout_left, true);
         } else {
             Glide.with(getContext())
-                .load(TextUtils.isEmpty(avatar)? Gender.getImage(0): NetWorkService.homeUrl+avatar)
+                .load(TextUtils.isEmpty(partnerHead)? Gender.getImage(0): NetWorkService.homeUrl+partnerHead)
                 .apply(options)
                 .into((CircleImage) baseViewHolder.getView(R.id.iv_avatar_left));
             baseViewHolder.setGone(R.id.layout_right, true);
@@ -141,5 +146,46 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
             baseViewHolder.setVisible(R.id.tv_time_left,true);
         }
         baseViewHolder.setText(R.id.tv_time_left,msgEntity.voiceTime);
+    }
+
+    @Override
+    protected void convert(@NotNull BaseViewHolder holder, ChatEntity item, @NotNull List<?> payloads) {
+        if (payloads.isEmpty()){
+            convert(holder,item);
+            return;
+        }
+        for (Object payload:payloads) {
+            switch (String.valueOf(payload)) {
+                case "headChange":
+                    Glide.with(getContext())
+                            .load(TextUtils.isEmpty(item.senderAvatar)? Gender.getImage(0): NetWorkService.homeUrl+item.senderAvatar)
+                            .apply(options)
+                            .into((CircleImage) holder.getView(R.id.iv_avatar_left));
+                    holder.setGone(R.id.layout_right, true);
+                    holder.setVisible(R.id.layout_left, true);
+                    break;
+            }
+        }
+    }
+
+    public void setPartnerHead(String senderId, String partnerHead){
+        this.partnerHead = partnerHead;
+        boolean headChange = false;
+        for (ChatEntity chatEntity:getData()){
+            if (chatEntity.getSenderId().equals(senderId) && !chatEntity.getSenderAvatar().equals(partnerHead)){
+                headChange = true;
+                break;
+            }
+        }
+        if (headChange) {
+            int i=0;
+            for (ChatEntity chatEntity : getData()) {
+                if (chatEntity.getSenderId().equals(senderId) && !chatEntity.getSenderAvatar().equals(partnerHead)) {
+                    chatEntity.setSenderAvatar(partnerHead);
+                    notifyItemChanged(i,"headChange");
+                }
+                i++;
+            }
+        }
     }
 }

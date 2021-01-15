@@ -27,14 +27,14 @@ public class ChatListAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder
     protected void convert(@NotNull BaseViewHolder baseViewHolder, ChatEntity chatEntity) {
         if (TextUtils.isEmpty(chatEntity.senderAvatar)){
             Glide.with(getContext())
-                    .load(R.drawable.default_head_boy)
+                    .load(R.drawable.default_head_girl)
                     .into((CircleImage) baseViewHolder.getView(R.id.iv_partner_head));
         }else {
             Glide.with(getContext())
                     .load(NetWorkService.homeUrl + chatEntity.senderAvatar)
                     .apply(new RequestOptions()
                             .centerCrop()
-                            .error(R.drawable.default_head_boy))
+                            .error(R.drawable.default_head_girl))
                     .into((CircleImage) baseViewHolder.getView(R.id.iv_partner_head));
         }
         baseViewHolder.setText(R.id.tv_partner_name,chatEntity.senderName);
@@ -62,6 +62,37 @@ public class ChatListAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder
                         holder.setText(R.id.tv_partner_chat, "[语音]");
                     }else {
                         holder.setText(R.id.tv_partner_chat, item.msgContent);
+                    }
+                    break;
+                case "desName":
+                    if (item.msgType.equals(Constants.MODE_IMAGE)) {
+                        holder.setText(R.id.tv_partner_chat, "[图片]");
+                    }else if (item.msgType.equals(Constants.MODE_VOICE)){
+                        holder.setText(R.id.tv_partner_chat, "[语音]");
+                    }else {
+                        holder.setText(R.id.tv_partner_chat, item.msgContent);
+                    }
+                    holder.setText(R.id.tv_partner_name,item.senderName);
+                    break;
+                case "desAvr":
+                    if (item.msgType.equals(Constants.MODE_IMAGE)) {
+                        holder.setText(R.id.tv_partner_chat, "[图片]");
+                    }else if (item.msgType.equals(Constants.MODE_VOICE)){
+                        holder.setText(R.id.tv_partner_chat, "[语音]");
+                    }else {
+                        holder.setText(R.id.tv_partner_chat, item.msgContent);
+                    }
+                    if (TextUtils.isEmpty(item.senderAvatar)){
+                        Glide.with(getContext())
+                                .load(R.drawable.default_head_girl)
+                                .into((CircleImage) holder.getView(R.id.iv_partner_head));
+                    }else {
+                        Glide.with(getContext())
+                                .load(NetWorkService.homeUrl + item.senderAvatar)
+                                .apply(new RequestOptions()
+                                        .centerCrop()
+                                        .error(R.drawable.default_head_girl))
+                                .into((CircleImage) holder.getView(R.id.iv_partner_head));
                     }
                     break;
             }

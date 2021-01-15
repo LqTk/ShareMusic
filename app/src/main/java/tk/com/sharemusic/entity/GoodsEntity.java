@@ -1,5 +1,7 @@
 package tk.com.sharemusic.entity;
 
+import java.util.Date;
+
 public class GoodsEntity {
     private String goodsId;
 
@@ -11,12 +13,15 @@ public class GoodsEntity {
 
     private String peopleHead;
 
-    public GoodsEntity(String goodsId, String peopleId, String publicId, String peopleName, String peopleHead) {
+    private long goodsTime;
+
+    public GoodsEntity(String goodsId, String peopleId, String publicId, String peopleName, String peopleHead, long goodsTime) {
         this.goodsId = goodsId;
         this.peopleId = peopleId;
         this.publicId = publicId;
         this.peopleName = peopleName;
         this.peopleHead = peopleHead;
+        this.goodsTime = goodsTime;
     }
 
     public GoodsEntity() {
@@ -61,5 +66,13 @@ public class GoodsEntity {
 
     public void setPeopleHead(String peopleHead) {
         this.peopleHead = peopleHead == null ? null : peopleHead.trim();
+    }
+
+    public long getGoodsTime() {
+        return goodsTime;
+    }
+
+    public void setGoodsTime(long goodsTime) {
+        this.goodsTime = goodsTime;
     }
 }

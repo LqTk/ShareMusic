@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,6 +16,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.listener.OnItemClickListener;
+import com.scwang.smartrefresh.layout.SmartRefreshLayout;
+import com.scwang.smartrefresh.layout.api.RefreshLayout;
+import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -33,12 +35,15 @@ import tk.com.sharemusic.activity.ChatActivity;
 import tk.com.sharemusic.adapter.PartnerAdapter;
 import tk.com.sharemusic.entity.MsgEntity;
 import tk.com.sharemusic.entity.User;
+import tk.com.sharemusic.event.NotifyPartInfoEvent;
 import tk.com.sharemusic.event.RefreshPartnerEvent;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
 import tk.com.sharemusic.network.RxSchedulers;
 import tk.com.sharemusic.network.response.PartnerVo;
+import tk.com.sharemusic.network.response.PeopleVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
+import tk.com.sharemusic.utils.ToastUtil;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -53,6 +58,8 @@ public class PartnerFragment extends Fragment {
     private static final String ARG_PARAM2 = "param2";
     @BindView(R.id.rcv_part)
     RecyclerView rcvPart;
+    @BindView(R.id.srf_content)
+    SmartRefreshLayout srfContent;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -105,7 +112,7 @@ public class PartnerFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         service = HttpMethod.getInstance().create(NetWorkService.class);
-        emptyView = LayoutInflater.from(getContext()).inflate(R.layout.layout_empty,null);
+        emptyView = LayoutInflater.from(getContext()).inflate(R.layout.layout_empty, null);
         tvEmptyDes = emptyView.findViewById(R.id.tv_empty_des);
         ivShow = emptyView.findViewById(R.id.iv_show);
         ivShow.setImageResource(R.drawable.partner_bg);
@@ -118,8 +125,8 @@ public class PartnerFragment extends Fragment {
 
     private void initData() {
         User user = ShareApplication.getUser();
-        if (user==null){
-            Toast.makeText(getContext(),"请先登录",Toast.LENGTH_SHORT).show();
+        if (user == null) {
+            ToastUtil.showShortMessage(getContext(), "请先登录");
             return;
         }
         service.getPartnerInfo(user.getUserId())
@@ -128,27 +135,35 @@ public class PartnerFragment extends Fragment {
                     @Override
                     public void onSuccess(PartnerVo peopleVo) {
                         List<MsgEntity> data = peopleVo.getData();
-                        if (data!=null) {
+                        if (data != null) {
                             peopleEntities.clear();
-                            peopleEntities.addAll(data);
+                            adapter.addData(data);
                         }
-                        adapter.notifyDataSetChanged();
                     }
 
                     @Override
                     public void onFailed(String msg) {
-                        Toast.makeText(getContext(),msg,Toast.LENGTH_SHORT).show();
+                        ToastUtil.showShortMessage(getContext(), msg);
                     }
                 });
     }
 
     private void initView() {
+        srfContent.setOnRefreshListener(new OnRefreshListener() {
+            @Override
+            public void onRefresh(@NonNull RefreshLayout refreshLayout) {
+                initData();
+                srfContent.finishRefresh();
+            }
+        });
+
+
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
 
         rcvPart.setLayoutManager(linearLayoutManager);
 
-        adapter = new PartnerAdapter(R.layout.partner_item_layout,peopleEntities);
+        adapter = new PartnerAdapter(R.layout.partner_item_layout, peopleEntities);
         rcvPart.setAdapter(adapter);
 
         adapter.setEmptyView(emptyView);
@@ -156,16 +171,42 @@ public class PartnerFragment extends Fragment {
             @Override
             public void onItemClick(@NonNull BaseQuickAdapter<?, ?> adapter, @NonNull View view, int position) {
                 Intent intent = new Intent(getContext(), ChatActivity.class);
-                intent.putExtra("partnerId",peopleEntities.get(position).getPeopleId());
+                intent.putExtra("partnerId", peopleEntities.get(position).getPeopleId());
                 startActivity(intent);
             }
         });
     }
 
     @Subscribe
-    public void refreshData(RefreshPartnerEvent refreshPartnerEvent){
-        if (refreshPartnerEvent!=null){
+    public void refreshData(RefreshPartnerEvent refreshPartnerEvent) {
+        if (refreshPartnerEvent != null) {
             initData();
+        }
+    }
+
+    @Subscribe
+    public void notifyPartnerInfo(NotifyPartInfoEvent event) {
+        if (event != null) {
+            int i = 0;
+            for (MsgEntity msgEntity : peopleEntities) {
+                if (msgEntity.getPeopleId().equals(event.partnerId)) {
+                    int finalI = i;
+                    service.getPeopleInfo(event.partnerId)
+                            .compose(RxSchedulers.<PeopleVo>compose(getContext()))
+                            .subscribe(new BaseObserver<PeopleVo>(getContext()) {
+                                @Override
+                                public void onSuccess(PeopleVo peopleVo) {
+                                    adapter.setData(finalI, peopleVo.getData());
+                                }
+
+                                @Override
+                                public void onFailed(String msg) {
+
+                                }
+                            });
+                }
+                i++;
+            }
         }
     }
 

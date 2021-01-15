@@ -27,6 +27,7 @@ import cn.jpush.android.ups.JPushUPSManager;
 import cn.jpush.android.ups.TokenResult;
 import cn.jpush.android.ups.UPSRegisterCallBack;
 import tk.com.sharemusic.entity.User;
+import tk.com.sharemusic.myview.dialog.ProgressDialog;
 import tk.com.sharemusic.utils.GlideEngine;
 import tk.com.sharemusic.utils.NetworkStatusManager;
 import tk.com.sharemusic.utils.PreferenceConfig;
@@ -34,6 +35,7 @@ import tk.com.sharemusic.utils.SSLSocketFactoryUtils;
 
 public class ShareApplication extends Application {
 
+    public static int showCount = 3;
     public static User user;
     public static final int ACTION_TYPE_ALBUM = 0;
     public static final int ACTION_TYPE_PHOTO = 1;
@@ -101,6 +103,9 @@ public class ShareApplication extends Application {
 
     }
 
+    /**
+     * 通知栏设置
+     */
     private void gotoSet() {
         Intent intent = new Intent();
         if (Build.VERSION.SDK_INT >= 26) {

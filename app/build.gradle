@@ -114,4 +114,7 @@ dependencies {
 
     //自动换行布局
     implementation 'com.google.android:flexbox:0.2.6'
+
+    //tablelayout
+    implementation 'com.google.android.material:material:1.2.1'
 }

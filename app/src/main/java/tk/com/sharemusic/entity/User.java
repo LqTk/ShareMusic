@@ -16,16 +16,19 @@ public class User implements Serializable {
 
     private Integer age;
 
+    private String birthday;
+
     private String phone;
 
     private String des;
 
-    public User(String userId, String userName, String headImg, Integer sex, Integer age, String phone, String des) {
+    public User(String userId, String userName, String headImg, Integer sex, Integer age, String birthday, String phone, String des) {
         this.userId = userId;
         this.userName = userName;
         this.headImg = headImg;
         this.sex = sex;
         this.age = age;
+        this.birthday = birthday;
         this.phone = phone;
         this.des = des;
     }
@@ -84,5 +87,13 @@ public class User implements Serializable {
 
     public void setDes(String des) {
         this.des = des;
+    }
+
+    public String getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(String birthday) {
+        this.birthday = birthday;
     }
 }

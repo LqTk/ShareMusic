@@ -26,7 +26,7 @@ public class PopWinUtil {
         this.shade = shade;
     }
 
-    public void showPopupMenu(View view, int containerId){
+    public void showPopupBottom(View view, int containerId){
         popupWindow = new PopupWindow(view, ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT, false);
         popupWindow.setFocusable(true);

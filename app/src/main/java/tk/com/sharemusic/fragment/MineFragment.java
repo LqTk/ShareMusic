@@ -37,6 +37,8 @@ import com.luck.picture.lib.config.PictureConfig;
 import com.luck.picture.lib.config.PictureMimeType;
 import com.luck.picture.lib.entity.LocalMedia;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.File;
 import java.util.Calendar;
 import java.util.Date;
@@ -58,6 +60,7 @@ import tk.com.sharemusic.activity.MyPublishActivity;
 import tk.com.sharemusic.entity.UpLoadHead;
 import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.enums.Gender;
+import tk.com.sharemusic.event.RefreshMyInfoEvent;
 import tk.com.sharemusic.myview.CircleImage;
 import tk.com.sharemusic.myview.dialog.CommonDialog;
 import tk.com.sharemusic.myview.dialog.ResetDialog;
@@ -70,6 +73,7 @@ import tk.com.sharemusic.network.rxjava.BaseObserver;
 import tk.com.sharemusic.utils.DateUtil;
 import tk.com.sharemusic.utils.GlideEngine;
 import tk.com.sharemusic.utils.StringUtils;
+import tk.com.sharemusic.utils.ToastUtil;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -175,17 +179,17 @@ public class MineFragment extends Fragment {
         if (user==null){
             Intent intent = new Intent(getContext(), LoginActivity.class);
             startActivity(intent);
-            Toast.makeText(getContext(),"请先登录",Toast.LENGTH_SHORT).show();
+            ToastUtil.showShortMessage(getContext(),"请先登录");
             getActivity().finish();
             return;
         }
 
         options = new RequestOptions()
                 .centerCrop()
-                .error(R.drawable.default_head_boy);
+                .error(R.drawable.default_head_girl);
 
         if (user.getSex()==null){
-            user.setSex(0);
+            user.setSex(1);
         }
 
         if (user.getAge()!=null){
@@ -282,6 +286,8 @@ public class MineFragment extends Fragment {
                 break;
             case R.id.rl_logout:
                 ShareApplication.clearActivity();
+                ShareApplication.getInstance().getConfig().setString("userName","");
+                ShareApplication.getInstance().getConfig().setString("password","");
                 startActivity(new Intent(getContext(),LoginActivity.class));
                 break;
         }
@@ -294,12 +300,20 @@ public class MineFragment extends Fragment {
         }
         map.put("userId",user.getUserId());
         if (updataType==1){
+            if (str.equals(user.getUserName()))
+                return;
             map.put("name",str);
         }else if (updataType==2){
+            if (user.getSex()==Gender.getCode(str))
+                return;
             map.put("sex",Gender.getCode(str));
         }else if (updataType==3){
+            if (user.getDes().equals(str))
+                return;
             map.put("des",str);
         }else if (updataType==4){
+            if (user.getBirthday().equals(str))
+                return;
             String[] split = str.split("-");
             map.put("year",split[0]);
             map.put("month",split[1]);
@@ -307,7 +321,7 @@ public class MineFragment extends Fragment {
         }
         service.updataInfo(map)
                 .compose(RxSchedulers.<BaseResult>compose(getContext()))
-                .subscribe(new BaseObserver<BaseResult>() {
+                .subscribe(new BaseObserver<BaseResult>(getContext()) {
                     @Override
                     public void onSuccess(BaseResult baseResult) {
                         switch (updataType){
@@ -329,14 +343,16 @@ public class MineFragment extends Fragment {
                             case 4:
                                 tvAge.setText((DateUtil.getCurrentDay(DateUtil.TYPE_YEAR)-Integer.valueOf(str.split("-")[0]))+"");
                                 user.setAge(DateUtil.getCurrentDay(DateUtil.TYPE_YEAR)-Integer.valueOf(str.split("-")[0]));
-                                ShareApplication.user.setAge(user.getAge());
+                                user.setBirthday(str);
+                                ShareApplication.user = user;
                                 break;
                         }
+                        EventBus.getDefault().post(new RefreshMyInfoEvent());
                     }
 
                     @Override
                     public void onFailed(String msg) {
-                        Toast.makeText(getContext(),msg,Toast.LENGTH_LONG).show();
+                        ToastUtil.showShortMessage(getContext(),msg);
                     }
                 });
     }
@@ -356,7 +372,7 @@ public class MineFragment extends Fragment {
             public void tv1Onclick() {
                 if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.M) {
                     if (!isGrantPermission(PERMISSIONS)){
-                        Toast.makeText(getContext(),"权限不足",Toast.LENGTH_SHORT).show();
+                        ToastUtil.showShortMessage(getContext(),"权限不足");
                         requestPermissions(PERMISSIONS,PERMISSION_REQUEST_CODE);
                     }else {
                         goToSelectPicture(ACTION_TYPE_ALBUM);
@@ -373,7 +389,7 @@ public class MineFragment extends Fragment {
                     if (!isGrantPermission(new String[]{Manifest.permission.CAMERA,
                             Manifest.permission.READ_EXTERNAL_STORAGE,
                             Manifest.permission.WRITE_EXTERNAL_STORAGE})){
-                        Toast.makeText(getContext(),"权限不足",Toast.LENGTH_SHORT).show();
+                        ToastUtil.showShortMessage(getContext(),"权限不足");
                         requestPermissions(PERMISSIONS,PERMISSION_REQUEST_CODE);
                     }else {
                         goToSelectPicture(ACTION_TYPE_PHOTO);
@@ -454,7 +470,7 @@ public class MineFragment extends Fragment {
                 case PERMISSION_REQUEST_CODE:
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         if (!isGrantPermission(PERMISSIONS)) {
-                            Toast.makeText(getContext(), "权限不足", Toast.LENGTH_SHORT).show();
+                            ToastUtil.showShortMessage(getContext(),"权限不足");
                         } else {
                             handleSelectPicture();
                         }
@@ -479,36 +495,37 @@ public class MineFragment extends Fragment {
         MultipartBody.Part part = MultipartBody.Part.createFormData("img",file.getName(),requestFile);
         service.uploadHead(part, StringUtils.toRequestBody(user.getUserId()))
                 .compose(RxSchedulers.<UpLoadHeadVo>compose(getContext()))
-                .subscribe(new BaseObserver<UpLoadHeadVo>() {
+                .subscribe(new BaseObserver<UpLoadHeadVo>(getContext()) {
                     @Override
                     public void onSuccess(UpLoadHeadVo upLoadHeadVo) {
                         UpLoadHead data = upLoadHeadVo.getData();
                         if (data!=null && upLoadHeadVo.getData().isSuccess()){
                             user.setHeadImg(upLoadHeadVo.getData().getUrl());
-                            ShareApplication.user.setHeadImg(upLoadHeadVo.getData().getUrl());
+                            ShareApplication.user = user;
+                            EventBus.getDefault().post(new RefreshMyInfoEvent());
                             Glide.with(getContext())
                                     .load(NetWorkService.homeUrl+data.getUrl())
                                     .apply(options)
                                     .into(ivHead);
                         }else {
-                            Toast.makeText(getContext(),"头像上传失败",Toast.LENGTH_SHORT).show();
+                            ToastUtil.showShortMessage(getContext(),"头像上传失败");
                         }
                     }
 
                     @Override
                     public void onFailed(String msg) {
-                        Toast.makeText(getContext(),msg,Toast.LENGTH_SHORT).show();
+                        ToastUtil.showShortMessage(getContext(),msg);
                     }
                 });
     }
 
     private void selectBirthday(){
+        String[] birthdays = user.getBirthday().split("-");
         Calendar selectedDate = Calendar.getInstance();
-        selectedDate.set(1994,0,1);
+        selectedDate.set(Integer.parseInt(birthdays[0]), Integer.valueOf(birthdays[1])-1, Integer.valueOf(birthdays[2]));
 
         Calendar startDate = Calendar.getInstance();
         Calendar endDate = Calendar.getInstance();
-
         int nowYear = DateUtil.getCurrentDay(DateUtil.TYPE_YEAR);
         int nowMonth = DateUtil.getCurrentDay(DateUtil.TYPE_MONTH);
         int nowDay = DateUtil.getCurrentDay(DateUtil.TYPE_DAY);
@@ -533,7 +550,7 @@ public class MineFragment extends Fragment {
                 .setTitleColor(Color.BLACK)
                 .setSubmitColor(Color.BLUE)
                 .setCancelColor(Color.GRAY)
-                .setTitleBgColor(0xff666666)
+                .setTitleBgColor(0xffdddddd)
                 .setDate(selectedDate)
                 .setRangDate(startDate, endDate)
                 .setLabel("年", "月", "日", "时", "分", "秒")

@@ -21,11 +21,15 @@ import java.util.Date;
 
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
+import tk.com.sharemusic.myview.dialog.ProgressDialog;
 import tk.com.sharemusic.network.BaseResult;
 import tk.com.sharemusic.utils.NetworkStatusManager;
+import tk.com.sharemusic.utils.ToastUtil;
 
 public abstract class BaseObserver<T> implements Observer<T> {
     private Context context;
+
+    ProgressDialog dialog;
 
     public BaseObserver() {
     }
@@ -42,6 +46,9 @@ public abstract class BaseObserver<T> implements Observer<T> {
                 d.dispose();
                 return;
             }
+            dialog = new ProgressDialog(context);
+            dialog.setTextView("请稍后...");
+            dialog.show();
         }
     }
 
@@ -75,12 +82,17 @@ public abstract class BaseObserver<T> implements Observer<T> {
         }else {
             onFailed(baseResult.getMsg());
         }
+        if (dialog!=null)
+            dialog.dismiss();
     }
 
     @Override
     public void onError(Throwable e) {
+        if (dialog!=null)
+            dialog.dismiss();
+
         if (context != null && !(e instanceof ConnectException) && !(e instanceof SocketTimeoutException)){
-            Toast.makeText(context.getApplicationContext(), e.getMessage(),Toast.LENGTH_LONG).show();
+            ToastUtil.showShortMessage(context,e.getMessage());
         }
 
         onFailed("网络错误");

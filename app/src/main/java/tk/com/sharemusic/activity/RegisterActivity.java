@@ -26,6 +26,7 @@ import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
 import tk.com.sharemusic.network.RxSchedulers;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
+import tk.com.sharemusic.utils.ToastUtil;
 
 public class RegisterActivity extends CommonActivity {
 
@@ -115,16 +116,16 @@ public class RegisterActivity extends CommonActivity {
                 break;
             case R.id.btn_commit:
                 if (TextUtils.isEmpty(etName.getText().toString().trim()) && TextUtils.isEmpty(etPhone.getText().toString().trim())){
-                    Toast.makeText(this,"请输入用户名或电话号码",Toast.LENGTH_LONG).show();
+                    ToastUtil.showShortMessage(this,"请输入用户名或电话号码");
                     return;
                 }else if (TextUtils.isEmpty(etPassword1.getText().toString().trim())){
-                    Toast.makeText(this,"请输入密码",Toast.LENGTH_LONG).show();
+                    ToastUtil.showShortMessage(this,"请输入密码");
                     return;
                 }else if (TextUtils.isEmpty(etPassword2.getText().toString().trim())){
-                    Toast.makeText(this,"请输入确认密码",Toast.LENGTH_LONG).show();
+                    ToastUtil.showShortMessage(this,"请输入确认密码");
                     return;
                 }else if (!etPassword1.getText().toString().trim().equals(etPassword2.getText().toString().trim())){
-                    Toast.makeText(this,"两次输入密码不一致",Toast.LENGTH_LONG).show();
+                    ToastUtil.showShortMessage(this,"两次输入密码不一致");
                     return;
                 }else {
                     register();
@@ -140,18 +141,18 @@ public class RegisterActivity extends CommonActivity {
         map.put("password",etPassword1.getText().toString().trim());
         service.register(map)
                 .compose(RxSchedulers.<BaseResult>compose(this))
-                .subscribe(new BaseObserver<BaseResult>() {
+                .subscribe(new BaseObserver<BaseResult>(this) {
                     @Override
                     public void onSuccess(BaseResult baseResult) {
                         if (baseResult.getStatus()==0){
-                            Toast.makeText(RegisterActivity.this,"注册成功",Toast.LENGTH_LONG).show();
+                            ToastUtil.showShortMessage(RegisterActivity.this,"注册成功");
                             RegisterActivity.this.finish();
                         }
                     }
 
                     @Override
                     public void onFailed(String msg) {
-                        Toast.makeText(RegisterActivity.this,"注册失败",Toast.LENGTH_LONG).show();
+                        ToastUtil.showShortMessage(RegisterActivity.this,"注册失败");
                     }
                 });
     }

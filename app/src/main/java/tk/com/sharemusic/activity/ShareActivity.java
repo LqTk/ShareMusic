@@ -29,6 +29,7 @@ import tk.com.sharemusic.network.NetWorkService;
 import tk.com.sharemusic.network.RxSchedulers;
 import tk.com.sharemusic.network.response.GetPublicDataShareIdVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
+import tk.com.sharemusic.utils.ToastUtil;
 
 public class ShareActivity extends CommonActivity {
 
@@ -98,11 +99,11 @@ public class ShareActivity extends CommonActivity {
                     matcher.end(0)));
         }
         String url = containedUrls.get(0).toString();
-        Toast.makeText(this, url, Toast.LENGTH_SHORT).show();
+        ToastUtil.showShortMessage(this,url);
 //                    web.loadUrl(url);
         User user = ShareApplication.getUser();
         if (user==null){
-            Toast.makeText(this,"分享失败",Toast.LENGTH_SHORT).show();
+            ToastUtil.showShortMessage(this,"分享失败");
             return;
         }
         SocialPublicEntity socialPublicEntity = new SocialPublicEntity(user.getUserId(),user.getUserName(),
@@ -116,20 +117,20 @@ public class ShareActivity extends CommonActivity {
             return;
         service.pulishPublic(entity)
                 .compose(RxSchedulers.<GetPublicDataShareIdVo>compose(this))
-                .subscribe(new BaseObserver<GetPublicDataShareIdVo>() {
+                .subscribe(new BaseObserver<GetPublicDataShareIdVo>(this) {
                     @Override
                     public void onSuccess(GetPublicDataShareIdVo getPublicDataShareIdVo) {
                         if (getPublicDataShareIdVo.getData()!=null){
                             EventBus.getDefault().post(new UpLoadSocialSuccess(getPublicDataShareIdVo.getData()));
                             ShareActivity.this.finish();
                         }else {
-                            Toast.makeText(ShareActivity.this,"分享失败",Toast.LENGTH_SHORT).show();
+                            ToastUtil.showShortMessage(ShareActivity.this,"分享失败");
                         }
                     }
 
                     @Override
                     public void onFailed(String msg) {
-                        Toast.makeText(ShareActivity.this,msg,Toast.LENGTH_SHORT).show();
+                        ToastUtil.showShortMessage(ShareActivity.this,msg);
                     }
                 });
     }

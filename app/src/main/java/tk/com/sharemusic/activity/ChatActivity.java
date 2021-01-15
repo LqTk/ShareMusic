@@ -8,10 +8,8 @@ import android.graphics.drawable.AnimationDrawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.text.Editable;
@@ -25,11 +23,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -84,10 +79,10 @@ import tk.com.sharemusic.network.response.SendMsgVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
 import tk.com.sharemusic.utils.Config;
 import tk.com.sharemusic.utils.DownloadVoiceManager;
-import tk.com.sharemusic.utils.IConfig;
 import tk.com.sharemusic.utils.PopWinUtil;
 import tk.com.sharemusic.utils.PreferenceConfig;
 import tk.com.sharemusic.utils.SaveFileUtil;
+import tk.com.sharemusic.utils.ToastUtil;
 
 public class ChatActivity extends CommonActivity {
 
@@ -165,6 +160,7 @@ public class ChatActivity extends CommonActivity {
     private List<ChatEntity> chatLists = new ArrayList<>();
     private ChatAdapter chatAdapter;
     private PreferenceConfig preferenceConfig;
+    private String partnerHead = "";
 
     class CountdownHandler extends Handler {
         private final WeakReference<ChatActivity> mActivity;
@@ -235,7 +231,7 @@ public class ChatActivity extends CommonActivity {
 
                     @Override
                     public void onFailed(String msg) {
-                        Toast.makeText(mContext,msg,Toast.LENGTH_SHORT).show();
+                        ToastUtil.showShortMessage(mContext,msg);
                         refreshView.finishRefresh();
                         refreshView.finishLoadMore();
                     }
@@ -274,7 +270,7 @@ public class ChatActivity extends CommonActivity {
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         rcvChat.setLayoutManager(linearLayoutManager);
 
-        chatAdapter = new ChatAdapter(R.layout.item_chat_content, chatLists);
+        chatAdapter = new ChatAdapter(R.layout.item_chat_content, chatLists, partnerHead);
         chatAdapter.addChildClickViewIds(R.id.tv_voice,R.id.tv_voice_left,R.id.iv_pic,R.id.iv_pic_left);
         rcvChat.setAdapter(chatAdapter);
         chatAdapter.setOnItemChildClickListener(new OnItemChildClickListener() {
@@ -299,7 +295,7 @@ public class ChatActivity extends CommonActivity {
 
                                 @Override
                                 public void onDownloadFailed() {
-                                    Toast.makeText(mContext,"加载语音失败!",Toast.LENGTH_SHORT).show();
+                                    ToastUtil.showShortMessage(mContext,"加载语音失败!");
                                 }
                             });
                             new Thread(new Runnable() {
@@ -331,7 +327,7 @@ public class ChatActivity extends CommonActivity {
         if (user==null){
             Intent intent = new Intent(mContext, LoginActivity.class);
             startActivity(intent);
-            Toast.makeText(mContext,"请先登录",Toast.LENGTH_SHORT).show();
+            ToastUtil.showShortMessage(mContext,"请先登录");
             finish();
             return;
         }
@@ -345,16 +341,17 @@ public class ChatActivity extends CommonActivity {
             return;
         service.getPeopleInfo(partnerId)
                 .compose(RxSchedulers.<PeopleVo>compose(this))
-                .subscribe(new BaseObserver<PeopleVo>() {
+                .subscribe(new BaseObserver<PeopleVo>(this) {
                     @Override
                     public void onSuccess(PeopleVo peopleVo) {
                         partnerInfo = peopleVo.getData();
                         if (partnerInfo==null){
-                            Toast.makeText(mContext,"获取数据失败",Toast.LENGTH_SHORT).show();
+                            ToastUtil.showShortMessage(mContext,"获取数据失败");
                             return;
                         }
                         tvName.setText(peopleVo.getData().getPeopleName());
                         tvTitle.setText(peopleVo.getData().getPeopleDes());
+                        chatAdapter.setPartnerHead(partnerInfo.getPeopleId(),partnerInfo.getPeopleHead());
                     }
 
                     @Override
@@ -503,7 +500,7 @@ public class ChatActivity extends CommonActivity {
         switch (msgType){
             case Constants.MODE_IMAGE:
                 if (TextUtils.isEmpty(content)){
-                    Toast.makeText(mContext,"获取失败",Toast.LENGTH_SHORT).show();
+                    ToastUtil.showShortMessage(mContext,"获取数据失败");
                     return;
                 }
                 part = getFilePart(content);
@@ -512,7 +509,7 @@ public class ChatActivity extends CommonActivity {
             case Constants.MODE_VOICE:
                 map.put("voicetime",voiceTime);
                 if (TextUtils.isEmpty(content)){
-                    Toast.makeText(mContext,"获取失败",Toast.LENGTH_SHORT).show();
+                    ToastUtil.showShortMessage(mContext,"获取数据失败");
                     return;
                 }
                 part = getFilePart(content);
@@ -524,11 +521,10 @@ public class ChatActivity extends CommonActivity {
                 break;
         }
         baseResultObservable.compose(RxSchedulers.<SendMsgVo>compose(mContext))
-                .subscribe(new BaseObserver<SendMsgVo>() {
+                .subscribe(new BaseObserver<SendMsgVo>(mContext) {
                     @Override
                     public void onSuccess(SendMsgVo baseResult) {
                         ChatEntity data = baseResult.getData();
-                        Toast.makeText(mContext,"消息发送成功",Toast.LENGTH_SHORT).show();
                         chatLists.add(baseResult.getData());
                         EventBus.getDefault().post(new MyChatEntityEvent(data,partnerInfo));
                         saveData();
@@ -538,7 +534,7 @@ public class ChatActivity extends CommonActivity {
 
                     @Override
                     public void onFailed(String msg) {
-                        Toast.makeText(mContext,"消息发送失败",Toast.LENGTH_SHORT).show();
+                        ToastUtil.showShortMessage(mContext,"消息发送失败");
                     }
                 });
     }
@@ -573,7 +569,7 @@ public class ChatActivity extends CommonActivity {
                         layoutRecordingMask.setVisibility(View.GONE);
                         tvRecord.setText("按住说话");
                         if (seconds < 1) {
-                            Toast.makeText(mContext, "语音时间太短!", Toast.LENGTH_SHORT).show();
+                            ToastUtil.showShortMessage(mContext,"语音时间太短");
                             if (mRecorder != null) {
                                 mRecorder.release();
                                 mRecorder = null;
@@ -611,7 +607,7 @@ public class ChatActivity extends CommonActivity {
                         case Constants.IMAGE_TAKE_PHOTO:
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                                 if (!ShareApplication.isGrantPermission(PERMISSIONS, mContext)) {
-                                    Toast.makeText(mContext, "权限不足", Toast.LENGTH_SHORT).show();
+                                    ToastUtil.showShortMessage(mContext,"权限不足");
                                     requestPermissions(PERMISSIONS, Constants.PERMISSION_REQUEST_CODE);
                                     openType = Constants.IMAGE_TAKE_PHOTO;
                                 } else {
@@ -624,7 +620,7 @@ public class ChatActivity extends CommonActivity {
                         case Constants.IMAGE_CHOOSE_FROM_ALBUM:
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                                 if (!ShareApplication.isGrantPermission(PERMISSIONS, mContext)) {
-                                    Toast.makeText(mContext, "权限不足", Toast.LENGTH_SHORT).show();
+                                    ToastUtil.showShortMessage(mContext,"权限不足");
                                     requestPermissions(PERMISSIONS, Constants.PERMISSION_REQUEST_CODE);
                                     openType = Constants.IMAGE_CHOOSE_FROM_ALBUM;
                                 } else {
@@ -708,11 +704,11 @@ public class ChatActivity extends CommonActivity {
             case R.id.iv_functions:
                 uiPopWinUtil.dismissMenu();
                 functionsPicker.setConsoleWhich(1);
-                uiPopWinUtil.showPopupMenu(functionsPicker.getView(), R.id.layout_full);
+                uiPopWinUtil.showPopupBottom(functionsPicker.getView(), R.id.layout_full);
                 break;
             case R.id.btn_send:
                 if (TextUtils.isEmpty(etContent.getText().toString().trim())) {
-                    Toast.makeText(mContext,"请输入聊天内容！",Toast.LENGTH_SHORT).show();
+                    ToastUtil.showShortMessage(mContext,"请输入聊天内容");
                 } else {
                     send(Constants.MODE_TEXT, etContent.getText().toString(), "");
                 }
@@ -735,7 +731,7 @@ public class ChatActivity extends CommonActivity {
                         if (aBoolean) {//用户已授予所有权限
 
                         } else {//用户拒绝某些权限
-                            Toast.makeText(mContext, "应用权限未允许", Toast.LENGTH_SHORT).show();
+                            ToastUtil.showShortMessage(mContext,"应用权限未允许");
                         }
                     }
 
@@ -776,7 +772,7 @@ public class ChatActivity extends CommonActivity {
             case Constants.PERMISSION_REQUEST_CODE:
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     if (!ShareApplication.isGrantPermission(PERMISSIONS, mContext)) {
-                        Toast.makeText(mContext, "权限不足", Toast.LENGTH_SHORT).show();
+                        ToastUtil.showShortMessage(mContext,"权限不足");
                     } else {
                         switch (openType) {
                             case Constants.IMAGE_TAKE_PHOTO:

@@ -48,16 +48,20 @@ import tk.com.sharemusic.entity.MsgEntity;
 import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.enums.Gender;
 import tk.com.sharemusic.event.MyChatEntityEvent;
+import tk.com.sharemusic.event.NotifyPartInfoEvent;
 import tk.com.sharemusic.event.RefreshChatListEvent;
+import tk.com.sharemusic.event.RefreshMyInfoEvent;
 import tk.com.sharemusic.myview.CircleImage;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
 import tk.com.sharemusic.network.RxSchedulers;
 import tk.com.sharemusic.network.response.ChatListVo;
+import tk.com.sharemusic.network.response.PeopleVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
 import tk.com.sharemusic.utils.Config;
 import tk.com.sharemusic.utils.PreferenceConfig;
 import tk.com.sharemusic.utils.SaveFileUtil;
+import tk.com.sharemusic.utils.ToastUtil;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -149,8 +153,44 @@ public class ChatFragment extends Fragment {
 
         chatLists = preferenceConfig.getArrayList(user.getUserId(),ChatEntity.class);
 
+        if (chatLists!=null && chatLists.size()>0){
+            notifyChatLists();
+        }
+
         initView();
         initData();
+    }
+
+    private void notifyChatLists() {
+        for (int i=0;i<chatLists.size();i++) {
+            ChatEntity chatEntity = chatLists.get(i);
+            int finalI = i;
+            service.getPeopleInfo(chatEntity.senderId)
+                    .compose(RxSchedulers.<PeopleVo>compose(getContext()))
+                    .subscribe(new BaseObserver<PeopleVo>(getContext()) {
+                        @Override
+                        public void onSuccess(PeopleVo peopleVo) {
+                            boolean change = false;
+                            if (!peopleVo.getData().getPeopleName().equals(chatEntity.senderName)){
+                                chatEntity.setSenderName(peopleVo.getData().getPeopleName());
+                                change = true;
+                            }
+                            if (!peopleVo.getData().getPeopleHead().equals(chatEntity.senderAvatar)){
+                                chatEntity.setSenderAvatar(peopleVo.getData().getPeopleHead());
+                                change = true;
+                            }
+                            if (change) {
+                                chatListAdapter.notifyItemChanged(finalI);
+                                EventBus.getDefault().post(new NotifyPartInfoEvent(peopleVo.getData().getPeopleId()));
+                            }
+                        }
+
+                        @Override
+                        public void onFailed(String msg) {
+
+                        }
+                    });
+        }
     }
 
     private void initView() {
@@ -207,6 +247,7 @@ public class ChatFragment extends Fragment {
         srf.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
+                notifyChatLists();
                 loadData(true,"");
             }
         });
@@ -216,7 +257,7 @@ public class ChatFragment extends Fragment {
         if (user == null) {
             Intent intent = new Intent(getContext(), LoginActivity.class);
             startActivity(intent);
-            Toast.makeText(getContext(), "请先登录", Toast.LENGTH_SHORT).show();
+            ToastUtil.showShortMessage(getContext(),"请先登录");
             getActivity().finish();
             return;
         }
@@ -252,15 +293,36 @@ public class ChatFragment extends Fragment {
                                 ChatEntity chatEntity1 = chatLists.get(i);
                                 if (!TextUtils.isEmpty(talkId)){
                                     if (chatEntity1.getSenderId().equals(talkId)) {
+                                        boolean nameChange = false;
+                                        boolean headChange = false;
+                                        if (!chatEntity1.getSenderName().equals(chatEntity.senderName)) {
+                                            chatEntity1.setSenderName(chatEntity.senderName);
+                                            nameChange = true;
+                                        }
+                                        if (!chatEntity1.getSenderAvatar().equals(chatEntity.senderAvatar)) {
+                                            chatEntity1.setSenderAvatar(chatEntity.senderAvatar);
+                                            headChange = true;
+                                        }
                                         chatEntity1.setMsgContent(chatEntity.msgContent);
                                         chatEntity1.setMsgType(chatEntity.msgType);
                                         if (i != 0) {
                                             chatListAdapter.remove(chatEntity1);
                                             chatListAdapter.addData(0, chatEntity1);
                                         } else {
-                                            chatListAdapter.notifyItemChanged(i, "des");
+                                            if (nameChange && headChange){
+                                                chatListAdapter.notifyItemChanged(i);
+                                            }else if (nameChange){
+                                                chatListAdapter.notifyItemChanged(i, "desName");
+                                            }else if (headChange){
+                                                chatListAdapter.notifyItemChanged(i, "desAvr");
+                                            }else {
+                                                chatListAdapter.notifyItemChanged(i, "des");
+                                            }
                                         }
                                         isHave = true;
+                                        if (nameChange||headChange){
+                                            EventBus.getDefault().post(new NotifyPartInfoEvent(chatEntity.senderId));
+                                        }
                                         break;
                                     }
                                 }else {
@@ -287,7 +349,7 @@ public class ChatFragment extends Fragment {
 
                     @Override
                     public void onFailed(String msg) {
-                        Toast.makeText(getContext(),msg,Toast.LENGTH_LONG).show();
+                        ToastUtil.showShortMessage(getContext(),msg);
                         srf.finishRefresh();
                     }
                 });
@@ -339,5 +401,19 @@ public class ChatFragment extends Fragment {
         super.onDestroy();
         bind.unbind();
         EventBus.getDefault().unregister(this);
+    }
+
+    @Subscribe
+    public void refreshInfo(RefreshMyInfoEvent event){
+        if (event!=null){
+            user = ShareApplication.user;
+            Glide.with(getContext())
+                    .load(TextUtils.isEmpty(user.getHeadImg()) ? Gender.getImage(user.getSex()) : NetWorkService.homeUrl + user.getHeadImg())
+                    .apply(options)
+                    .into(ivUserHead);
+            if (!TextUtils.isEmpty(user.getUserName())) {
+                tvUserName.setText(user.getUserName());
+            }
+        }
     }
 }

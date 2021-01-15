@@ -29,6 +29,7 @@ import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.event.ChangeFragmentEvent;
 import tk.com.sharemusic.event.UpLoadSocialSuccess;
 import tk.com.sharemusic.fragment.ChatFragment;
+import tk.com.sharemusic.fragment.FriendsFragment;
 import tk.com.sharemusic.fragment.MineFragment;
 import tk.com.sharemusic.fragment.PartnerFragment;
 import tk.com.sharemusic.fragment.SocialPublic;
@@ -37,6 +38,7 @@ import tk.com.sharemusic.network.NetWorkService;
 import tk.com.sharemusic.network.RxSchedulers;
 import tk.com.sharemusic.network.response.GetPublicDataShareIdVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
+import tk.com.sharemusic.utils.ToastUtil;
 
 public class MainActivity extends CommonActivity {
 
@@ -65,7 +67,7 @@ public class MainActivity extends CommonActivity {
     }
 
     private void initView() {
-        fragments.add(PartnerFragment.newInstance());
+        fragments.add(FriendsFragment.newInstance());
         fragments.add(SocialPublic.newInstance());
         fragments.add(ChatFragment.newInstance());
         fragments.add(MineFragment.newInstance("",""));
@@ -102,13 +104,13 @@ public class MainActivity extends CommonActivity {
                 Bundle extras = intent.getExtras();
                 if ("audio/".equals(type)) {
                     // 处理发送来音频
-                    Toast.makeText(this,"audio",Toast.LENGTH_SHORT).show();
+                    ToastUtil.showShortMessage(this,"audio");
                 } else if (type.startsWith("video/")) {
                     // 处理发送来的视频
-                    Toast.makeText(this,"video",Toast.LENGTH_SHORT).show();
+                    ToastUtil.showShortMessage(this,"video");
                 } else if (type.startsWith("*/")) {
                     //处理发送过来的其他文件
-                    Toast.makeText(this,"other",Toast.LENGTH_SHORT).show();
+                    ToastUtil.showShortMessage(this,"other");
                 }else if (type.startsWith("text/")){
                     String string = extras.getString("android.intent.extra.TEXT");
                     Intent intent1 = new Intent(this,ShareActivity.class);
@@ -119,15 +121,15 @@ public class MainActivity extends CommonActivity {
                 ArrayList<Uri> arrayList = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
                 if (type.startsWith("audio/")) {
                     // 处理发送来的多个音频
-                    Toast.makeText(this,"audio",Toast.LENGTH_SHORT).show();
+                    ToastUtil.showShortMessage(this,"audio");
                 } else if (type.startsWith("video/")) {
                     //处理发送过来的多个视频
-                    Toast.makeText(this,"video",Toast.LENGTH_SHORT).show();
+                    ToastUtil.showShortMessage(this,"video");
                 } else if (type.startsWith("*/")) {
                     //处理发送过来的多个文件
-                    Toast.makeText(this,"other",Toast.LENGTH_SHORT).show();
+                    ToastUtil.showShortMessage(this,"other");
                 }else if (type.startsWith("text/")){
-                    Toast.makeText(this,"text",Toast.LENGTH_SHORT).show();
+                    ToastUtil.showShortMessage(this,"text");
                 }
             }
             setIntent(null);

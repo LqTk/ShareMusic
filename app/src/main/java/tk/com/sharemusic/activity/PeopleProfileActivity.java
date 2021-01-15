@@ -9,9 +9,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
@@ -37,6 +34,7 @@ import tk.com.sharemusic.network.NetWorkService;
 import tk.com.sharemusic.network.RxSchedulers;
 import tk.com.sharemusic.network.response.PeopleVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
+import tk.com.sharemusic.utils.ToastUtil;
 
 public class PeopleProfileActivity extends CommonActivity {
 
@@ -62,6 +60,8 @@ public class PeopleProfileActivity extends CommonActivity {
     LinearLayout llBottom;
     @BindView(R.id.iv_head)
     CircleImage ivHead;
+    @BindView(R.id.tv_age)
+    TextView tvAge;
 
     private Unbinder bind;
     private NetWorkService service;
@@ -78,10 +78,10 @@ public class PeopleProfileActivity extends CommonActivity {
         context = this;
 
         String from = getIntent().getStringExtra("from");
-        if (!TextUtils.isEmpty(from)){
-            if (from.equals("chat")){
+        if (!TextUtils.isEmpty(from)) {
+            if (from.equals("chat")) {
                 isOpenedChat = true;
-            }else {
+            } else {
                 isOpenedChat = false;
             }
         }
@@ -95,12 +95,12 @@ public class PeopleProfileActivity extends CommonActivity {
             return;
         service.getPeopleInfo(peopleId)
                 .compose(RxSchedulers.<PeopleVo>compose(this))
-                .subscribe(new BaseObserver<PeopleVo>() {
+                .subscribe(new BaseObserver<PeopleVo>(this) {
                     @Override
                     public void onSuccess(PeopleVo peopleVo) {
                         MsgEntity data = peopleVo.getData();
                         Glide.with(context)
-                                .load(TextUtils.isEmpty(data.getPeopleHead()) ? Gender.getImage(data.getPeopleSex()) : NetWorkService.homeUrl+data.getPeopleHead())
+                                .load(TextUtils.isEmpty(data.getPeopleHead()) ? Gender.getImage(data.getPeopleSex()) : NetWorkService.homeUrl + data.getPeopleHead())
                                 .apply(new RequestOptions()
                                         .centerCrop()
                                         .error(R.drawable.default_head_boy))
@@ -108,6 +108,7 @@ public class PeopleProfileActivity extends CommonActivity {
                         tvName.setText(data.getPeopleName());
                         tvSex.setText(Gender.getName(data.getPeopleSex()));
                         tvDes.setText(data.getPeopleDes());
+                        tvAge.setText(data.getPeopleAge()+"岁");
                     }
 
                     @Override
@@ -123,16 +124,16 @@ public class PeopleProfileActivity extends CommonActivity {
         switch (view.getId()) {
             case R.id.rl_publish:
                 intent = new Intent(this, MyPublishActivity.class);
-                intent.putExtra("userId",peopleId);
+                intent.putExtra("userId", peopleId);
                 startActivity(intent);
                 break;
             case R.id.tv_add:
                 addPartner();
                 break;
             case R.id.tv_chat:
-                if (!isOpenedChat){
-                    intent = new Intent(this,ChatActivity.class);
-                    intent.putExtra("partnerId",peopleId);
+                if (!isOpenedChat) {
+                    intent = new Intent(this, ChatActivity.class);
+                    intent.putExtra("partnerId", peopleId);
                     startActivity(intent);
                 }
                 this.finish();
@@ -140,26 +141,26 @@ public class PeopleProfileActivity extends CommonActivity {
         }
     }
 
-    private void addPartner(){
+    private void addPartner() {
         User user = ShareApplication.getUser();
         if (TextUtils.isEmpty(peopleId) || user == null)
             return;
         HashMap map = new HashMap();
-        map.put("userId",user.getUserId());
-        map.put("partnerId",peopleId);
+        map.put("userId", user.getUserId());
+        map.put("partnerId", peopleId);
         service.addPartner(map)
                 .compose(RxSchedulers.<BaseResult>compose(this))
                 .subscribe(new BaseObserver<BaseResult>() {
                     @Override
                     public void onSuccess(BaseResult baseResult) {
-                        Toast.makeText(PeopleProfileActivity.this,baseResult.getMsg(),Toast.LENGTH_SHORT).show();
+                        ToastUtil.showShortMessage(PeopleProfileActivity.this, baseResult.getMsg());
                         EventBus.getDefault().post(new RefreshPartnerEvent());
                         finish();
                     }
 
                     @Override
                     public void onFailed(String msg) {
-                        Toast.makeText(PeopleProfileActivity.this,msg,Toast.LENGTH_SHORT).show();
+                        ToastUtil.showShortMessage(PeopleProfileActivity.this, msg);
                     }
                 });
     }
