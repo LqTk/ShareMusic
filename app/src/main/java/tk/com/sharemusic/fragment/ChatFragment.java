@@ -33,7 +33,9 @@ import org.greenrobot.eventbus.Subscribe;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -42,11 +44,14 @@ import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.activity.ChatActivity;
 import tk.com.sharemusic.activity.LoginActivity;
+import tk.com.sharemusic.activity.MainActivity;
 import tk.com.sharemusic.adapter.ChatListAdapter;
 import tk.com.sharemusic.entity.ChatEntity;
 import tk.com.sharemusic.entity.MsgEntity;
 import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.enums.Gender;
+import tk.com.sharemusic.event.MsgCountEvent;
+import tk.com.sharemusic.event.MsgReadEvent;
 import tk.com.sharemusic.event.MyChatEntityEvent;
 import tk.com.sharemusic.event.NotifyPartInfoEvent;
 import tk.com.sharemusic.event.RefreshChatListEvent;
@@ -146,7 +151,13 @@ public class ChatFragment extends Fragment {
 
         preferenceConfig = ShareApplication.getInstance().getConfig();
         user = ShareApplication.getUser();
-        reLogin();
+        if (user==null){
+            Intent intent = new Intent(getContext(), LoginActivity.class);
+            startActivity(intent);
+            ToastUtil.showShortMessage(getContext(),"请先登录");
+            getActivity().finish();
+            return;
+        }
         if (user.getSex() == null) {
             user.setSex(0);
         }
@@ -165,9 +176,13 @@ public class ChatFragment extends Fragment {
         for (int i=0;i<chatLists.size();i++) {
             ChatEntity chatEntity = chatLists.get(i);
             int finalI = i;
-            service.getPeopleInfo(chatEntity.senderId)
+
+            Map map = new HashMap();
+            map.put("userId",ShareApplication.user.getUserId());
+            map.put("peopleId",chatEntity.senderId);
+            service.getPeopleInfo(map)
                     .compose(RxSchedulers.<PeopleVo>compose(getContext()))
-                    .subscribe(new BaseObserver<PeopleVo>(getContext()) {
+                    .subscribe(new BaseObserver<PeopleVo>() {
                         @Override
                         public void onSuccess(PeopleVo peopleVo) {
                             boolean change = false;
@@ -198,11 +213,15 @@ public class ChatFragment extends Fragment {
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         rcvChat.setLayoutManager(linearLayoutManager);
         chatListAdapter = new ChatListAdapter(R.layout.layout_chat_list_item, chatLists);
+        EventBus.getDefault().post(new MsgCountEvent(MainActivity.PAGE_MESSAGE,chatListAdapter.getAllMsgCount()));
         rcvChat.setAdapter(chatListAdapter);
         chatListAdapter.setEmptyView(emptyView);
         chatListAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(@NonNull BaseQuickAdapter<?, ?> adapter, @NonNull View view, int position) {
+                chatListAdapter.getItem(position).count=0;
+                chatListAdapter.notifyItemChanged(position,"count");
+                EventBus.getDefault().post(new MsgCountEvent(MainActivity.PAGE_MESSAGE,chatListAdapter.getAllMsgCount()));
                 Intent intent = new Intent(getContext(), ChatActivity.class);
                 intent.putExtra("partnerId",chatLists.get(position).senderId);
                 startActivity(intent);
@@ -216,6 +235,10 @@ public class ChatFragment extends Fragment {
                 builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        //如果未读消息大于0表示服务器有未读消息 通过读取指定好友的具体聊天信息来删除未读消息
+                        if (chatLists.get(position).count>0) {
+                            deleteMsg(chatLists.get(position).senderId);
+                        }
                         preferenceConfig.remove(user.getUserId()+chatLists.get(position).getSenderId()+Config.CHAT_PARTNER_LIST);
                         File file = SaveFileUtil.getVoiceFile(getContext(),user.getUserId(),chatLists.get(position).getSenderId());
                         if (file.exists()){
@@ -225,6 +248,7 @@ public class ChatFragment extends Fragment {
                             file.delete();
                         }
                         chatListAdapter.removeAt(position);
+                        EventBus.getDefault().post(new MsgCountEvent(MainActivity.PAGE_MESSAGE,chatListAdapter.getAllMsgCount()));
                         saveData();
                         dialog.dismiss();
                     }
@@ -236,7 +260,7 @@ public class ChatFragment extends Fragment {
                     }
                 });
                 builder.setTitle("提示");
-                builder.setMessage("是否删除与"+chatLists.get(position).senderName+"聊天记录?\n删除后将不可恢复");
+                builder.setMessage("是否删除与"+chatLists.get(position).senderName+"的聊天记录?\n删除后将不可恢复");
                 builder.show();
                 return false;
             }
@@ -248,9 +272,27 @@ public class ChatFragment extends Fragment {
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
                 notifyChatLists();
-                loadData(true,"");
+                loadData();
             }
         });
+    }
+
+    private void deleteMsg(String partnerId) {
+        Map map = new HashMap();
+        map.put("userId",ShareApplication.user.getUserId());
+        map.put("partnerId",partnerId);
+        service.getPartnerChat(map)
+                .compose(RxSchedulers.<ChatListVo>compose(getContext()))
+                .subscribe(new BaseObserver<ChatListVo>() {
+                    @Override
+                    public void onSuccess(ChatListVo chatListVo) {
+
+                    }
+
+                    @Override
+                    public void onFailed(String msg) {
+                    }
+                });
     }
 
     private void reLogin() {
@@ -275,10 +317,13 @@ public class ChatFragment extends Fragment {
         if (!TextUtils.isEmpty(user.getUserName())) {
             tvUserName.setText(user.getUserName());
         }
-        loadData(true,"");
+        loadData();
     }
 
-    private void loadData(boolean isrefresh, String talkId) {
+    /**
+     * 加载所有聊天消息
+     */
+    private void loadData() {
         reLogin();
         service.getAllChat(user.getUserId())
                 .compose(RxSchedulers.<ChatListVo>compose(getContext()))
@@ -291,20 +336,31 @@ public class ChatFragment extends Fragment {
                             boolean isHave = false;
                             for (int i = 0; i < chatLists.size(); i++) {
                                 ChatEntity chatEntity1 = chatLists.get(i);
-                                if (!TextUtils.isEmpty(talkId)){
-                                    if (chatEntity1.getSenderId().equals(talkId)) {
-                                        boolean nameChange = false;
-                                        boolean headChange = false;
-                                        if (!chatEntity1.getSenderName().equals(chatEntity.senderName)) {
-                                            chatEntity1.setSenderName(chatEntity.senderName);
-                                            nameChange = true;
-                                        }
-                                        if (!chatEntity1.getSenderAvatar().equals(chatEntity.senderAvatar)) {
-                                            chatEntity1.setSenderAvatar(chatEntity.senderAvatar);
-                                            headChange = true;
-                                        }
+                                if (chatEntity1.getSenderId().equals(chatEntity.getSenderId())) {
+                                    isHave = true;
+                                    boolean nameChange = false;
+                                    boolean headChange = false;
+                                    boolean contentChange = false;
+                                    if (!chatEntity1.getSenderName().equals(chatEntity.senderName)) {
+                                        chatEntity1.setSenderName(chatEntity.senderName);
+                                        nameChange = true;
+                                    }
+                                    if (!chatEntity1.getSenderAvatar().equals(chatEntity.senderAvatar)) {
+                                        chatEntity1.setSenderAvatar(chatEntity.senderAvatar);
+                                        headChange = true;
+                                    }
+                                    //如果获取的聊天时间大于已获得的聊天时间，表示有新的消息，刷新列表
+                                    if (chatEntity.chatTime>chatEntity1.chatTime) {
+                                        contentChange = true;
                                         chatEntity1.setMsgContent(chatEntity.msgContent);
+                                        chatEntity1.setChatTime(chatEntity.chatTime);
+                                        chatEntity1.setCount(chatEntity1.count + 1);
                                         chatEntity1.setMsgType(chatEntity.msgType);
+                                    }
+                                    if (nameChange||headChange){
+                                        EventBus.getDefault().post(new NotifyPartInfoEvent(chatEntity.senderId));
+                                    }
+                                    if (nameChange || headChange || contentChange){
                                         if (i != 0) {
                                             chatListAdapter.remove(chatEntity1);
                                             chatListAdapter.addData(0, chatEntity1);
@@ -319,31 +375,16 @@ public class ChatFragment extends Fragment {
                                                 chatListAdapter.notifyItemChanged(i, "des");
                                             }
                                         }
-                                        isHave = true;
-                                        if (nameChange||headChange){
-                                            EventBus.getDefault().post(new NotifyPartInfoEvent(chatEntity.senderId));
-                                        }
-                                        break;
                                     }
-                                }else {
-                                    if (chatEntity1.getSenderId().equals(chatEntity.getSenderId())) {
-                                        chatEntity1.setMsgContent(chatEntity.msgContent);
-                                        chatEntity1.setMsgType(chatEntity.msgType);
-                                        if (i != 0) {
-                                            chatListAdapter.remove(chatEntity1);
-                                            chatListAdapter.addData(0, chatEntity1);
-                                        } else {
-                                            chatListAdapter.notifyItemChanged(i, "des");
-                                        }
-                                        isHave = true;
-                                        break;
-                                    }
+                                    break;
                                 }
                             }
                             if (!isHave) {
+                                chatEntity.setCount(chatEntity.count+1);
                                 chatListAdapter.addData(0, chatEntity);
                             }
                         }
+                        EventBus.getDefault().post(new MsgCountEvent(MainActivity.PAGE_MESSAGE,chatListAdapter.getAllMsgCount()));
                         saveData();
                     }
 
@@ -355,17 +396,110 @@ public class ChatFragment extends Fragment {
                 });
     }
 
+    /**
+     * 保存消息列表
+     */
     private void saveData(){
         preferenceConfig.setObject(user.getUserId(),chatLists);
     }
 
+    /**
+     * 接收到新消息推送，然后加载未读消息
+     * @param event
+     */
     @Subscribe
     public void refreshData(RefreshChatListEvent event){
         if (event!=null){
-            loadData(false,event.talkId);
+            loadPartData(event.talkId);
         }
     }
 
+    /**
+     * 加载指定好友的未读聊天信息
+     * @param talkId
+     */
+    private void loadPartData(String talkId) {
+        HashMap map = new HashMap();
+        map.put("userId",user.getUserId());
+        map.put("partnerId",talkId);
+        service.getSelectAllChat(map)
+                .compose(RxSchedulers.<ChatListVo>compose(getContext()))
+                .subscribe(new BaseObserver<ChatListVo>() {
+                    @Override
+                    public void onSuccess(ChatListVo chatListVo) {
+                        List<ChatEntity> voData = chatListVo.getData();
+                        int count = voData.size();
+                        if (count<=0)
+                            return;
+                        ChatEntity chatEntity = voData.get(voData.size() - 1);
+                        chatEntity.setCount(count);
+                        int pos = isHavePos(talkId);
+                        if (pos>-1){
+                            ChatEntity chatEntity1 = chatLists.get(pos);
+                            boolean nameChange = false;
+                            boolean headChange = false;
+                            if (!chatEntity1.getSenderName().equals(chatEntity.senderName)) {
+                                chatEntity1.setSenderName(chatEntity.senderName);
+                                nameChange = true;
+                            }
+                            if (!chatEntity1.getSenderAvatar().equals(chatEntity.senderAvatar)) {
+                                chatEntity1.setSenderAvatar(chatEntity.senderAvatar);
+                                headChange = true;
+                            }
+                            chatEntity1.setMsgContent(chatEntity.msgContent);
+                            chatEntity1.setMsgType(chatEntity.msgType);
+                            chatEntity1.setChatTime(chatEntity.chatTime);
+                            chatEntity1.setCount(chatEntity1.count+1);
+                            if (nameChange||headChange){
+                                EventBus.getDefault().post(new NotifyPartInfoEvent(chatEntity.senderId));
+                            }
+
+                            if (pos != 0) {
+                                chatListAdapter.remove(chatEntity1);
+                                chatListAdapter.addData(0, chatEntity1);
+                            } else {
+                                if (nameChange && headChange){
+                                    chatListAdapter.notifyItemChanged(pos);
+                                }else if (nameChange){
+                                    chatListAdapter.notifyItemChanged(pos, "desName");
+                                }else if (headChange){
+                                    chatListAdapter.notifyItemChanged(pos, "desAvr");
+                                }else {
+                                    chatListAdapter.notifyItemChanged(pos, "des");
+                                }
+                            }
+                        }else {
+                            chatListAdapter.addData(0,chatEntity);
+                        }
+                        EventBus.getDefault().post(new MsgCountEvent(MainActivity.PAGE_MESSAGE,chatListAdapter.getAllMsgCount()));
+                        saveData();
+                    }
+
+                    @Override
+                    public void onFailed(String msg) {
+                        ToastUtil.showShortMessage(getContext(),msg);
+                    }
+                });
+    }
+
+    /**
+     * 判断chatLists中是否已经有了好友聊天记录 没有返回-1 有返回对应的位置
+     * @param id
+     * @return
+     */
+    private int isHavePos(String id){
+        for (ChatEntity chatEntity:chatLists){
+            if (chatEntity.getSenderId().equals(id)) {
+                return chatLists.indexOf(chatEntity);
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * 将用户自己发送的消息添加到消息列表
+     * @param entityEvent
+     */
     @Subscribe
     public void addMyChatEntity(MyChatEntityEvent entityEvent){
         if (entityEvent!=null){
@@ -377,6 +511,7 @@ public class ChatFragment extends Fragment {
                 if (chatEntity1.getSenderId().equals(partner.getPeopleId())){
                     chatEntity1.setMsgType(entity.msgType);
                     chatEntity1.setMsgContent(entity.msgContent);
+                    chatEntity1.setCount(0);
                     if (i != 0) {
                         chatListAdapter.remove(chatEntity1);
                         chatListAdapter.addData(0, chatEntity1);
@@ -403,6 +538,10 @@ public class ChatFragment extends Fragment {
         EventBus.getDefault().unregister(this);
     }
 
+    /**
+     * 更新用户头像和姓名
+     * @param event
+     */
     @Subscribe
     public void refreshInfo(RefreshMyInfoEvent event){
         if (event!=null){
@@ -413,6 +552,22 @@ public class ChatFragment extends Fragment {
                     .into(ivUserHead);
             if (!TextUtils.isEmpty(user.getUserName())) {
                 tvUserName.setText(user.getUserName());
+            }
+        }
+    }
+
+    /**
+     * 更新已读消息小红点
+     * @param event
+     */
+    @Subscribe
+    public void refreshReadMsg(MsgReadEvent event){
+        if (event!=null){
+            int havePos = isHavePos(event.partnerId);
+            if (havePos>-1){
+                chatLists.get(havePos).count=0;
+                chatListAdapter.notifyItemChanged(havePos);
+                EventBus.getDefault().post(new MsgCountEvent(MainActivity.PAGE_MESSAGE,chatListAdapter.getAllMsgCount()));
             }
         }
     }

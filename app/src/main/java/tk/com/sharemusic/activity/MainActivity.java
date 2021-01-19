@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -27,6 +28,7 @@ import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.entity.SocialPublicEntity;
 import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.event.ChangeFragmentEvent;
+import tk.com.sharemusic.event.MsgCountEvent;
 import tk.com.sharemusic.event.UpLoadSocialSuccess;
 import tk.com.sharemusic.fragment.ChatFragment;
 import tk.com.sharemusic.fragment.FriendsFragment;
@@ -76,6 +78,16 @@ public class MainActivity extends CommonActivity {
                 .fragmentManager(getSupportFragmentManager())
                 .selectTextColor(Color.parseColor("#1296DB"))
                 .normalTextColor(Color.parseColor("#8a8a8a"))
+                .msgPointLeft(-5)
+                .msgPointTop(-5)
+                /*.setOnTabLoadListener(new EasyNavigationBar.OnTabLoadListener() { //Tab加载完毕回调
+                    @Override
+                    public void onTabLoadCompleteEvent() {
+                        bottomBar.setMsgPointCount(0, 0);
+                        bottomBar.setMsgPointCount(1, 109);
+                        bottomBar.setHintPoint(2, true);
+                    }
+                })*/
                 .build();
     }
 
@@ -90,6 +102,13 @@ public class MainActivity extends CommonActivity {
     public void changePage(ChangeFragmentEvent event){
         if (event!=null){
             bottomBar.selectTab(event.page,true);
+        }
+    }
+
+    @Subscribe
+    public void msgCount(MsgCountEvent event){
+        if (event!=null){
+            bottomBar.setMsgPointCount(event.pos,event.count);
         }
     }
 

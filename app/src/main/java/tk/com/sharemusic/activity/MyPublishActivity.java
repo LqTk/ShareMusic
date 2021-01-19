@@ -145,7 +145,7 @@ public class MyPublishActivity extends CommonActivity {
         } else {
             tvTitle.setText("TA的发布");
             ivAdd.setVisibility(View.GONE);
-            tvEmptyDes.setText("TA没分享内容");
+            tvEmptyDes.setText("TA还没分享内容");
             ivShow.setVisibility(View.GONE);
         }
 

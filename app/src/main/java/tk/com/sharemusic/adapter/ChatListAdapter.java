@@ -17,6 +17,7 @@ import tk.com.sharemusic.config.Constants;
 import tk.com.sharemusic.entity.ChatEntity;
 import tk.com.sharemusic.myview.CircleImage;
 import tk.com.sharemusic.network.NetWorkService;
+import tk.com.sharemusic.utils.DateUtil;
 
 public class ChatListAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
     public ChatListAdapter(int layoutResId, @Nullable List<ChatEntity> data) {
@@ -45,6 +46,17 @@ public class ChatListAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder
         }else {
             baseViewHolder.setText(R.id.tv_partner_chat, chatEntity.msgContent);
         }
+        baseViewHolder.setText(R.id.tv_chat_time, DateUtil.getChatTime(chatEntity.chatTime));
+        if (chatEntity.count>0){
+            baseViewHolder.setVisible(R.id.tv_count,true);
+        }else {
+            baseViewHolder.setGone(R.id.tv_count,true);
+        }
+        if (chatEntity.count>99) {
+            baseViewHolder.setText(R.id.tv_count, "99+");
+        }else {
+            baseViewHolder.setText(R.id.tv_count, chatEntity.count + "");
+        }
     }
 
     @Override
@@ -52,6 +64,17 @@ public class ChatListAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder
         if (payloads.isEmpty()){
             convert(holder,item);
             return;
+        }
+        holder.setText(R.id.tv_chat_time, DateUtil.getChatTime(item.chatTime));
+        if (item.count>0){
+            holder.setVisible(R.id.tv_count,true);
+        }else {
+            holder.setGone(R.id.tv_count,true);
+        }
+        if (item.count>99) {
+            holder.setText(R.id.tv_count, "99+");
+        }else {
+            holder.setText(R.id.tv_count, item.count + "");
         }
         for (Object payload:payloads){
             switch (String.valueOf(payload)){
@@ -96,6 +119,20 @@ public class ChatListAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder
                     }
                     break;
             }
+        }
+    }
+
+    public int getAllMsgCount(){
+        int count = 0;
+        for (ChatEntity chatEntity:getData()){
+            count = count + chatEntity.count;
+        }
+        return count;
+    }
+
+    public void clearMsgCount(){
+        for (ChatEntity chatEntity:getData()){
+            chatEntity.count = 0;
         }
     }
 }

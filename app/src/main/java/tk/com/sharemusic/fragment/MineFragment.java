@@ -286,7 +286,6 @@ public class MineFragment extends Fragment {
                 break;
             case R.id.rl_logout:
                 ShareApplication.clearActivity();
-                ShareApplication.getInstance().getConfig().setString("userName","");
                 ShareApplication.getInstance().getConfig().setString("password","");
                 startActivity(new Intent(getContext(),LoginActivity.class));
                 break;
@@ -328,6 +327,7 @@ public class MineFragment extends Fragment {
                             case 1:
                                 tvName.setText(str);
                                 user.setUserName(str);
+                                ShareApplication.getInstance().getConfig().setString("userName",str);
                                 ShareApplication.user.setUserName(str);
                                 break;
                             case 2:

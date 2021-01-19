@@ -24,7 +24,9 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -191,7 +193,10 @@ public class PartnerFragment extends Fragment {
             for (MsgEntity msgEntity : peopleEntities) {
                 if (msgEntity.getPeopleId().equals(event.partnerId)) {
                     int finalI = i;
-                    service.getPeopleInfo(event.partnerId)
+                    Map map = new HashMap();
+                    map.put("userId",ShareApplication.user.getUserId());
+                    map.put("peopleId",event.partnerId);
+                    service.getPeopleInfo(map)
                             .compose(RxSchedulers.<PeopleVo>compose(getContext()))
                             .subscribe(new BaseObserver<PeopleVo>(getContext()) {
                                 @Override

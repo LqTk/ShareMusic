@@ -3,6 +3,7 @@ package tk.com.sharemusic.activity;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.AudioManager;
@@ -18,6 +19,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -45,6 +47,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -66,6 +69,7 @@ import tk.com.sharemusic.entity.ChatEntity;
 import tk.com.sharemusic.entity.HeadItem;
 import tk.com.sharemusic.entity.MsgEntity;
 import tk.com.sharemusic.entity.User;
+import tk.com.sharemusic.event.MsgReadEvent;
 import tk.com.sharemusic.event.MyChatEntityEvent;
 import tk.com.sharemusic.event.RefreshPartnerMsgEvent;
 import tk.com.sharemusic.myview.dialog.ImgPreviewDIalog;
@@ -161,6 +165,7 @@ public class ChatActivity extends CommonActivity {
     private ChatAdapter chatAdapter;
     private PreferenceConfig preferenceConfig;
     private String partnerHead = "";
+    private InputMethodManager inputManager;
 
     class CountdownHandler extends Handler {
         private final WeakReference<ChatActivity> mActivity;
@@ -225,6 +230,7 @@ public class ChatActivity extends CommonActivity {
                             chatLists.addAll(voData);
                             saveData();
                         }
+                        EventBus.getDefault().post(new MsgReadEvent(partnerId));
                         chatAdapter.notifyDataSetChanged();
                         rcvChat.smoothScrollToPosition(chatLists.size());
                     }
@@ -243,6 +249,7 @@ public class ChatActivity extends CommonActivity {
     }
 
     private void initView() {
+        inputManager = (InputMethodManager) etContent.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
         etContent.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -339,7 +346,10 @@ public class ChatActivity extends CommonActivity {
 
         if (TextUtils.isEmpty(partnerId))
             return;
-        service.getPeopleInfo(partnerId)
+        Map map = new HashMap();
+        map.put("userId",ShareApplication.user.getUserId());
+        map.put("peopleId",partnerId);
+        service.getPeopleInfo(map)
                 .compose(RxSchedulers.<PeopleVo>compose(this))
                 .subscribe(new BaseObserver<PeopleVo>(this) {
                     @Override
@@ -702,6 +712,7 @@ public class ChatActivity extends CommonActivity {
                 }
                 break;
             case R.id.iv_functions:
+                inputManager.hideSoftInputFromWindow(etContent.getWindowToken(), 0);
                 uiPopWinUtil.dismissMenu();
                 functionsPicker.setConsoleWhich(1);
                 uiPopWinUtil.showPopupBottom(functionsPicker.getView(), R.id.layout_full);

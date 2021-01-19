@@ -22,6 +22,7 @@ import tk.com.sharemusic.entity.ChatEntity;
 import tk.com.sharemusic.enums.Gender;
 import tk.com.sharemusic.myview.CircleImage;
 import tk.com.sharemusic.network.NetWorkService;
+import tk.com.sharemusic.utils.DateUtil;
 
 public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
 
@@ -35,22 +36,20 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
 
     @Override
     protected void convert(@NotNull BaseViewHolder baseViewHolder, ChatEntity msgEntity) {
-        String avatar = msgEntity.senderAvatar;
-
         options = new RequestOptions()
                 .centerCrop()
                 .error(R.drawable.default_head_girl);
 
         if (msgEntity.isMyContent()) {
             Glide.with(getContext())
-                    .load(TextUtils.isEmpty(ShareApplication.user.getHeadImg())? Gender.getImage(0): NetWorkService.homeUrl+ShareApplication.user.getHeadImg())
+                    .load(TextUtils.isEmpty(ShareApplication.user.getHeadImg())? Gender.getImage(ShareApplication.user.getSex()): NetWorkService.homeUrl+ShareApplication.user.getHeadImg())
                     .apply(options)
                     .into((CircleImage) baseViewHolder.getView(R.id.iv_avatar));
             baseViewHolder.setVisible(R.id.layout_right, true);
             baseViewHolder.setGone(R.id.layout_left, true);
         } else {
             Glide.with(getContext())
-                .load(TextUtils.isEmpty(partnerHead)? Gender.getImage(0): NetWorkService.homeUrl+partnerHead)
+                .load(TextUtils.isEmpty(partnerHead)? Gender.getImage(1): NetWorkService.homeUrl+partnerHead)
                 .apply(options)
                 .into((CircleImage) baseViewHolder.getView(R.id.iv_avatar_left));
             baseViewHolder.setGone(R.id.layout_right, true);
@@ -76,7 +75,7 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
             for (int i = 0 ; i < voiceTime ; i++ ) {
                 blank.append("\t");
             }
-            baseViewHolder.setText(R.id.tv_voice,msgEntity.voiceTime + "'" + blank.toString());
+            baseViewHolder.setText(R.id.tv_voice,blank.toString() + "'" + msgEntity.voiceTime);
         } else if (msgEntity.msgType.equals(Constants.MODE_IMAGE)) {
             baseViewHolder.setGone(R.id.tv_content,true);
             baseViewHolder.setGone(R.id.tv_voice,true);
@@ -88,7 +87,7 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
                 Glide.with(getContext()).load(url).
                         apply(options).into((ImageView) baseViewHolder.getView(R.id.iv_pic));
             } else {
-                baseViewHolder.setImageResource(R.id.iv_pic,R.drawable.default_head_boy);
+                baseViewHolder.setImageResource(R.id.iv_pic,R.drawable.picture_icon_data_error);
             }
         }
 
@@ -127,25 +126,36 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
                         apply(options).into((ImageView) baseViewHolder.getView(R.id.iv_pic_left));
 
             } else {
-                baseViewHolder.setImageResource(R.id.iv_pic_left,R.drawable.default_head_boy);
+                baseViewHolder.setImageResource(R.id.iv_pic_left,R.drawable.picture_icon_data_error);
             }
         }
         baseViewHolder.setGone(R.id.tv_name,true);
         baseViewHolder.setGone(R.id.tv_name_left,true);
 
-        if (TextUtils.isEmpty(msgEntity.voiceTime)) {
+        int index = getData().indexOf(msgEntity);
+        boolean isShowTime = true;
+        if (index>0){
+            if (msgEntity.chatTime-getData().get(index-1).chatTime>10*60*1000){
+                isShowTime = true;
+            }else {
+                isShowTime = false;
+            }
+        }
+
+
+        if (!isShowTime) {
             baseViewHolder.setVisible(R.id.tv_time,false);
         } else {
             baseViewHolder.setVisible(R.id.tv_time,true);
         }
-        baseViewHolder.setText(R.id.tv_time,msgEntity.voiceTime);
+        baseViewHolder.setText(R.id.tv_time, DateUtil.getChatTime(msgEntity.chatTime));
 
-        if (TextUtils.isEmpty(msgEntity.voiceTime)) {
+        if (!isShowTime) {
             baseViewHolder.setVisible(R.id.tv_time_left,false);
         } else {
             baseViewHolder.setVisible(R.id.tv_time_left,true);
         }
-        baseViewHolder.setText(R.id.tv_time_left,msgEntity.voiceTime);
+        baseViewHolder.setText(R.id.tv_time_left,DateUtil.getChatTime(msgEntity.chatTime));
     }
 
     @Override

@@ -15,6 +15,7 @@ public class ChatEntity {
     public String senderAvatar;
     public String senderName;
     public long chatTime;
+    public int count;
 
     public ChatEntity(String chatId, String msgContent, String msgType, String voiceTime, String senderId, String senderAvatar, String senderName, long chatTime) {
         this.chatId = chatId;
@@ -105,4 +106,11 @@ public class ChatEntity {
         return isMyContent;
     }
 
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
 }

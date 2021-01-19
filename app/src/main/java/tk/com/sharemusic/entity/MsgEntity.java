@@ -7,14 +7,16 @@ public class MsgEntity {
     private int peopleSex;
     private String peopleDes;
     private int peopleAge;
+    private boolean isConcern;
 
-    public MsgEntity(String peopleName, String peopleId, String peopleHead, int peopleSex, String peopleDes, int peopleAge) {
+    public MsgEntity(String peopleName, String peopleId, String peopleHead, int peopleSex, String peopleDes, int peopleAge, boolean isConcern) {
         this.peopleName = peopleName;
         this.peopleId = peopleId;
         this.peopleHead = peopleHead;
         this.peopleSex = peopleSex;
         this.peopleDes = peopleDes;
         this.peopleAge = peopleAge;
+        this.isConcern = isConcern;
     }
 
     public String getPeopleName() {
@@ -63,5 +65,13 @@ public class MsgEntity {
 
     public void setPeopleAge(int peopleAge) {
         this.peopleAge = peopleAge;
+    }
+
+    public boolean isConcern() {
+        return isConcern;
+    }
+
+    public void setConcern(boolean concern) {
+        isConcern = concern;
     }
 }

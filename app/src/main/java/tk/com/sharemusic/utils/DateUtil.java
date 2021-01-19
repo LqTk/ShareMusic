@@ -25,6 +25,7 @@ public class DateUtil {
     private static final SimpleDateFormat our = new SimpleDateFormat("HH");
     private static final SimpleDateFormat miniteTime = new SimpleDateFormat("mm");
     public static final SimpleDateFormat birthdayDate = new SimpleDateFormat("yyyy-MM-dd");
+    public static final SimpleDateFormat ymd = new SimpleDateFormat("yyyy/MM/dd HH:mm");
 
     public static String getPublicTime(long timesnap){
         Date date = new Date(timesnap);
@@ -60,5 +61,15 @@ public class DateUtil {
                 break;
         }
         return Integer.valueOf(str);
+    }
+
+    public static String getChatTime(long timesnap){
+        Date date = new Date(timesnap);
+        long time = System.currentTimeMillis()-timesnap;
+        if (time>ONE_DAY){
+            return ymd.format(date);
+        }else {
+            return ourMiniteTime.format(date);
+        }
     }
 }

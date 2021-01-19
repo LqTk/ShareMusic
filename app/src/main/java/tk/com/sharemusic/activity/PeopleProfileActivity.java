@@ -14,8 +14,10 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 
 import org.greenrobot.eventbus.EventBus;
+import org.w3c.dom.Text;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -28,6 +30,7 @@ import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.enums.Gender;
 import tk.com.sharemusic.event.RefreshPartnerEvent;
 import tk.com.sharemusic.myview.CircleImage;
+import tk.com.sharemusic.myview.dialog.TextDialog;
 import tk.com.sharemusic.network.BaseResult;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
@@ -93,11 +96,16 @@ public class PeopleProfileActivity extends CommonActivity {
         peopleId = getIntent().getStringExtra("peopleId");
         if (TextUtils.isEmpty(peopleId))
             return;
-        service.getPeopleInfo(peopleId)
+        Map map = new HashMap();
+        map.put("userId",ShareApplication.user.getUserId());
+        map.put("peopleId",peopleId);
+        service.getPeopleInfo(map)
                 .compose(RxSchedulers.<PeopleVo>compose(this))
                 .subscribe(new BaseObserver<PeopleVo>(this) {
                     @Override
                     public void onSuccess(PeopleVo peopleVo) {
+                        if (tvName==null)
+                            return;
                         MsgEntity data = peopleVo.getData();
                         Glide.with(context)
                                 .load(TextUtils.isEmpty(data.getPeopleHead()) ? Gender.getImage(data.getPeopleSex()) : NetWorkService.homeUrl + data.getPeopleHead())
@@ -109,6 +117,11 @@ public class PeopleProfileActivity extends CommonActivity {
                         tvSex.setText(Gender.getName(data.getPeopleSex()));
                         tvDes.setText(data.getPeopleDes());
                         tvAge.setText(data.getPeopleAge()+"岁");
+                        if (data.isConcern()){
+                            tvAdd.setText("已关注");
+                        }else {
+                            tvAdd.setText("关注");
+                        }
                     }
 
                     @Override
@@ -128,7 +141,26 @@ public class PeopleProfileActivity extends CommonActivity {
                 startActivity(intent);
                 break;
             case R.id.tv_add:
-                addPartner();
+                if (tvAdd.getText().toString().equals("关注")) {
+                    addPartner();
+                }else {
+                    TextDialog dialog = new TextDialog(this);
+                    dialog.setTitle1("是否取消关注？");
+                    dialog.setContent("茫茫人海，可能再也见不到啦！");
+                    dialog.setOnClickListener(new TextDialog.OnClickListener() {
+                        @Override
+                        public void commit() {
+                            cancelPartner();
+                            dialog.dismiss();
+                        }
+
+                        @Override
+                        public void cancel() {
+                            dialog.dismiss();
+                        }
+                    });
+                    dialog.show();
+                }
                 break;
             case R.id.tv_chat:
                 if (!isOpenedChat) {
@@ -141,6 +173,33 @@ public class PeopleProfileActivity extends CommonActivity {
         }
     }
 
+    //取消关注
+    private void cancelPartner() {
+        User user = ShareApplication.getUser();
+        if (TextUtils.isEmpty(peopleId) || user == null)
+            return;
+        HashMap map = new HashMap();
+        map.put("userId", user.getUserId());
+        map.put("partnerId", peopleId);
+        service.cancelPartner(map)
+                .compose(RxSchedulers.<BaseResult>compose(this))
+                .subscribe(new BaseObserver<BaseResult>() {
+                    @Override
+                    public void onSuccess(BaseResult baseResult) {
+                        ToastUtil.showShortMessage(PeopleProfileActivity.this, "已取消关注");
+                        EventBus.getDefault().post(new RefreshPartnerEvent());
+                        if (tvAdd!=null)
+                        tvAdd.setText("关注");
+                    }
+
+                    @Override
+                    public void onFailed(String msg) {
+                        ToastUtil.showShortMessage(PeopleProfileActivity.this, msg);
+                    }
+                });
+    }
+
+    //添加关注
     private void addPartner() {
         User user = ShareApplication.getUser();
         if (TextUtils.isEmpty(peopleId) || user == null)
@@ -155,7 +214,8 @@ public class PeopleProfileActivity extends CommonActivity {
                     public void onSuccess(BaseResult baseResult) {
                         ToastUtil.showShortMessage(PeopleProfileActivity.this, baseResult.getMsg());
                         EventBus.getDefault().post(new RefreshPartnerEvent());
-                        finish();
+                        if (tvAdd!=null)
+                        tvAdd.setText("已关注");
                     }
 
                     @Override

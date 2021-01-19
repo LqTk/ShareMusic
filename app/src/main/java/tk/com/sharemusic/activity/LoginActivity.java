@@ -70,10 +70,10 @@ public class LoginActivity extends CommonActivity {
         }
 
         String name = ShareApplication.getInstance().getConfig().getString("userName","");
+        etName.setText(name);
         String password = ShareApplication.getInstance().getConfig().getString("password","");
+        etPassword.setText(password);
         if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(password)){
-            etName.setText(name);
-            etPassword.setText(password);
             login();
         }
     }

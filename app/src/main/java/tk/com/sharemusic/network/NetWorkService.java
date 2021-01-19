@@ -37,28 +37,36 @@ public interface NetWorkService {
     public static String homeUrl = "http://192.168.2.175:8080/";
     public static String BaseUrl = homeUrl+"SocialService/";
 
+    //登录
     @POST("user/login")
     Observable<LoginVo> login(@Body Map<String,String> map);
 
+    //注册
     @POST("user/register")
     Observable<BaseResult> register(@Body Map user);
 
+    //更新用户信息
     @POST("user/updataInfo")
     Observable<BaseResult> updataInfo(@Body Map map);
 
+    //上传头像
     @Multipart
     @POST("user/uploadHead")
     Observable<UpLoadHeadVo> uploadHead(@Part MultipartBody.Part part, @Part("userId")RequestBody userId);
 
+    //获取公场数据
     @GET("spublic/getdatas")
     Observable<GetPublicDataTenVo> getTenDatas();
 
+    //获取发布的单个详情
     @GET("spublic/getByShareId/{shareId}")
     Observable<GetPublicDataShareIdVo> getByShareId(@Path("shareId") String sharedId);
 
+    //发布新分享
     @POST("spublic/publish")
     Observable<GetPublicDataShareIdVo> pulishPublic(@Body SocialPublicEntity socialPublicEntity);
 
+    //删除分享
     @DELETE("spublic/deletePublish/{publishId}")
     Observable<BaseResult> pulishPublic(@Path("publishId") String publishId);
 
@@ -84,30 +92,42 @@ public interface NetWorkService {
     @DELETE("spublic/deleteView/{reviewId}")
     Observable<BaseResult> deleteReview(@Path("reviewId") String reviewId);
 
+    //评论回复
     @PUT("spublic/addChatReview")
     Observable<ChatReviewVo> addReviewChat(@Body HashMap map);
 
     @DELETE("spublic/deleteChatReview/{chatId}")
     Observable<BaseResult> deleteReviewChat(@Path("chatId") String chatId);
 
+    //获取用户的分享内容
     @POST("user/getByUserId")
     Observable<GetPublicDataTenVo> getMyPublish(@Body Map<String,Object> map);
 
+    //刷新上传registerID
     @POST("user/updataRegisterId")
     Observable<BaseResult> updataRegisterId(@Body Map<String,Object> map);
 
-    @GET("user/getProfileByUserId/{userId}")
-    Observable<PeopleVo> getPeopleInfo(@Path("userId")String userId);
+    //获取个人资料
+    @GET("user/getProfileByUserId")
+    Observable<PeopleVo> getPeopleInfo(@QueryMap Map<String, String> map);
 
+    //获取好友列表
     @GET("user/getPartners/{userId}")
     Observable<PartnerVo> getPartnerInfo(@Path("userId")String userId);
 
+    //获取关注列表
     @GET("user/getConcerns/{userId}")
     Observable<PartnerVo> getConcernsInfo(@Path("userId")String userId);
 
+    //关注好友
     @POST("user/addPartner")
     Observable<BaseResult> addPartner(@Body Map<String,Object> map);
 
+    //取消关注好友
+    @POST("user/cancelPartner")
+    Observable<BaseResult> cancelPartner(@Body Map<String,Object> map);
+
+    //发送消息
     @FormUrlEncoded
     @POST("user/chat/sendMsg")
     Observable<SendMsgVo> sendMsg(@FieldMap Map<String,String> msgEntity);
@@ -116,9 +136,15 @@ public interface NetWorkService {
     @POST("user/chat/sendMsg")
     Observable<SendMsgVo> sendMsg(@QueryMap Map<String,String> msgEntity, @Part MultipartBody.Part part);
 
+    //获取聊天消息列表
     @GET("user/chat/getAllChat/{userId}")
     Observable<ChatListVo> getAllChat(@Path("userId")String userId);
 
+    //获取单个好友聊天消息列表
+    @GET("user/chat/getSelectAllChat")
+    Observable<ChatListVo> getSelectAllChat(@QueryMap Map<String, String> map);
+
+    //获取具体个人的聊天列表
     @GET("user/chat/getSelectChat")
     Observable<ChatListVo> getPartnerChat(@QueryMap Map<String, String> map);
 }

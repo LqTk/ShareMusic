@@ -111,7 +111,16 @@ public class PlayerSongActivity extends CommonActivity {
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
+        if(web != null) {
+            web.clearHistory();
+            web.clearCache(true);
+            web.clearView();
+            // clearView() should be changed to loadUrl("about:blank"), since clearView() is deprecated now
+            web.freeMemory();
+            web.pauseTimers();
+            web = null; // Note that mWebView.destroy() and mWebView = null do the exact same thing
+        }
         bind.unbind();
+        super.onDestroy();
     }
 }
