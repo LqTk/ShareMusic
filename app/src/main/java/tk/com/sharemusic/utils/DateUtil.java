@@ -65,11 +65,16 @@ public class DateUtil {
 
     public static String getChatTime(long timesnap){
         Date date = new Date(timesnap);
-        long time = System.currentTimeMillis()-timesnap;
-        if (time>ONE_DAY){
-            return ymd.format(date);
-        }else {
+        Date nowDate = new Date();
+
+        int nowDay = Integer.valueOf(day.format(nowDate));
+        int chatDay = Integer.valueOf(day.format(date));
+        if (nowDay == chatDay){
             return ourMiniteTime.format(date);
+        }else if ((nowDay - chatDay)==1){
+            return "昨天 "+ourMiniteTime.format(date);
+        }else {
+            return ymd.format(date);
         }
     }
 }

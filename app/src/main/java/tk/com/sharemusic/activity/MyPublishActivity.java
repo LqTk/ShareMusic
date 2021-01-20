@@ -162,6 +162,8 @@ public class MyPublishActivity extends CommonActivity {
                     @Override
                     public void onSuccess(GetPublicDataTenVo getPublicDataTenVo) {
                         if (getPublicDataTenVo.getData() != null) {
+                            if (entityList==null)
+                                return;
                             if (isRefresh) {
                                 entityList.clear();
                                 entityList.addAll(getPublicDataTenVo.getData());
@@ -222,6 +224,8 @@ public class MyPublishActivity extends CommonActivity {
                                         .subscribe(new BaseObserver<BaseResult>() {
                                             @Override
                                             public void onSuccess(BaseResult baseResult) {
+                                                if (entityList==null)
+                                                    return;
                                                 entityList.get(position).getGoodsList().remove(goodsEntity);
                                                 adapter.notifyItemChanged(position,"goods");
                                             }
@@ -246,6 +250,8 @@ public class MyPublishActivity extends CommonActivity {
                                     .subscribe(new BaseObserver<GoodsResultVo>() {
                                         @Override
                                         public void onSuccess(GoodsResultVo goodsResultVo) {
+                                            if (entityList==null)
+                                                return;
                                             entityList.get(position).getGoodsList().add(goodsResultVo.getData());
                                             adapter.notifyItemChanged(position,"goods");
                                             ToastUtil.showShortMessage(mContext,"点赞成功");
@@ -314,6 +320,8 @@ public class MyPublishActivity extends CommonActivity {
                 .subscribe(new BaseObserver<BaseResult>() {
                     @Override
                     public void onSuccess(BaseResult baseResult) {
+                        if (socialAdapter==null)
+                            return;
                         socialAdapter.removeAt(itemPos);
                     }
 
@@ -341,6 +349,8 @@ public class MyPublishActivity extends CommonActivity {
                     @Override
                     public void onSuccess(GetPublicDataShareIdVo getPublicDataShareIdVo) {
                         entityList.set(toPos,getPublicDataShareIdVo.getData());
+                        if (socialAdapter==null)
+                            return;
                         socialAdapter.notifyItemChanged(toPos);
                     }
 

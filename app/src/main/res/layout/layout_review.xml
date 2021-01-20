@@ -26,7 +26,8 @@
             android:textColor="@color/buleBg"
             android:textSize="@dimen/sp_14"
             android:id="@+id/tv_name"
-            android:gravity="bottom"/>
+            android:gravity="bottom"
+            android:background="@drawable/text_view_pressed"/>
         <TextView
             android:id="@+id/tv_review_detail"
             android:layout_marginLeft="@dimen/dp_10"

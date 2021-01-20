@@ -109,6 +109,7 @@ public class PublicSocialAdapter extends BaseQuickAdapter<SocialPublicEntity, Ba
     private void addGoodsView(GoodsEntity goodsEntity, BaseViewHolder baseViewHolder, int index, int allCount) {
         TextView textView = new TextView(getContext());
         textView.setTextColor(Color.BLUE);
+        textView.setBackground(getContext().getResources().getDrawable(R.drawable.text_view_pressed));
         if (allCount<=ShareApplication.showCount){
             if (index == allCount-1){
                 textView.setText(goodsEntity.getPeopleName());

@@ -14,7 +14,8 @@
             android:layout_height="wrap_content"
             android:textColor="@color/buleBg"
             android:textSize="@dimen/sp_13"
-            android:id="@+id/tv_name"/>
+            android:id="@+id/tv_name"
+            android:background="@drawable/text_view_pressed"/>
         <TextView
             android:layout_marginLeft="@dimen/dp_5"
             android:layout_width="wrap_content"
@@ -27,7 +28,8 @@
             android:layout_height="wrap_content"
             android:textColor="@color/buleBg"
             android:textSize="@dimen/sp_13"
-            android:id="@+id/tv_toName"/>
+            android:id="@+id/tv_toName"
+            android:background="@drawable/text_view_pressed"/>
         <TextView
             android:layout_marginLeft="@dimen/dp_5"
             android:layout_width="wrap_content"

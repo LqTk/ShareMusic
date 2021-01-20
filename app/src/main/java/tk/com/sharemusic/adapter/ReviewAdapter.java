@@ -1,5 +1,6 @@
 package tk.com.sharemusic.adapter;
 
+import android.content.Intent;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -7,6 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.chad.library.adapter.base.listener.OnItemChildClickListener;
 import com.chad.library.adapter.base.listener.OnItemClickListener;
 import com.chad.library.adapter.base.viewholder.BaseViewHolder;
 
@@ -18,6 +20,7 @@ import java.util.List;
 
 import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
+import tk.com.sharemusic.activity.PeopleProfileActivity;
 import tk.com.sharemusic.entity.ChatReviewEntity;
 import tk.com.sharemusic.entity.ReviewEntity;
 import tk.com.sharemusic.event.ChatReviewDeleteEvent;
@@ -66,6 +69,34 @@ public class ReviewAdapter extends BaseQuickAdapter<ReviewEntity, BaseViewHolder
 
         ReviewChatAdapter adapter = new ReviewChatAdapter(R.layout.layout_chat_review,chatReviewList);
         recyclerView.setAdapter(adapter);
+        adapter.addChildClickViewIds(R.id.tv_name,R.id.tv_toName);
+        adapter.setOnItemChildClickListener(new OnItemChildClickListener() {
+            @Override
+            public void onItemChildClick(@NonNull BaseQuickAdapter adapter, @NonNull View view, int position) {
+                switch (view.getId()){
+                    case R.id.tv_name:
+                        String peopleId = chatReviewList.get(position).getTalkId();
+                        if (peopleId.equals(ShareApplication.user.getUserId())){
+                            return;
+                        }
+                        Intent intent1 = new Intent(getContext(), PeopleProfileActivity.class);
+                        intent1.putExtra("peopleId", peopleId);
+                        intent1.putExtra("from","public");
+                        getContext().startActivity(intent1);
+                        break;
+                    case R.id.tv_toName:
+                        String peopleToId = chatReviewList.get(position).getToId();
+                        if (peopleToId.equals(ShareApplication.user.getUserId())){
+                            return;
+                        }
+                        Intent intent = new Intent(getContext(), PeopleProfileActivity.class);
+                        intent.putExtra("peopleId", peopleToId);
+                        intent.putExtra("from","public");
+                        getContext().startActivity(intent);
+                        break;
+                }
+            }
+        });
         adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(@NonNull BaseQuickAdapter<?, ?> adapter, @NonNull View view, int position) {

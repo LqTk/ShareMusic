@@ -8,6 +8,7 @@
     <color name="colorPrimaryDark">#3700B3</color>
     <color name="colorAccent">#03DAC5</color>
     <color name="color_f4f4f4">#f4f4f4</color>
+    <color name="color_dddddd">#dddddd</color>
 
     <color name="hint_text">#ffae3e</color>
 

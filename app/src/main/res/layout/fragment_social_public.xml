@@ -32,22 +32,72 @@
                 android:src="@android:drawable/ic_input_add"
                 android:layout_alignParentRight="true"/>
         </RelativeLayout>
+
         <com.scwang.smartrefresh.layout.SmartRefreshLayout
+            android:id="@+id/srf"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/srf">
+            android:layout_height="match_parent">
+
             <com.scwang.smartrefresh.layout.header.ClassicsHeader
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:srlTextLoading="正在刷新.."
                 app:srlTextFinish="刷新完成"
-                app:srlTextPulling="下拉刷新"/>
+                app:srlTextLoading="正在刷新.."
+                app:srlTextPulling="下拉刷新" />
+
             <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/cycler_view"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:id="@+id/cycler_view"/>
+                android:layout_height="match_parent" />
         </com.scwang.smartrefresh.layout.SmartRefreshLayout>
     </LinearLayout>
-    <!-- TODO: Update blank fragment layout -->
+
+    <RelativeLayout
+        android:layout_width="@dimen/dp_50"
+        android:layout_height="@dimen/dp_50"
+        android:layout_marginBottom="@dimen/dp_30"
+        android:layout_marginRight="@dimen/dp_20"
+        android:layout_gravity="bottom|right"
+        android:background="@drawable/round_white"
+        android:gravity="center">
+        <LinearLayout
+            android:id="@+id/ll_to_top"
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:visibility="gone">
+            <ImageView
+                android:layout_width="@dimen/dp_20"
+                android:layout_height="@dimen/dp_20"
+                android:src="@drawable/up_to_top"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="回到顶部"
+                android:textColor="@color/textColorBlack"
+                android:textSize="@dimen/sp_8"/>
+        </LinearLayout>
+        <RelativeLayout
+            android:visibility="visible"
+            android:id="@+id/rl_msg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:id="@+id/iv_msg"
+                android:layout_width="@dimen/dp_20"
+                android:layout_height="@dimen/dp_20"
+                android:src="@drawable/message"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="99+"
+                android:id="@+id/tv_msg"
+                android:layout_centerHorizontal="true"
+                android:layout_below="@+id/iv_msg"
+                android:textSize="@dimen/sp_10"
+                android:textColor="@color/red"/>
+        </RelativeLayout>
+    </RelativeLayout>
 
 </FrameLayout>

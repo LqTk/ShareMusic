@@ -359,6 +359,8 @@ public class ChatActivity extends CommonActivity {
                             ToastUtil.showShortMessage(mContext,"获取数据失败");
                             return;
                         }
+                        if (tvName==null)
+                            return;
                         tvName.setText(peopleVo.getData().getPeopleName());
                         tvTitle.setText(peopleVo.getData().getPeopleDes());
                         chatAdapter.setPartnerHead(partnerInfo.getPeopleId(),partnerInfo.getPeopleHead());

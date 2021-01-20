@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.chad.library.adapter.base.listener.OnItemChildClickListener;
 import com.chad.library.adapter.base.listener.OnItemClickListener;
 import com.google.android.flexbox.FlexboxLayout;
 import com.luck.picture.lib.tools.ScreenUtils;
@@ -171,6 +172,24 @@ public class ShareDetailActivity extends AppCompatActivity {
 
         reviewAdapter = new ReviewAdapter(R.layout.layout_review, reviewEntities);
         rcyReview.setAdapter(reviewAdapter);
+        reviewAdapter.addChildClickViewIds(R.id.tv_name);
+        reviewAdapter.setOnItemChildClickListener(new OnItemChildClickListener() {
+            @Override
+            public void onItemChildClick(@NonNull BaseQuickAdapter adapter, @NonNull View view, int position) {
+                switch (view.getId()){
+                    case R.id.tv_name:
+                        String peopleId = reviewEntities.get(position).getPeopleId();
+                        if (peopleId.equals(ShareApplication.user.getUserId())){
+                            return;
+                        }
+                        Intent intent1 = new Intent(mContext, PeopleProfileActivity.class);
+                        intent1.putExtra("peopleId", peopleId);
+                        intent1.putExtra("from","public");
+                        startActivity(intent1);
+                        break;
+                }
+            }
+        });
         reviewAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(@NonNull BaseQuickAdapter<?, ?> adapter, @NonNull View view, int position) {
@@ -236,6 +255,8 @@ public class ShareDetailActivity extends AppCompatActivity {
     }
 
     private void loadData() {
+        if (tvName==null)
+            return;
         RequestOptions options = new RequestOptions()
                 .centerCrop()
                 .error(R.drawable.default_head_boy);
@@ -305,6 +326,7 @@ public class ShareDetailActivity extends AppCompatActivity {
     private void addGoodsView(GoodsEntity goodsEntity, int index, int allCount) {
         TextView textView = new TextView(mContext);
         textView.setTextColor(Color.BLUE);
+        textView.setBackground(getResources().getDrawable(R.drawable.text_view_pressed));
         if (allCount <= ShareApplication.showCount) {
             if (index == allCount - 1) {
                 textView.setText(goodsEntity.getPeopleName());
@@ -357,12 +379,22 @@ public class ShareDetailActivity extends AppCompatActivity {
         flexGood.addView(textView, index + 1);
     }
 
-    @OnClick({R.id.iv_head, R.id.ll_share_content, R.id.iv_good, R.id.iv_review, R.id.rcy_review, R.id.tv_send})
+    @OnClick({R.id.ll_share_people, R.id.ll_share_content, R.id.iv_good, R.id.iv_review, R.id.rcy_review, R.id.tv_send})
     public void onViewClicked(View view) {
         switch (view.getId()) {
-            case R.id.iv_head:
+            case R.id.ll_share_people:
+                if (publicEntity.getUserId().equals(ShareApplication.user.getUserId())){
+                    return;
+                }
+                Intent intent1 = new Intent(mContext, PeopleProfileActivity.class);
+                intent1.putExtra("peopleId", publicEntity.getUserId());
+                intent1.putExtra("from","public");
+                startActivity(intent1);
                 break;
             case R.id.ll_share_content:
+                Intent intent = new Intent(mContext, PlayerSongActivity.class);
+                intent.putExtra("url", publicEntity.getShareUrl());
+                startActivity(intent);
                 break;
             case R.id.iv_good:
                 addGoods();
@@ -407,6 +439,8 @@ public class ShareDetailActivity extends AppCompatActivity {
                 .subscribe(new BaseObserver<ChatReviewVo>(mContext) {
                     @Override
                     public void onSuccess(ChatReviewVo chatReviewVo) {
+                        if (reviewEntities==null)
+                            return;
                         reviewEntities.get(reviewPos).getChatReviewList().add(chatReviewVo.getData());
                         reviewAdapter.notifyItemChanged(reviewPos);
                     }
@@ -429,6 +463,8 @@ public class ShareDetailActivity extends AppCompatActivity {
                         .subscribe(new BaseObserver<BaseResult>() {
                             @Override
                             public void onSuccess(BaseResult baseResult) {
+                                if (goodsList==null)
+                                    return;
                                 goodsList.remove(goodsEntity);
                                 ivGood.setImageResource(R.drawable.goods_bg);
                                 if (goodsList.isEmpty()) {
@@ -461,6 +497,8 @@ public class ShareDetailActivity extends AppCompatActivity {
                     .subscribe(new BaseObserver<GoodsResultVo>() {
                         @Override
                         public void onSuccess(GoodsResultVo goodsResultVo) {
+                            if (llGoods==null)
+                                return;
                             llGoods.setVisibility(View.VISIBLE);
                             goodsList.add(goodsResultVo.getData());
                             tvGoods.setText(goodsList.size() + "");
@@ -487,6 +525,8 @@ public class ShareDetailActivity extends AppCompatActivity {
                 .subscribe(new BaseObserver<AddReviewVo>(mContext) {
                     @Override
                     public void onSuccess(AddReviewVo addReviewVo) {
+                        if (etReview==null)
+                            return;
                         etReview.setText("");
                         reviewAdapter.addData(reviewEntities.size(),addReviewVo.getData());
                         if (reviewEntities.isEmpty()){
@@ -551,6 +591,8 @@ public class ShareDetailActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(BaseResult baseResult) {
                         ToastUtil.showShortMessage(mContext,"评论已删除");
+                        if (reviewAdapter==null)
+                            return;
                         reviewAdapter.removeAt(itemPos);
                         if (reviewEntities.isEmpty()) {
                             tvReview.setText("评论");
@@ -572,6 +614,8 @@ public class ShareDetailActivity extends AppCompatActivity {
                 .subscribe(new BaseObserver<BaseResult>() {
                     @Override
                     public void onSuccess(BaseResult baseResult) {
+                        if (reviewEntities==null)
+                            return;
                         reviewEntities.get(itemPos).getChatReviewList().remove(chatPos);
                         reviewAdapter.notifyItemChanged(itemPos);
                     }

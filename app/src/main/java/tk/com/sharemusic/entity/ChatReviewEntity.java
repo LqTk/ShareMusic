@@ -17,9 +17,9 @@ public class ChatReviewEntity {
 
     private String chatText;
 
-    private Date chatTime;
+    private long chatTime;
 
-    public ChatReviewEntity(String reviewChatId, String reviewId, String talkId, String toId, String talkName, String toName, String chatText, Date chatTime) {
+    public ChatReviewEntity(String reviewChatId, String reviewId, String talkId, String toId, String talkName, String toName, String chatText, long chatTime) {
         this.reviewChatId = reviewChatId;
         this.reviewId = reviewId;
         this.talkId = talkId;
@@ -74,12 +74,12 @@ public class ChatReviewEntity {
         this.talkId = talkId == null ? null : talkId.trim();
     }
 
-    public String getToid() {
+    public String getToId() {
         return toId;
     }
 
-    public void setToid(String toid) {
-        this.toId = toid == null ? null : toid.trim();
+    public void setToId(String toId) {
+        this.toId = toId == null ? null : toId.trim();
     }
 
     public String getChatText() {
@@ -90,11 +90,11 @@ public class ChatReviewEntity {
         this.chatText = chatText == null ? null : chatText.trim();
     }
 
-    public Date getChattime() {
+    public long getChatTime() {
         return chatTime;
     }
 
-    public void setChattime(Date chattime) {
-        this.chatTime = chattime;
+    public void setChatTime(long chatTime) {
+        this.chatTime = chatTime;
     }
 }

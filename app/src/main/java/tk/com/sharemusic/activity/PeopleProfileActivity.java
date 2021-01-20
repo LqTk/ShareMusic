@@ -30,6 +30,7 @@ import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.enums.Gender;
 import tk.com.sharemusic.event.RefreshPartnerEvent;
 import tk.com.sharemusic.myview.CircleImage;
+import tk.com.sharemusic.myview.dialog.ImgPreviewDIalog;
 import tk.com.sharemusic.myview.dialog.TextDialog;
 import tk.com.sharemusic.network.BaseResult;
 import tk.com.sharemusic.network.HttpMethod;
@@ -71,6 +72,7 @@ public class PeopleProfileActivity extends CommonActivity {
     private Context context;
     private String peopleId;
     private boolean isOpenedChat = false;
+    private String headUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,8 +109,9 @@ public class PeopleProfileActivity extends CommonActivity {
                         if (tvName==null)
                             return;
                         MsgEntity data = peopleVo.getData();
+                        headUrl = data.getPeopleHead();
                         Glide.with(context)
-                                .load(TextUtils.isEmpty(data.getPeopleHead()) ? Gender.getImage(data.getPeopleSex()) : NetWorkService.homeUrl + data.getPeopleHead())
+                                .load(TextUtils.isEmpty(headUrl) ? Gender.getImage(data.getPeopleSex()) : NetWorkService.homeUrl + data.getPeopleHead())
                                 .apply(new RequestOptions()
                                         .centerCrop()
                                         .error(R.drawable.default_head_boy))
@@ -131,7 +134,7 @@ public class PeopleProfileActivity extends CommonActivity {
                 });
     }
 
-    @OnClick({R.id.rl_publish, R.id.tv_add, R.id.tv_chat})
+    @OnClick({R.id.rl_publish, R.id.tv_add, R.id.tv_chat, R.id.iv_head})
     public void onViewClicked(View view) {
         Intent intent;
         switch (view.getId()) {
@@ -169,6 +172,19 @@ public class PeopleProfileActivity extends CommonActivity {
                     startActivity(intent);
                 }
                 this.finish();
+                break;
+            case R.id.iv_head:
+                if (!TextUtils.isEmpty(headUrl)) {
+                    ImgPreviewDIalog dialog = new ImgPreviewDIalog(context);
+                    dialog.setPhotoViewClick(new ImgPreviewDIalog.PhotoViewClick() {
+                        @Override
+                        public void ImgClick() {
+                            dialog.dismiss();
+                        }
+                    });
+                    dialog.setImageView(headUrl);
+                    dialog.show();
+                }
                 break;
         }
     }
