@@ -17,6 +17,12 @@ public class PopWinUtil {
     private PopupWindow popupWindow = null;
     private boolean shade = true;
     private OnShowListener onShowListener;
+    private View bottomView;
+
+
+    public void setBottomView(View view){
+        this.bottomView = view;
+    }
 
     public PopWinUtil(Activity mActivity) {
         this.mActivity = mActivity;
@@ -39,6 +45,8 @@ public class PopWinUtil {
                 WindowManager.LayoutParams lp = mActivity.getWindow().getAttributes();
                 lp.alpha = 1f;
                 mActivity.getWindow().setAttributes(lp);
+                if (bottomView!=null)
+                    bottomView.setVisibility(View.GONE);
             }
         });
 
@@ -62,6 +70,9 @@ public class PopWinUtil {
         WindowManager.LayoutParams lp = mActivity.getWindow().getAttributes();
         lp.alpha = 1f;
         mActivity.getWindow().setAttributes(lp);
+
+        if (bottomView!=null)
+            bottomView.setVisibility(View.GONE);
 
         if (popupWindow != null && popupWindow.isShowing()) {
             popupWindow.dismiss();

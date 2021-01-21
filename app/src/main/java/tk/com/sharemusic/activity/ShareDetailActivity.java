@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -115,6 +116,7 @@ public class ShareDetailActivity extends AppCompatActivity {
     private boolean isReviewChatItem = false;
     private ChatReviewEntity chatReviewEntity;
     private PopWinUtil uiPopWinUtil;
+    private Handler mHandler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,19 +129,18 @@ public class ShareDetailActivity extends AppCompatActivity {
         ivGood.setImageResource(R.drawable.goods_bg);
         uiPopWinUtil = new PopWinUtil(this);
         uiPopWinUtil.setShade(true);
+        inputManager = (InputMethodManager) etReview.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
 
         initView();
         initRcyView();
         initData();
-        showInputTips(etReview);
     }
 
-    private void showInputTips(EditText et_text) {
-        et_text.setFocusable(true);
-        et_text.setFocusableInTouchMode(true);
-        et_text.requestFocus();
-        inputManager = (InputMethodManager) et_text.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputManager.showSoftInput(et_text, 0);
+    private void showInputTips() {
+        etReview.setFocusable(true);
+        etReview.setFocusableInTouchMode(true);
+        etReview.requestFocus();
+        inputManager.showSoftInput(etReview,InputMethodManager.SHOW_FORCED);
     }
 
     private void initView() {
@@ -213,16 +214,62 @@ public class ShareDetailActivity extends AppCompatActivity {
                         public void report() {
                             uiPopWinUtil.dismissMenu();
                         }
+
+                        @Override
+                        public void replay() {
+
+                        }
                     });
                     uiPopWinUtil.showPopupBottom(menuView.getView(),R.id.rl_detail_public);
                 }else {
-                    showInputTips(etReview);
-                    int pos = position + 1;
-                    reviewPos = position;
-                    etReview.setText("");
-                    etReview.setHint("回复" + pos + "楼 " + reviewEntities.get(position).getPeopleName());
-                    isReviewChat = true;
-                    isReviewChatItem = false;
+                    if (publicEntity.getUserId().equals(ShareApplication.user.getUserId())){
+                        ClickMenuView menuView = new ClickMenuView(mContext);
+                        menuView.showReplay(View.VISIBLE);
+                        menuView.setClickListener(new ClickMenuView.ItemClickListener() {
+                            @Override
+                            public void cancel() {
+                                uiPopWinUtil.dismissMenu();
+                            }
+
+                            @Override
+                            public void delete() {
+                                deleteReView(review,position);
+                                uiPopWinUtil.dismissMenu();
+                            }
+
+                            @Override
+                            public void report() {
+                                uiPopWinUtil.dismissMenu();
+                            }
+
+                            @Override
+                            public void replay() {
+                                int pos = position + 1;
+                                reviewPos = position;
+                                etReview.setText("");
+                                etReview.setHint("回复" + pos + "楼 " + reviewEntities.get(position).getPeopleName());
+                                isReviewChat = true;
+                                isReviewChatItem = false;
+                                uiPopWinUtil.dismissMenu();
+                                mHandler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        showInputTips();
+                                    }
+                                },500);
+                            }
+                        });
+                        uiPopWinUtil.showPopupBottom(menuView.getView(),R.id.rl_detail_public);
+                    }else {
+                        int pos = position + 1;
+                        reviewPos = position;
+                        etReview.setText("");
+                        etReview.setHint("回复" + pos + "楼 " + reviewEntities.get(position).getPeopleName());
+                        isReviewChat = true;
+                        isReviewChatItem = false;
+                        showInputTips();
+                    }
+
                 }
             }
         });
@@ -284,6 +331,9 @@ public class ShareDetailActivity extends AppCompatActivity {
             tvGoods.setText(goodsList.size() + "");
             llGoods.setVisibility(View.VISIBLE);
             showGoodsView();
+        }
+        if (!publicEntity.getUserId().equals(ShareApplication.user.getUserId())){
+            showInputTips();
         }
     }
 
@@ -379,7 +429,7 @@ public class ShareDetailActivity extends AppCompatActivity {
         flexGood.addView(textView, index + 1);
     }
 
-    @OnClick({R.id.ll_share_people, R.id.ll_share_content, R.id.iv_good, R.id.iv_review, R.id.rcy_review, R.id.tv_send})
+    @OnClick({R.id.ll_share_people, R.id.ll_share_content, R.id.ll_good, R.id.iv_review, R.id.rcy_review, R.id.tv_send})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.ll_share_people:
@@ -396,7 +446,7 @@ public class ShareDetailActivity extends AppCompatActivity {
                 intent.putExtra("url", publicEntity.getShareUrl());
                 startActivity(intent);
                 break;
-            case R.id.iv_good:
+            case R.id.ll_good:
                 addGoods();
                 break;
             case R.id.iv_review:
@@ -404,6 +454,7 @@ public class ShareDetailActivity extends AppCompatActivity {
                 isReviewChatItem = false;
                 etReview.setText("");
                 etReview.setHint("评论");
+                showInputTips();
                 break;
             case R.id.rcy_review:
                 break;
@@ -441,6 +492,13 @@ public class ShareDetailActivity extends AppCompatActivity {
                     public void onSuccess(ChatReviewVo chatReviewVo) {
                         if (reviewEntities==null)
                             return;
+                        if (etReview==null)
+                            return;
+                        isReviewChat = false;
+                        isReviewChatItem = false;
+                        etReview.setText("");
+                        etReview.setHint("评论");
+
                         reviewEntities.get(reviewPos).getChatReviewList().add(chatReviewVo.getData());
                         reviewAdapter.notifyItemChanged(reviewPos);
                     }
@@ -549,7 +607,7 @@ public class ShareDetailActivity extends AppCompatActivity {
             isReviewChat = false;
             isReviewChatItem = true;
             chatReviewEntity = event.chatReviewEntity;
-            showInputTips(etReview);
+            showInputTips();
             reviewPos = event.pos;
             etReview.setText("");
             etReview.setHint("评论"+chatReviewEntity.getTalkName());
@@ -578,6 +636,11 @@ public class ShareDetailActivity extends AppCompatActivity {
                 @Override
                 public void report() {
                     uiPopWinUtil.dismissMenu();
+                }
+
+                @Override
+                public void replay() {
+
                 }
             });
             uiPopWinUtil.showPopupBottom(menuView.getView(),R.id.rl_detail_public);

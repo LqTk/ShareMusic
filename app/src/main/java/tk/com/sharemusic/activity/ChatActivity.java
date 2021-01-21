@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Rect;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -19,6 +20,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -126,8 +128,8 @@ public class ChatActivity extends CommonActivity {
     LinearLayout layoutText;
     @BindView(R.id.layout_full)
     LinearLayout layoutFull;
-    @BindView(R.id.empty)
-    TextView empty;
+    @BindView(R.id.ll_show)
+    LinearLayout llShow;
     @BindView(R.id.btn_press_to_speak)
     TextView tvRecord;
 
@@ -146,6 +148,7 @@ public class ChatActivity extends CommonActivity {
     private final String fileName = "chat_voice_";
     private String tmpFileName;
 
+    private Handler mHandler = new Handler();
     private final Handler handler = new CountdownHandler(this);
     private int seconds = 0;
     private int tmpSec = 0;
@@ -273,6 +276,24 @@ public class ChatActivity extends CommonActivity {
             }
         });
 
+        etContent.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            //键盘弹出变化会调用此函数
+            @Override
+            public void onGlobalLayout() {
+                Rect r = new Rect();
+                //获取当前界面可视部分
+                ChatActivity.this.getWindow().getDecorView().getWindowVisibleDisplayFrame(r);
+                //获取屏幕的高度
+                int screenHeight =  ChatActivity.this.getWindow().getDecorView().getRootView().getHeight();
+                //此处就是用来获取键盘的高度的， 在键盘没有弹出的时候 此高度为0 键盘弹出的时候为一个正数
+                int heightDifference = screenHeight - r.bottom;
+                if (heightDifference>0){
+                    rcvChat.smoothScrollToPosition(chatLists.size());
+                }
+                Log.d("Keyboard Size", "Size: " + heightDifference);
+            }
+        });
+
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         rcvChat.setLayoutManager(linearLayoutManager);
@@ -343,6 +364,7 @@ public class ChatActivity extends CommonActivity {
     private void initData() {
         uiPopWinUtil = new PopWinUtil(this);
         uiPopWinUtil.setShade(false);
+        uiPopWinUtil.setBottomView(llShow);
 
         if (TextUtils.isEmpty(partnerId))
             return;
@@ -718,6 +740,13 @@ public class ChatActivity extends CommonActivity {
                 uiPopWinUtil.dismissMenu();
                 functionsPicker.setConsoleWhich(1);
                 uiPopWinUtil.showPopupBottom(functionsPicker.getView(), R.id.layout_full);
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        llShow.setVisibility(View.VISIBLE);
+                        rcvChat.smoothScrollToPosition(chatLists.size());
+                    }
+                },450);
                 break;
             case R.id.btn_send:
                 if (TextUtils.isEmpty(etContent.getText().toString().trim())) {

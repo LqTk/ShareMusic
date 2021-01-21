@@ -77,9 +77,11 @@
                 android:orientation="horizontal"
                 android:layout_alignParentRight="true">
                 <LinearLayout
+                    android:id="@+id/ll_good"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
                     <ImageView
                         android:id="@+id/iv_good"
                         android:layout_gravity="center_vertical"
@@ -93,7 +95,6 @@
                         android:layout_height="wrap_content"
                         android:textColor="#cdcdcd"
                         android:textSize="@dimen/sp_10"
-                        android:layout_gravity="bottom"
                         android:text=""/>
                 </LinearLayout>
                 <LinearLayout
@@ -101,7 +102,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginLeft="@dimen/dp_20">
+                    android:layout_marginLeft="@dimen/dp_20"
+                    android:layout_gravity="center_vertical">
                     <ImageView
                         android:layout_gravity="center_vertical"
                         android:layout_width="@dimen/dp_20"
@@ -114,7 +116,6 @@
                         android:layout_height="wrap_content"
                         android:textColor="#cdcdcd"
                         android:textSize="@dimen/sp_10"
-                        android:layout_gravity="bottom"
                         android:text=""/>
                 </LinearLayout>
                 <ImageView

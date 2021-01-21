@@ -29,6 +29,7 @@ import tk.com.sharemusic.network.response.GoodsResultVo;
 import tk.com.sharemusic.network.response.LoginVo;
 import tk.com.sharemusic.network.response.PartnerVo;
 import tk.com.sharemusic.network.response.PeopleVo;
+import tk.com.sharemusic.network.response.PublicMsgVo;
 import tk.com.sharemusic.network.response.SendMsgVo;
 import tk.com.sharemusic.network.response.UpLoadHeadVo;
 
@@ -147,4 +148,8 @@ public interface NetWorkService {
     //获取具体个人的聊天列表
     @GET("user/chat/getSelectChat")
     Observable<ChatListVo> getPartnerChat(@QueryMap Map<String, String> map);
+
+    //获取公场的消息
+    @GET("spublic/getMsgCount/{userId}")
+    Observable<PublicMsgVo> getPublicMsg(@Path("userId") String userId);
 }

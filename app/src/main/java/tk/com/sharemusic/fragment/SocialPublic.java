@@ -46,6 +46,8 @@ import tk.com.sharemusic.adapter.PublicSocialAdapter;
 import tk.com.sharemusic.entity.GoodsEntity;
 import tk.com.sharemusic.entity.SocialPublicEntity;
 import tk.com.sharemusic.event.ChangeFragmentEvent;
+import tk.com.sharemusic.event.MsgCountEvent;
+import tk.com.sharemusic.event.NewReviewEvent;
 import tk.com.sharemusic.event.RefreshPublicData;
 import tk.com.sharemusic.event.UpLoadSocialSuccess;
 import tk.com.sharemusic.myview.dialog.ClickMenuView;
@@ -56,6 +58,7 @@ import tk.com.sharemusic.network.RxSchedulers;
 import tk.com.sharemusic.network.response.GetPublicDataShareIdVo;
 import tk.com.sharemusic.network.response.GetPublicDataTenVo;
 import tk.com.sharemusic.network.response.GoodsResultVo;
+import tk.com.sharemusic.network.response.PublicMsgVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
 import tk.com.sharemusic.utils.PopWinUtil;
 import tk.com.sharemusic.utils.ToastUtil;
@@ -93,6 +96,7 @@ public class SocialPublic extends Fragment {
     private NetWorkService service;
 
     private boolean noMore = false;
+    private int msgCount = 0;
     private View emptyView;
     private TextView tvEmptyDes;
     private ImageView ivShow;
@@ -167,6 +171,38 @@ public class SocialPublic extends Fragment {
         initView();
         initRecyView();
         initData(true);
+        loadMsgCount();
+    }
+
+    private void loadMsgCount() {
+        if (ShareApplication.user==null)
+            return;
+        service.getPublicMsg(ShareApplication.user.getUserId())
+                .compose(RxSchedulers.<PublicMsgVo>compose(getContext()))
+                .subscribe(new BaseObserver<PublicMsgVo>() {
+                    @Override
+                    public void onSuccess(PublicMsgVo publicMsgVo) {
+                        msgCount = publicMsgVo.getData().size();
+                        EventBus.getDefault().post(new MsgCountEvent(MainActivity.PAGE_PUBLIC,msgCount));
+                        if (tvMsg==null)
+                            return;
+                        if (msgCount==0) {
+                            tvMsg.setVisibility(View.GONE);
+                        }else {
+                            tvMsg.setVisibility(View.VISIBLE);
+                        }
+                        if (msgCount>99){
+                            tvMsg.setText("99+");
+                        }else {
+                            tvMsg.setText(msgCount+"");
+                        }
+                    }
+
+                    @Override
+                    public void onFailed(String msg) {
+
+                    }
+                });
     }
 
     private void initView() {
@@ -238,7 +274,7 @@ public class SocialPublic extends Fragment {
         cyclerView.setAdapter(socialAdapter);
 
         socialAdapter.setEmptyView(emptyView);
-        socialAdapter.addChildClickViewIds(R.id.ll_share_content, R.id.ll_share_people, R.id.iv_good, R.id.iv_review, R.id.iv_share, R.id.iv_more);
+        socialAdapter.addChildClickViewIds(R.id.ll_share_content, R.id.ll_share_people, R.id.ll_good, R.id.iv_review, R.id.iv_share, R.id.iv_more);
         socialAdapter.setOnItemChildClickListener(new OnItemChildClickListener() {
             @Override
             public void onItemChildClick(@NonNull BaseQuickAdapter adapter, @NonNull View view, int position) {
@@ -259,7 +295,7 @@ public class SocialPublic extends Fragment {
                         intent.putExtra("url", socialPublicEntity.getShareUrl());
                         startActivity(intent);
                         break;
-                    case R.id.iv_good:
+                    case R.id.ll_good:
                         List<GoodsEntity> goodsList = entityList.get(position).getGoodsList();
                         boolean ishave = false;
                         for (int i = 0; i < goodsList.size(); i++) {
@@ -363,6 +399,11 @@ public class SocialPublic extends Fragment {
             public void report() {
                 uiPopWinUtil.dismissMenu();
             }
+
+            @Override
+            public void replay() {
+
+            }
         });
         uiPopWinUtil.showPopupBottom(menuView.getView(), R.id.fl_public);
     }
@@ -448,6 +489,13 @@ public class SocialPublic extends Fragment {
             case R.id.rl_msg:
                 ToastUtil.showShortMessage(getContext(), "显示消息");
                 break;
+        }
+    }
+
+    @Subscribe
+    public void newReviewMsg(NewReviewEvent event){
+        if (event!=null){
+            loadMsgCount();
         }
     }
 }

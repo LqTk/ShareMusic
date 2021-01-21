@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import cn.jpush.android.api.CustomMessage;
 import cn.jpush.android.api.NotificationMessage;
 import cn.jpush.android.service.JPushMessageReceiver;
+import tk.com.sharemusic.event.NewReviewEvent;
 import tk.com.sharemusic.event.RefreshChatListEvent;
 import tk.com.sharemusic.event.RefreshPartnerMsgEvent;
 
@@ -21,7 +22,7 @@ public class PushMessageReceiver extends JPushMessageReceiver {
     public void onMessage(Context context, CustomMessage customMessage) {
         super.onMessage(context, customMessage);
         Log.d("pushSReceiver","onMessage message=="+customMessage+",extra = "+customMessage.extra);
-        if (customMessage.title.equals("有新消息")){
+        if (customMessage.message.equals("新消息")){
             String talkId = "";
             try {
                 JSONObject object = new JSONObject(customMessage.extra);
@@ -31,6 +32,8 @@ public class PushMessageReceiver extends JPushMessageReceiver {
             }
             EventBus.getDefault().post(new RefreshChatListEvent(talkId));
             EventBus.getDefault().post(new RefreshPartnerMsgEvent());
+        }else if (customMessage.message.equals("新评论")){
+            EventBus.getDefault().post(new NewReviewEvent());
         }
     }
 

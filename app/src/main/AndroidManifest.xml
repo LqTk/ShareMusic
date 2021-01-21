@@ -37,8 +37,7 @@
         android:theme="@style/AppTheme">
         <activity android:name=".activity.ShareDetailActivity"/>
         <activity android:name=".activity.RegisterActivity" />
-        <activity android:name=".activity.ChatActivity"
-            android:windowSoftInputMode="adjustPan"/>
+        <activity android:name=".activity.ChatActivity"/>
         <activity android:name=".activity.PeopleProfileActivity" />
         <activity android:name=".activity.MyPublishActivity" />
         <activity android:name=".activity.ShareActivity" />

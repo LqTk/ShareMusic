@@ -310,6 +310,11 @@ public class MyPublishActivity extends CommonActivity {
             public void report() {
                 uiPopWinUtil.dismissMenu();
             }
+
+            @Override
+            public void replay() {
+
+            }
         });
         uiPopWinUtil.showPopupBottom(menuView.getView(),R.id.cst_my_publish);
     }

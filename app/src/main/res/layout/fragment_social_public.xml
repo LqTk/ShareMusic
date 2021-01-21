@@ -89,14 +89,17 @@
                 android:layout_height="@dimen/dp_20"
                 android:src="@drawable/message"/>
             <TextView
+                android:visibility="gone"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="99+"
+                android:text=""
+                android:background="@drawable/round_red_bg"
                 android:id="@+id/tv_msg"
+                android:gravity="center"
                 android:layout_centerHorizontal="true"
                 android:layout_below="@+id/iv_msg"
                 android:textSize="@dimen/sp_10"
-                android:textColor="@color/red"/>
+                android:textColor="@color/white"/>
         </RelativeLayout>
     </RelativeLayout>
 
