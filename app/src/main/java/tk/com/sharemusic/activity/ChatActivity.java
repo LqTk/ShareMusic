@@ -76,6 +76,7 @@ import tk.com.sharemusic.event.MyChatEntityEvent;
 import tk.com.sharemusic.event.RefreshPartnerMsgEvent;
 import tk.com.sharemusic.myview.dialog.ImgPreviewDIalog;
 import tk.com.sharemusic.myview.dialog.PagerMenuGridPicker;
+import tk.com.sharemusic.myview.dialog.TextDialog;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
 import tk.com.sharemusic.network.RxSchedulers;
@@ -169,6 +170,7 @@ public class ChatActivity extends CommonActivity {
     private PreferenceConfig preferenceConfig;
     private String partnerHead = "";
     private InputMethodManager inputManager;
+    private int reSendPos;
 
     class CountdownHandler extends Handler {
         private final WeakReference<ChatActivity> mActivity;
@@ -208,6 +210,12 @@ public class ChatActivity extends CommonActivity {
         partnerId = getIntent().getStringExtra("partnerId");
 
         chatLists = preferenceConfig.getArrayList(user.getUserId()+partnerId+Config.CHAT_PARTNER_LIST,ChatEntity.class);
+        for (ChatEntity chatEntity:chatLists){
+            if (chatEntity.isSending()){
+                chatEntity.setSending(false);
+                chatEntity.setSendSuccess(false);
+            }
+        }
 
         initView();
         initData();
@@ -226,6 +234,8 @@ public class ChatActivity extends CommonActivity {
                 .subscribe(new BaseObserver<ChatListVo>() {
                     @Override
                     public void onSuccess(ChatListVo chatListVo) {
+                        if (refreshView==null)
+                            return;
                         refreshView.finishRefresh();
                         refreshView.finishLoadMore();
                         List<ChatEntity> voData = chatListVo.getData();
@@ -240,6 +250,8 @@ public class ChatActivity extends CommonActivity {
 
                     @Override
                     public void onFailed(String msg) {
+                        if (refreshView==null)
+                            return;
                         ToastUtil.showShortMessage(mContext,msg);
                         refreshView.finishRefresh();
                         refreshView.finishLoadMore();
@@ -299,7 +311,7 @@ public class ChatActivity extends CommonActivity {
         rcvChat.setLayoutManager(linearLayoutManager);
 
         chatAdapter = new ChatAdapter(R.layout.item_chat_content, chatLists, partnerHead);
-        chatAdapter.addChildClickViewIds(R.id.tv_voice,R.id.tv_voice_left,R.id.iv_pic,R.id.iv_pic_left);
+        chatAdapter.addChildClickViewIds(R.id.tv_voice,R.id.tv_voice_left,R.id.iv_pic,R.id.iv_pic_left, R.id.iv_send_fail);
         rcvChat.setAdapter(chatAdapter);
         chatAdapter.setOnItemChildClickListener(new OnItemChildClickListener() {
             @Override
@@ -346,9 +358,32 @@ public class ChatActivity extends CommonActivity {
                         dialog.setImageView(chatLists.get(position).getMsgContent());
                         dialog.show();
                         break;
+                    case R.id.iv_send_fail:
+                        TextDialog dialog1 = new TextDialog(mContext);
+                        dialog1.setTitle1("提示");
+                        dialog1.setContent("是否重新发送该条消息？");
+                        dialog1.setOnClickListener(new TextDialog.OnClickListener() {
+                            @Override
+                            public void commit() {
+                                ChatEntity chatEntity = chatLists.get(position);
+                                chatEntity.setSending(true);
+                                chatAdapter.notifyItemChanged(position,"state");
+                                reSendPos = position;
+                                send(chatEntity.msgType,chatEntity.msgContent,chatEntity.voiceTime,true);
+                                dialog1.dismiss();
+                            }
+
+                            @Override
+                            public void cancel() {
+                                dialog1.dismiss();
+                            }
+                        });
+                        dialog1.show();
+                        break;
                 }
             }
         });
+        rcvChat.scrollToPosition(chatLists.size());
     }
 
     private void reLogin(){
@@ -518,14 +553,20 @@ public class ChatActivity extends CommonActivity {
                     seconds = 0;
 
                     if (iRecAudioFile != null)
-                        send(Constants.MODE_VOICE, iRecAudioFile.getAbsolutePath(), String.valueOf(tmpSec));
+                        send(Constants.MODE_VOICE, iRecAudioFile.getAbsolutePath(), String.valueOf(tmpSec),false);
                 }
                 break;
         }
     }
 
-    private void send(String msgType, String content, String voiceTime) {
+    private void send(String msgType, String content, String voiceTime, boolean isReSend) {
         HashMap map = new HashMap();
+        ChatEntity sendEntity = new ChatEntity();
+        sendEntity.setSenderAvatar(ShareApplication.user.getHeadImg());
+        sendEntity.setSenderName(ShareApplication.user.getUserName());
+        sendEntity.setMsgType(msgType);
+        sendEntity.setSenderId(ShareApplication.user.getUserId());
+        sendEntity.setMsgContent(content);
         map.put("talkid",user.getUserId());
         map.put("toid",partnerInfo.getPeopleId());
         map.put("msgtype",msgType);
@@ -534,7 +575,7 @@ public class ChatActivity extends CommonActivity {
         switch (msgType){
             case Constants.MODE_IMAGE:
                 if (TextUtils.isEmpty(content)){
-                    ToastUtil.showShortMessage(mContext,"获取数据失败");
+                    ToastUtil.showShortMessage(mContext,"图片获取失败");
                     return;
                 }
                 part = getFilePart(content);
@@ -542,8 +583,9 @@ public class ChatActivity extends CommonActivity {
                 break;
             case Constants.MODE_VOICE:
                 map.put("voicetime",voiceTime);
+                sendEntity.setVoiceTime(voiceTime);
                 if (TextUtils.isEmpty(content)){
-                    ToastUtil.showShortMessage(mContext,"获取数据失败");
+                    ToastUtil.showShortMessage(mContext,"语音获取失败");
                     return;
                 }
                 part = getFilePart(content);
@@ -551,24 +593,52 @@ public class ChatActivity extends CommonActivity {
                 break;
             case Constants.MODE_TEXT:
                 map.put("msgcontent",content);
+                sendEntity.setMsgContent(content);
                 baseResultObservable = service.sendMsg(map);
                 break;
         }
+        sendEntity.setSending(true);
+        sendEntity.setChatTime(System.currentTimeMillis());
+        if (!isReSend) {
+            chatAdapter.addData(sendEntity);
+            saveData();
+            rcvChat.smoothScrollToPosition(chatLists.size());
+        }
+        EventBus.getDefault().post(new MyChatEntityEvent(sendEntity, partnerInfo));
         baseResultObservable.compose(RxSchedulers.<SendMsgVo>compose(mContext))
-                .subscribe(new BaseObserver<SendMsgVo>(mContext) {
+                .subscribe(new BaseObserver<SendMsgVo>() {
                     @Override
                     public void onSuccess(SendMsgVo baseResult) {
                         ChatEntity data = baseResult.getData();
-                        chatLists.add(baseResult.getData());
-                        EventBus.getDefault().post(new MyChatEntityEvent(data,partnerInfo));
+                        if (isReSend){
+                            chatLists.get(reSendPos).setSending(false);
+                            chatLists.get(reSendPos).setSendSuccess(true);
+                            chatLists.get(reSendPos).setMsgType(data.msgType);
+                            chatLists.get(reSendPos).setMsgContent(data.msgContent);
+                            chatLists.get(reSendPos).setChatTime(data.chatTime);
+                            chatLists.get(reSendPos).setVoiceTime(data.voiceTime);
+                            chatAdapter.notifyItemChanged(reSendPos, "state");
+                        }else {
+                            chatLists.get(chatLists.size() - 1).setSending(false);
+                            chatLists.get(chatLists.size() - 1).setSendSuccess(true);
+                            chatLists.get(chatLists.size() - 1).setMsgType(data.msgType);
+                            chatLists.get(chatLists.size() - 1).setMsgContent(data.msgContent);
+                            chatLists.get(chatLists.size() - 1).setChatTime(data.chatTime);
+                            chatLists.get(chatLists.size() - 1).setVoiceTime(data.voiceTime);
+                            chatAdapter.notifyItemChanged(chatLists.size() - 1, "state");
+                        }
+                        EventBus.getDefault().post(new MyChatEntityEvent(chatLists.get(chatLists.size()-1),partnerInfo));
                         saveData();
-                        chatAdapter.notifyDataSetChanged();
-                        rcvChat.smoothScrollToPosition(chatLists.size());
                     }
 
                     @Override
                     public void onFailed(String msg) {
+                        chatLists.get(chatLists.size()-1).setSending(false);
+                        chatLists.get(chatLists.size()-1).setSendSuccess(false);
+                        chatAdapter.notifyItemChanged(chatLists.size()-1,"state");
+                        EventBus.getDefault().post(new MyChatEntityEvent(chatLists.get(chatLists.size()-1),partnerInfo));
                         ToastUtil.showShortMessage(mContext,"消息发送失败");
+                        saveData();
                     }
                 });
     }
@@ -615,7 +685,7 @@ public class ChatActivity extends CommonActivity {
 
                             if (iRecAudioFile == null)
                                 return true;
-                            send(Constants.MODE_VOICE, iRecAudioFile.getAbsolutePath(), String.valueOf(tmpSec));
+                            send(Constants.MODE_VOICE, iRecAudioFile.getAbsolutePath(), String.valueOf(tmpSec),false);
 
                         }
                         break;
@@ -752,7 +822,7 @@ public class ChatActivity extends CommonActivity {
                 if (TextUtils.isEmpty(etContent.getText().toString().trim())) {
                     ToastUtil.showShortMessage(mContext,"请输入聊天内容");
                 } else {
-                    send(Constants.MODE_TEXT, etContent.getText().toString(), "");
+                    send(Constants.MODE_TEXT, etContent.getText().toString(), "", false);
                 }
                 etContent.setText("");
                 break;
@@ -809,7 +879,7 @@ public class ChatActivity extends CommonActivity {
                 }else {
                     imgPath = selectList.get(0).getPath();
                 }
-                send(Constants.MODE_IMAGE, imgPath, "");
+                send(Constants.MODE_IMAGE, imgPath, "", false);
                 break;
             case Constants.PERMISSION_REQUEST_CODE:
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

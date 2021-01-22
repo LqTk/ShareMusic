@@ -3,7 +3,11 @@ package tk.com.sharemusic.config;
 import android.content.Context;
 import android.os.Environment;
 
+import com.bumptech.glide.request.RequestOptions;
+
 import java.io.File;
+
+import tk.com.sharemusic.R;
 
 public class Constants {
     public static final String MODE_TEXT = "TEXT";
@@ -12,14 +16,6 @@ public class Constants {
 
 
     public static final String VOICE_DIR = "voice";
-
-
-    /*// 默认存放文件下载的路径
-    public final static String DEFAULT_SAVE_FILE_PATH = Environment
-            .getExternalStorageDirectory()
-            + File.separator
-            + "ShareMusic"
-            + File.separator + "download" + File.separator;*/
 
     public static final int IMAGE_TAKE_PHOTO = 0;
     public static final int IMAGE_CHOOSE_FROM_ALBUM = 1;
@@ -41,4 +37,15 @@ public class Constants {
         }
         return bool;
     }
+
+
+    public static RequestOptions picLoadOptions = new RequestOptions()
+            .centerCrop()
+            .placeholder(R.drawable.spinner)
+            .error(R.drawable.picture_icon_data_error);
+    public static RequestOptions headOptions = new RequestOptions()
+                .centerCrop()
+                .placeholder(R.drawable.default_head_girl)
+                .error(R.drawable.default_head_girl);
+
 }

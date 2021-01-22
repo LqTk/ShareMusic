@@ -25,6 +25,7 @@ import butterknife.OnClick;
 import butterknife.Unbinder;
 import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
+import tk.com.sharemusic.config.Constants;
 import tk.com.sharemusic.entity.MsgEntity;
 import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.enums.Gender;
@@ -112,9 +113,7 @@ public class PeopleProfileActivity extends CommonActivity {
                         headUrl = data.getPeopleHead();
                         Glide.with(context)
                                 .load(TextUtils.isEmpty(headUrl) ? Gender.getImage(data.getPeopleSex()) : NetWorkService.homeUrl + data.getPeopleHead())
-                                .apply(new RequestOptions()
-                                        .centerCrop()
-                                        .error(R.drawable.default_head_boy))
+                                .apply(Constants.headOptions)
                                 .into(ivHead);
                         tvName.setText(data.getPeopleName());
                         tvSex.setText(Gender.getName(data.getPeopleSex()));
@@ -134,7 +133,7 @@ public class PeopleProfileActivity extends CommonActivity {
                 });
     }
 
-    @OnClick({R.id.rl_publish, R.id.tv_add, R.id.tv_chat, R.id.iv_head})
+    @OnClick({R.id.rl_publish, R.id.tv_add, R.id.tv_chat, R.id.iv_head, R.id.iv_back, R.id.tv_setting})
     public void onViewClicked(View view) {
         Intent intent;
         switch (view.getId()) {
@@ -185,6 +184,12 @@ public class PeopleProfileActivity extends CommonActivity {
                     dialog.setImageView(headUrl);
                     dialog.show();
                 }
+                break;
+            case R.id.iv_back:
+                PeopleProfileActivity.this.finish();
+                break;
+            case R.id.tv_setting:
+                ToastUtil.showShortMessage(context,"设置");
                 break;
         }
     }

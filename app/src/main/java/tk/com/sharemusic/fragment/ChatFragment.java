@@ -24,6 +24,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.listener.OnItemClickListener;
 import com.chad.library.adapter.base.listener.OnItemLongClickListener;
+import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
@@ -40,13 +41,17 @@ import java.util.Map;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.activity.ChatActivity;
 import tk.com.sharemusic.activity.LoginActivity;
 import tk.com.sharemusic.activity.MainActivity;
 import tk.com.sharemusic.adapter.ChatListAdapter;
+import tk.com.sharemusic.config.Constants;
 import tk.com.sharemusic.entity.ChatEntity;
+import tk.com.sharemusic.entity.MsgDeleteEntity;
 import tk.com.sharemusic.entity.MsgEntity;
 import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.enums.Gender;
@@ -57,6 +62,7 @@ import tk.com.sharemusic.event.NotifyPartInfoEvent;
 import tk.com.sharemusic.event.RefreshChatListEvent;
 import tk.com.sharemusic.event.RefreshMyInfoEvent;
 import tk.com.sharemusic.myview.CircleImage;
+import tk.com.sharemusic.network.BaseResult;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
 import tk.com.sharemusic.network.RxSchedulers;
@@ -95,7 +101,6 @@ public class ChatFragment extends Fragment {
     private NetWorkService service;
     private List<ChatEntity> chatLists = new ArrayList<>();
     private ChatListAdapter chatListAdapter;
-    private RequestOptions options;
     private User user;
     private PreferenceConfig preferenceConfig;
     private View emptyView;
@@ -175,6 +180,10 @@ public class ChatFragment extends Fragment {
     private void notifyChatLists() {
         for (int i=0;i<chatLists.size();i++) {
             ChatEntity chatEntity = chatLists.get(i);
+            if (chatEntity.isSending()){
+                chatLists.get(i).setSending(false);
+                chatLists.get(i).setSendSuccess(false);
+            }
             int finalI = i;
 
             Map map = new HashMap();
@@ -236,9 +245,12 @@ public class ChatFragment extends Fragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         //如果未读消息大于0表示服务器有未读消息 通过读取指定好友的具体聊天信息来删除未读消息
+                        ChatEntity chatEntity = chatLists.get(position);
                         if (chatLists.get(position).count>0) {
                             deleteMsg(chatLists.get(position).senderId);
                         }
+                        //删除服务器中聊天记录的图片和语音
+//                        deleteChatImg(chatEntity);
                         preferenceConfig.remove(user.getUserId()+chatLists.get(position).getSenderId()+Config.CHAT_PARTNER_LIST);
                         File file = SaveFileUtil.getVoiceFile(getContext(),user.getUserId(),chatLists.get(position).getSenderId());
                         if (file.exists()){
@@ -277,6 +289,37 @@ public class ChatFragment extends Fragment {
         });
     }
 
+    private void deleteChatImg(ChatEntity chatEntity) {
+        ArrayList<ChatEntity> arrayList = preferenceConfig.getArrayList(user.getUserId() + chatEntity.senderId + Config.CHAT_PARTNER_LIST, ChatEntity.class);
+        List<MsgDeleteEntity> msgDeleteEntities = new ArrayList<>();
+        for (ChatEntity chatEntity1:arrayList){
+            if (!chatEntity1.msgType.equals(Constants.MODE_TEXT)){
+                msgDeleteEntities.add(new MsgDeleteEntity(chatEntity1.msgType,chatEntity1.msgContent));
+            }
+        }
+        if (msgDeleteEntities.size()>0){
+            deleteMsgImg(msgDeleteEntities);
+        }
+    }
+
+    private void deleteMsgImg(List<MsgDeleteEntity> msgDeleteEntities) {
+        String json = new Gson().toJson(msgDeleteEntities);
+        RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"),json);
+        service.deleteMsg(body)
+                .compose(RxSchedulers.compose(getContext()))
+                .subscribe(new BaseObserver<BaseResult>() {
+                    @Override
+                    public void onSuccess(BaseResult baseResult) {
+
+                    }
+
+                    @Override
+                    public void onFailed(String msg) {
+
+                    }
+                });
+    }
+
     private void deleteMsg(String partnerId) {
         Map map = new HashMap();
         map.put("userId",ShareApplication.user.getUserId());
@@ -306,13 +349,9 @@ public class ChatFragment extends Fragment {
     }
 
     private void initData() {
-        options = new RequestOptions()
-                .centerCrop()
-                .error(R.drawable.default_head_boy);
-
         Glide.with(getContext())
                 .load(TextUtils.isEmpty(user.getHeadImg()) ? Gender.getImage(user.getSex()) : NetWorkService.homeUrl + user.getHeadImg())
-                .apply(options)
+                .apply(Constants.headOptions)
                 .into(ivUserHead);
         if (!TextUtils.isEmpty(user.getUserName())) {
             tvUserName.setText(user.getUserName());
@@ -512,6 +551,8 @@ public class ChatFragment extends Fragment {
                     chatEntity1.setMsgType(entity.msgType);
                     chatEntity1.setMsgContent(entity.msgContent);
                     chatEntity1.setCount(0);
+                    chatEntity1.setSending(entity.isSending());
+                    chatEntity1.setSendSuccess(entity.isSendSuccess());
                     if (i != 0) {
                         chatListAdapter.remove(chatEntity1);
                         chatListAdapter.addData(0, chatEntity1);
@@ -535,6 +576,7 @@ public class ChatFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         bind.unbind();
+        saveData();
         EventBus.getDefault().unregister(this);
     }
 
@@ -548,7 +590,7 @@ public class ChatFragment extends Fragment {
             user = ShareApplication.user;
             Glide.with(getContext())
                     .load(TextUtils.isEmpty(user.getHeadImg()) ? Gender.getImage(user.getSex()) : NetWorkService.homeUrl + user.getHeadImg())
-                    .apply(options)
+                    .apply(Constants.headOptions)
                     .into(ivUserHead);
             if (!TextUtils.isEmpty(user.getUserName())) {
                 tvUserName.setText(user.getUserName());

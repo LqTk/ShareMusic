@@ -15,6 +15,7 @@ import com.bumptech.glide.request.transition.Transition;
 import com.luck.picture.lib.photoview.PhotoView;
 
 import tk.com.sharemusic.R;
+import tk.com.sharemusic.config.Constants;
 import tk.com.sharemusic.network.NetWorkService;
 
 public class ImgPreviewDIalog extends Dialog {
@@ -49,7 +50,7 @@ public class ImgPreviewDIalog extends Dialog {
     }
 
     public void setImageView(String url) {
-        Glide.with(getContext()).load(NetWorkService.homeUrl+url)
+        Glide.with(getContext()).load(NetWorkService.homeUrl+url).apply(Constants.picLoadOptions)
                 .into(imageView);
     }
 

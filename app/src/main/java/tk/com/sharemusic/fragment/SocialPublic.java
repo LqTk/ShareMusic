@@ -84,8 +84,6 @@ public class SocialPublic extends Fragment {
     LinearLayout llToTop;
     @BindView(R.id.rl_msg)
     RelativeLayout rlMsg;
-    @BindView(R.id.tv_msg)
-    TextView tvMsg;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -184,18 +182,6 @@ public class SocialPublic extends Fragment {
                     public void onSuccess(PublicMsgVo publicMsgVo) {
                         msgCount = publicMsgVo.getData().size();
                         EventBus.getDefault().post(new MsgCountEvent(MainActivity.PAGE_PUBLIC,msgCount));
-                        if (tvMsg==null)
-                            return;
-                        if (msgCount==0) {
-                            tvMsg.setVisibility(View.GONE);
-                        }else {
-                            tvMsg.setVisibility(View.VISIBLE);
-                        }
-                        if (msgCount>99){
-                            tvMsg.setText("99+");
-                        }else {
-                            tvMsg.setText(msgCount+"");
-                        }
                     }
 
                     @Override

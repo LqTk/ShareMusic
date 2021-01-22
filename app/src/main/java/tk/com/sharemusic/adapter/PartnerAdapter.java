@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import tk.com.sharemusic.R;
+import tk.com.sharemusic.config.Constants;
 import tk.com.sharemusic.entity.MsgEntity;
 import tk.com.sharemusic.enums.Gender;
 import tk.com.sharemusic.myview.CircleImage;
@@ -29,9 +30,7 @@ public class PartnerAdapter extends BaseQuickAdapter<MsgEntity, BaseViewHolder> 
         baseViewHolder.setText(R.id.tv_des,peopleEntity.getPeopleDes());
         Glide.with(getContext())
                 .load(TextUtils.isEmpty(peopleEntity.getPeopleHead()) ? Gender.getImage(peopleEntity.getPeopleSex()) : NetWorkService.homeUrl+peopleEntity.getPeopleHead())
-                .apply(new RequestOptions()
-                        .centerCrop()
-                        .error(R.drawable.default_head_boy))
+                .apply(Constants.headOptions)
                 .into((CircleImage) baseViewHolder.getView(R.id.iv_head));
     }
 }

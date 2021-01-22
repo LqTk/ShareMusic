@@ -13,6 +13,7 @@ import com.chad.library.adapter.base.viewholder.BaseViewHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.List;
 
 import tk.com.sharemusic.R;
@@ -27,7 +28,6 @@ import tk.com.sharemusic.utils.DateUtil;
 public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
 
     private String partnerHead;
-    private RequestOptions options;
 
     public ChatAdapter(int layoutResId, @Nullable List<ChatEntity> data, String partnerHead) {
         super(layoutResId, data);
@@ -36,21 +36,18 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
 
     @Override
     protected void convert(@NotNull BaseViewHolder baseViewHolder, ChatEntity msgEntity) {
-        options = new RequestOptions()
-                .centerCrop()
-                .error(R.drawable.default_head_girl);
 
         if (msgEntity.isMyContent()) {
             Glide.with(getContext())
                     .load(TextUtils.isEmpty(ShareApplication.user.getHeadImg())? Gender.getImage(ShareApplication.user.getSex()): NetWorkService.homeUrl+ShareApplication.user.getHeadImg())
-                    .apply(options)
+                    .apply(Constants.headOptions)
                     .into((CircleImage) baseViewHolder.getView(R.id.iv_avatar));
             baseViewHolder.setVisible(R.id.layout_right, true);
             baseViewHolder.setGone(R.id.layout_left, true);
         } else {
             Glide.with(getContext())
                 .load(TextUtils.isEmpty(partnerHead)? Gender.getImage(1): NetWorkService.homeUrl+partnerHead)
-                .apply(options)
+                .apply(Constants.headOptions)
                 .into((CircleImage) baseViewHolder.getView(R.id.iv_avatar_left));
             baseViewHolder.setGone(R.id.layout_right, true);
             baseViewHolder.setVisible(R.id.layout_left, true);
@@ -81,11 +78,17 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
             baseViewHolder.setGone(R.id.tv_voice,true);
             baseViewHolder.setVisible(R.id.iv_pic,true);
 
-            GlideUrl url = new GlideUrl(NetWorkService.homeUrl+msgEntity.msgContent, new LazyHeaders.Builder()
-                    .build());
             if (!TextUtils.isEmpty(msgEntity.msgContent)) {
-                Glide.with(getContext()).load(url).
-                        apply(options).into((ImageView) baseViewHolder.getView(R.id.iv_pic));
+                if (msgEntity.isSending()){
+                    File file = new File(msgEntity.msgContent);
+                    Glide.with(getContext()).load(file).
+                            apply(Constants.picLoadOptions).into((ImageView) baseViewHolder.getView(R.id.iv_pic));
+                }else {
+                    GlideUrl url = new GlideUrl(NetWorkService.homeUrl + msgEntity.msgContent, new LazyHeaders.Builder()
+                            .build());
+                    Glide.with(getContext()).load(url).
+                            apply(Constants.picLoadOptions).into((ImageView) baseViewHolder.getView(R.id.iv_pic));
+                }
             } else {
                 baseViewHolder.setImageResource(R.id.iv_pic,R.drawable.picture_icon_data_error);
             }
@@ -123,7 +126,7 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
 
             if (!TextUtils.isEmpty(msgEntity.msgContent)) {
                 Glide.with(getContext()).load(url).
-                        apply(options).into((ImageView) baseViewHolder.getView(R.id.iv_pic_left));
+                        apply(Constants.picLoadOptions).into((ImageView) baseViewHolder.getView(R.id.iv_pic_left));
 
             } else {
                 baseViewHolder.setImageResource(R.id.iv_pic_left,R.drawable.picture_icon_data_error);
@@ -142,6 +145,18 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
             }
         }
 
+        if (msgEntity.isMyContent()){
+            if (msgEntity.isSending()){
+                baseViewHolder.setVisible(R.id.pb_sending,true);
+                baseViewHolder.setGone(R.id.iv_send_fail,true);
+            }else if (msgEntity.isSendSuccess()){
+                baseViewHolder.setGone(R.id.iv_send_fail,true);
+                baseViewHolder.setGone(R.id.pb_sending,true);
+            }else if (!msgEntity.isSendSuccess()){
+                baseViewHolder.setGone(R.id.pb_sending,true);
+                baseViewHolder.setVisible(R.id.iv_send_fail,true);
+            }
+        }
 
         if (!isShowTime) {
             baseViewHolder.setVisible(R.id.tv_time,false);
@@ -169,10 +184,24 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
                 case "headChange":
                     Glide.with(getContext())
                             .load(TextUtils.isEmpty(item.senderAvatar)? Gender.getImage(0): NetWorkService.homeUrl+item.senderAvatar)
-                            .apply(options)
+                            .apply(Constants.headOptions)
                             .into((CircleImage) holder.getView(R.id.iv_avatar_left));
                     holder.setGone(R.id.layout_right, true);
                     holder.setVisible(R.id.layout_left, true);
+                    break;
+                case "state":
+                    if (item.isMyContent()){
+                        if (item.isSending()){
+                            holder.setVisible(R.id.pb_sending,true);
+                            holder.setGone(R.id.iv_send_fail,true);
+                        }else if (item.isSendSuccess()){
+                            holder.setGone(R.id.iv_send_fail,true);
+                            holder.setGone(R.id.pb_sending,true);
+                        }else if (!item.isSendSuccess()){
+                            holder.setGone(R.id.pb_sending,true);
+                            holder.setVisible(R.id.iv_send_fail,true);
+                        }
+                    }
                     break;
             }
         }

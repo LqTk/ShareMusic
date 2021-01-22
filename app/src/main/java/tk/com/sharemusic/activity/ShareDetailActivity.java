@@ -42,6 +42,7 @@ import butterknife.OnClick;
 import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.adapter.ReviewAdapter;
+import tk.com.sharemusic.config.Constants;
 import tk.com.sharemusic.entity.ChatReviewEntity;
 import tk.com.sharemusic.entity.GoodsEntity;
 import tk.com.sharemusic.entity.ReviewEntity;
@@ -65,7 +66,7 @@ import tk.com.sharemusic.utils.DateUtil;
 import tk.com.sharemusic.utils.PopWinUtil;
 import tk.com.sharemusic.utils.ToastUtil;
 
-public class ShareDetailActivity extends AppCompatActivity {
+public class ShareDetailActivity extends CommonActivity {
 
     @BindView(R.id.iv_head)
     CircleImage ivHead;
@@ -304,12 +305,9 @@ public class ShareDetailActivity extends AppCompatActivity {
     private void loadData() {
         if (tvName==null)
             return;
-        RequestOptions options = new RequestOptions()
-                .centerCrop()
-                .error(R.drawable.default_head_boy);
         Glide.with(mContext)
                 .load(TextUtils.isEmpty(publicEntity.getUserHead()) ? Gender.getImage(publicEntity.getUserSex()) : NetWorkService.homeUrl + publicEntity.getUserHead())
-                .apply(options)
+                .apply(Constants.headOptions)
                 .into(ivHead);
         tvName.setText(publicEntity.getUserName());
         tvTime.setText(DateUtil.getPublicTime(publicEntity.getCreateTime()));
@@ -429,9 +427,12 @@ public class ShareDetailActivity extends AppCompatActivity {
         flexGood.addView(textView, index + 1);
     }
 
-    @OnClick({R.id.ll_share_people, R.id.ll_share_content, R.id.ll_good, R.id.iv_review, R.id.rcy_review, R.id.tv_send})
+    @OnClick({R.id.btn_back, R.id.ll_share_people, R.id.ll_share_content, R.id.ll_good, R.id.iv_review, R.id.rcy_review, R.id.tv_send})
     public void onViewClicked(View view) {
         switch (view.getId()) {
+            case R.id.btn_back:
+                ShareDetailActivity.this.finish();
+                break;
             case R.id.ll_share_people:
                 if (publicEntity.getUserId().equals(ShareApplication.user.getUserId())){
                     return;

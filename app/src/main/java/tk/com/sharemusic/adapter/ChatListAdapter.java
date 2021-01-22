@@ -29,13 +29,12 @@ public class ChatListAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder
         if (TextUtils.isEmpty(chatEntity.senderAvatar)){
             Glide.with(getContext())
                     .load(R.drawable.default_head_girl)
+                    .apply(Constants.headOptions)
                     .into((CircleImage) baseViewHolder.getView(R.id.iv_partner_head));
         }else {
             Glide.with(getContext())
                     .load(NetWorkService.homeUrl + chatEntity.senderAvatar)
-                    .apply(new RequestOptions()
-                            .centerCrop()
-                            .error(R.drawable.default_head_girl))
+                    .apply(Constants.headOptions)
                     .into((CircleImage) baseViewHolder.getView(R.id.iv_partner_head));
         }
         baseViewHolder.setText(R.id.tv_partner_name,chatEntity.senderName);
@@ -46,7 +45,6 @@ public class ChatListAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder
         }else {
             baseViewHolder.setText(R.id.tv_partner_chat, chatEntity.msgContent);
         }
-        baseViewHolder.setText(R.id.tv_chat_time, DateUtil.getChatTime(chatEntity.chatTime));
         if (chatEntity.count>0){
             baseViewHolder.setVisible(R.id.tv_count,true);
         }else {
@@ -57,6 +55,20 @@ public class ChatListAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder
         }else {
             baseViewHolder.setText(R.id.tv_count, chatEntity.count + "");
         }
+        if (chatEntity.isSending()){
+            baseViewHolder.setText(R.id.tv_chat_time,"正在发送中");
+            baseViewHolder.setVisible(R.id.iv_sending,true);
+            baseViewHolder.setImageResource(R.id.iv_sending,R.drawable.ic_sending);
+        }else {
+            if (chatEntity.isSendSuccess()){
+                baseViewHolder.setGone(R.id.iv_sending,true);
+            }else {
+                baseViewHolder.setVisible(R.id.iv_sending,true);
+                baseViewHolder.setImageResource(R.id.iv_sending,R.drawable.ic_send_fail);
+            }
+            baseViewHolder.setText(R.id.tv_chat_time, DateUtil.getChatTime(chatEntity.chatTime));
+        }
+
     }
 
     @Override
@@ -65,7 +77,19 @@ public class ChatListAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder
             convert(holder,item);
             return;
         }
-        holder.setText(R.id.tv_chat_time, DateUtil.getChatTime(item.chatTime));
+        if (item.isSending()){
+            holder.setText(R.id.tv_chat_time,"正在发送中");
+            holder.setVisible(R.id.iv_sending,true);
+            holder.setImageResource(R.id.iv_sending,R.drawable.ic_sending);
+        }else {
+            if (item.isSendSuccess()){
+                holder.setGone(R.id.iv_sending,true);
+            }else {
+                holder.setVisible(R.id.iv_sending,true);
+                holder.setImageResource(R.id.iv_sending,R.drawable.ic_send_fail);
+            }
+            holder.setText(R.id.tv_chat_time, DateUtil.getChatTime(item.chatTime));
+        }
         if (item.count>0){
             holder.setVisible(R.id.tv_count,true);
         }else {
@@ -108,13 +132,12 @@ public class ChatListAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder
                     if (TextUtils.isEmpty(item.senderAvatar)){
                         Glide.with(getContext())
                                 .load(R.drawable.default_head_girl)
+                                .apply(Constants.headOptions)
                                 .into((CircleImage) holder.getView(R.id.iv_partner_head));
                     }else {
                         Glide.with(getContext())
                                 .load(NetWorkService.homeUrl + item.senderAvatar)
-                                .apply(new RequestOptions()
-                                        .centerCrop()
-                                        .error(R.drawable.default_head_girl))
+                                .apply(Constants.headOptions)
                                 .into((CircleImage) holder.getView(R.id.iv_partner_head));
                     }
                     break;

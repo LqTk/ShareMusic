@@ -17,6 +17,9 @@ public class ChatEntity {
     public long chatTime;
     public int count;
 
+    private boolean isSending = false;
+    private boolean sendSuccess = true;
+
     public ChatEntity(String chatId, String msgContent, String msgType, String voiceTime, String senderId, String senderAvatar, String senderName, long chatTime) {
         this.chatId = chatId;
         this.msgContent = msgContent;
@@ -26,6 +29,25 @@ public class ChatEntity {
         this.senderAvatar = senderAvatar;
         this.senderName = senderName;
         this.chatTime = chatTime;
+    }
+
+    public ChatEntity() {
+    }
+
+    public boolean isSendSuccess() {
+        return sendSuccess;
+    }
+
+    public void setSendSuccess(boolean sendSuccess) {
+        this.sendSuccess = sendSuccess;
+    }
+
+    public boolean isSending() {
+        return isSending;
+    }
+
+    public void setSending(boolean sending) {
+        isSending = sending;
     }
 
     public String getChatId() {

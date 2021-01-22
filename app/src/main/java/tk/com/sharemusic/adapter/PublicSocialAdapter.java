@@ -47,12 +47,9 @@ public class PublicSocialAdapter extends BaseQuickAdapter<SocialPublicEntity, Ba
 
     @Override
     protected void convert(@NotNull BaseViewHolder baseViewHolder, SocialPublicEntity socialPublicEntity) {
-        RequestOptions options = new RequestOptions()
-                .centerCrop()
-                .error(R.drawable.default_head_boy);
         Glide.with(getContext())
                 .load(TextUtils.isEmpty(socialPublicEntity.getUserHead())? Gender.getImage(socialPublicEntity.getUserSex()): NetWorkService.homeUrl+socialPublicEntity.getUserHead())
-                .apply(options)
+                .apply(Constants.headOptions)
                 .into((CircleImage) baseViewHolder.getView(R.id.iv_head));
         baseViewHolder.setText(R.id.tv_name,socialPublicEntity.getUserName());
         baseViewHolder.setText(R.id.tv_song_name,socialPublicEntity.getShareName());

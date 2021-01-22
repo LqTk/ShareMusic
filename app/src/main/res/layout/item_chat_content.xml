@@ -39,12 +39,13 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/dp_80"
+            android:layout_marginLeft="@dimen/dp_60"
             android:layout_marginRight="@dimen/dp_10"
             android:layout_marginTop="@dimen/dp_5"
             android:layout_toLeftOf="@id/layout_avatar">
 
             <TextView
+                android:paddingLeft="@dimen/dp_20"
                 android:id="@+id/tv_time"
                 android:textColor="@color/main_grey"
                 android:layout_width="wrap_content"
@@ -52,12 +53,33 @@
                 android:layout_centerHorizontal="true"
                 android:text="12:33"/>
 
-            <RelativeLayout
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="right"
                 android:layout_marginTop="@dimen/dp_5"
                 android:layout_below="@+id/tv_time">
+                <ImageView
+                    android:id="@+id/iv_send_fail"
+                    android:layout_width="@dimen/dp_20"
+                    android:layout_height="@dimen/dp_20"
+                    android:src="@drawable/ic_alert_fail"
+                    android:background="@drawable/round_red_bg"
+                    android:padding="@dimen/dp_5"
+                    android:layout_gravity="center_vertical"
+                    android:layout_toLeftOf="@+id/tv_content"
+                    android:layout_marginRight="@dimen/dp_5"
+                    android:visibility="gone"/>
 
+                <ProgressBar
+                    android:id="@+id/pb_sending"
+                    android:visibility="gone"
+                    android:indeterminateTint="@color/main_grey"
+                    android:layout_width="@dimen/dp_20"
+                    android:layout_height="@dimen/dp_20"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginRight="@dimen/dp_5" />
                 <TextView
                     android:id="@+id/tv_content"
                     android:layout_width="wrap_content"
@@ -101,7 +123,7 @@
                     android:gravity="center"
                     android:visibility="gone"/>
 
-            </RelativeLayout>
+            </LinearLayout>
 
         </RelativeLayout>
 

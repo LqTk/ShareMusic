@@ -57,6 +57,7 @@ import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.activity.LoginActivity;
 import tk.com.sharemusic.activity.MyPublishActivity;
+import tk.com.sharemusic.config.Constants;
 import tk.com.sharemusic.entity.UpLoadHead;
 import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.enums.Gender;
@@ -124,7 +125,6 @@ public class MineFragment extends Fragment {
     public static final int ACTION_TYPE_PHOTO = 1;
     public static final int PERMISSION_REQUEST_CODE = 110;
     private String protraitPath;
-    private RequestOptions options;
 
     public MineFragment() {
         // Required empty public constructor
@@ -184,10 +184,6 @@ public class MineFragment extends Fragment {
             return;
         }
 
-        options = new RequestOptions()
-                .centerCrop()
-                .error(R.drawable.default_head_girl);
-
         if (user.getSex()==null){
             user.setSex(1);
         }
@@ -198,7 +194,7 @@ public class MineFragment extends Fragment {
 
         Glide.with(getContext())
                 .load(TextUtils.isEmpty(user.getHeadImg())?Gender.getImage(user.getSex()):NetWorkService.homeUrl+user.getHeadImg())
-                .apply(options)
+                .apply(Constants.headOptions)
                 .into(ivHead);
         if (!TextUtils.isEmpty(user.getUserName())) {
             tvName.setText(user.getUserName());
@@ -505,7 +501,7 @@ public class MineFragment extends Fragment {
                             EventBus.getDefault().post(new RefreshMyInfoEvent());
                             Glide.with(getContext())
                                     .load(NetWorkService.homeUrl+data.getUrl())
-                                    .apply(options)
+                                    .apply(Constants.headOptions)
                                     .into(ivHead);
                         }else {
                             ToastUtil.showShortMessage(getContext(),"头像上传失败");

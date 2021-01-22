@@ -145,6 +145,10 @@ public interface NetWorkService {
     @GET("user/chat/getSelectAllChat")
     Observable<ChatListVo> getSelectAllChat(@QueryMap Map<String, String> map);
 
+    //删除聊天记录的语音和图片
+    @POST("user/chat/deleteMsg")
+    Observable<BaseResult> deleteMsg(@Body RequestBody body);
+
     //获取具体个人的聊天列表
     @GET("user/chat/getSelectChat")
     Observable<ChatListVo> getPartnerChat(@QueryMap Map<String, String> map);

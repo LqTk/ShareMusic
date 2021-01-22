@@ -15,6 +15,24 @@
             android:id="@+id/rl_head"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
+            <ImageView
+                android:id="@+id/iv_back"
+                android:layout_width="@dimen/dp_40"
+                android:layout_height="@dimen/dp_40"
+                android:padding="@dimen/dp_10"
+                android:src="@drawable/ic_back_white"
+                android:layout_marginLeft="@dimen/dp_5"/>
+            <TextView
+                android:id="@+id/tv_setting"
+                android:layout_width="@dimen/dp_40"
+                android:layout_height="@dimen/dp_40"
+                android:text="设置"
+                android:textColor="@color/white"
+                android:layout_alignParentRight="true"
+                android:textSize="@dimen/sp_15"
+                android:gravity="center"
+                android:layout_marginRight="@dimen/dp_10"/>
+
             <tk.com.sharemusic.myview.CircleImage
                 android:layout_width="@dimen/dp_80"
                 android:layout_height="@dimen/dp_80"
