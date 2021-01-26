@@ -21,6 +21,7 @@
 
     <color name="transWhite">#aadddddd</color>
     <color name="transparent">#00000000</color>
+    <color name="dd">#dd222222</color>
     <color name="textColorBlack">#222222</color>
     <color name="textColorGrey">#939393</color>
 

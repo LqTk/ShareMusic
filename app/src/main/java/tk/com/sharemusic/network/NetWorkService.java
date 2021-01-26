@@ -35,7 +35,7 @@ import tk.com.sharemusic.network.response.UpLoadHeadVo;
 
 public interface NetWorkService {
 //    public static String homeUrl = "http://192.168.2.196:8080/";
-    public static String homeUrl = "http://192.168.2.175:8080/";
+    public static String homeUrl = "http://192.168.2.180:8080/";
     public static String BaseUrl = homeUrl+"SocialService/";
 
     //登录
@@ -156,4 +156,12 @@ public interface NetWorkService {
     //获取公场的消息
     @GET("spublic/getMsgCount/{userId}")
     Observable<PublicMsgVo> getPublicMsg(@Path("userId") String userId);
+
+    //更新公场的消息阅读状态
+    @PUT("spublic/updateReadState/{msgId}")
+    Observable<BaseResult> updateReadState(@Path("msgId") String msgId);
+
+    //获取消息回复
+    @GET("spublic/getShareMsg/{shareId}/{msgId}")
+    Observable<GetPublicDataShareIdVo> getShareMsg(@Path("shareId") String sharedId, @Path("msgId") String msgId);
 }

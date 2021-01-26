@@ -1,12 +1,14 @@
 package tk.com.sharemusic.adapter;
 
 import android.content.Intent;
+import android.text.TextUtils;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.listener.OnItemChildClickListener;
 import com.chad.library.adapter.base.listener.OnItemClickListener;
@@ -21,12 +23,16 @@ import java.util.List;
 import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.activity.PeopleProfileActivity;
+import tk.com.sharemusic.config.Constants;
 import tk.com.sharemusic.entity.ChatReviewEntity;
 import tk.com.sharemusic.entity.ReviewEntity;
+import tk.com.sharemusic.enums.Gender;
 import tk.com.sharemusic.event.ChatReviewDeleteEvent;
 import tk.com.sharemusic.event.ChatReviewEvent;
+import tk.com.sharemusic.myview.CircleImage;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
+import tk.com.sharemusic.utils.DateUtil;
 
 public class ReviewAdapter extends BaseQuickAdapter<ReviewEntity, BaseViewHolder> {
 
@@ -42,10 +48,19 @@ public class ReviewAdapter extends BaseQuickAdapter<ReviewEntity, BaseViewHolder
 
     @Override
     protected void convert(@NotNull BaseViewHolder baseViewHolder, ReviewEntity reviewEntity) {
-        baseViewHolder.setText(R.id.tv_name,reviewEntity.getPeopleName()+"：");
+        if (reviewEntity.getPeopleId().equals(ShareApplication.user.getUserId())){
+            baseViewHolder.setText(R.id.tv_name, reviewEntity.getPeopleName() + "(我)：");
+        }else {
+            baseViewHolder.setText(R.id.tv_name, reviewEntity.getPeopleName() + "：");
+        }
+        Glide.with(getContext())
+                .load(TextUtils.isEmpty(reviewEntity.getPeopleHead())? Gender.getImage(1):NetWorkService.homeUrl+reviewEntity.getPeopleHead())
+                .apply(Constants.headOptions)
+                .into((CircleImage)baseViewHolder.getView(R.id.iv_head));
         baseViewHolder.setText(R.id.tv_review_detail,reviewEntity.getReviewText());
         int pos = getData().indexOf(reviewEntity)+1;
         baseViewHolder.setText(R.id.tv_pos,"#"+pos+"楼");
+        baseViewHolder.setText(R.id.tv_time, DateUtil.getReviewTime(reviewEntity.getReviewTime()));
         initReviewChatView(baseViewHolder,reviewEntity);
         if (getData().size()>1){
             baseViewHolder.setVisible(R.id.v_line,true);
@@ -69,11 +84,12 @@ public class ReviewAdapter extends BaseQuickAdapter<ReviewEntity, BaseViewHolder
 
         ReviewChatAdapter adapter = new ReviewChatAdapter(R.layout.layout_chat_review,chatReviewList);
         recyclerView.setAdapter(adapter);
-        adapter.addChildClickViewIds(R.id.tv_name,R.id.tv_toName);
+        adapter.addChildClickViewIds(R.id.tv_name,R.id.tv_toName, R.id.iv_head);
         adapter.setOnItemChildClickListener(new OnItemChildClickListener() {
             @Override
             public void onItemChildClick(@NonNull BaseQuickAdapter adapter, @NonNull View view, int position) {
                 switch (view.getId()){
+                    case R.id.iv_head:
                     case R.id.tv_name:
                         String peopleId = chatReviewList.get(position).getTalkId();
                         if (peopleId.equals(ShareApplication.user.getUserId())){

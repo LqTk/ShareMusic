@@ -14,28 +14,48 @@
         android:layout_height="wrap_content"
         android:textColor="@color/main_grey"
         android:text=""/>
-    <LinearLayout
-        android:layout_marginTop="@dimen/dp_3"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/dp_10"
-        android:orientation="horizontal">
+        android:layout_marginTop="@dimen/dp_3"
+        android:layout_marginLeft="@dimen/dp_10">
+        <LinearLayout
+            android:layout_toLeftOf="@+id/tv_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginRight="@dimen/dp_7"
+            android:gravity="center_vertical">
+            <tk.com.sharemusic.myview.CircleImage
+                android:layout_width="@dimen/dp_35"
+                android:layout_height="@dimen/dp_35"
+                android:id="@+id/iv_head"/>
+            <TextView
+                android:layout_marginLeft="@dimen/dp_10"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/buleBg"
+                android:textSize="@dimen/sp_14"
+                android:id="@+id/tv_name"
+                android:gravity="bottom"
+                android:text=""
+                android:background="@drawable/text_view_pressed"/>
+            <TextView
+                android:id="@+id/tv_review_detail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/sp_13"
+                android:text=""
+                android:gravity="bottom"/>
+        </LinearLayout>
         <TextView
+            android:layout_alignParentRight="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/buleBg"
-            android:textSize="@dimen/sp_14"
-            android:id="@+id/tv_name"
-            android:gravity="bottom"
-            android:background="@drawable/text_view_pressed"/>
-        <TextView
-            android:id="@+id/tv_review_detail"
-            android:layout_marginLeft="@dimen/dp_10"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="@dimen/sp_15"
-            android:gravity="bottom"/>
-    </LinearLayout>
+            android:id="@+id/tv_time"
+            android:textSize="@dimen/sp_12"
+            android:layout_centerVertical="true"/>
+    </RelativeLayout>
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

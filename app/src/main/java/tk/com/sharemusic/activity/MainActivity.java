@@ -4,10 +4,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.next.easynavigation.view.EasyNavigationBar;
@@ -17,29 +14,19 @@ import org.greenrobot.eventbus.Subscribe;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import tk.com.sharemusic.R;
-import tk.com.sharemusic.ShareApplication;
-import tk.com.sharemusic.entity.SocialPublicEntity;
-import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.event.ChangeFragmentEvent;
 import tk.com.sharemusic.event.MsgCountEvent;
-import tk.com.sharemusic.event.UpLoadSocialSuccess;
 import tk.com.sharemusic.fragment.ChatFragment;
 import tk.com.sharemusic.fragment.FriendsFragment;
 import tk.com.sharemusic.fragment.MineFragment;
-import tk.com.sharemusic.fragment.PartnerFragment;
-import tk.com.sharemusic.fragment.SocialPublic;
+import tk.com.sharemusic.fragment.SocialPublishFragment;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
-import tk.com.sharemusic.network.RxSchedulers;
-import tk.com.sharemusic.network.response.GetPublicDataShareIdVo;
-import tk.com.sharemusic.network.rxjava.BaseObserver;
 import tk.com.sharemusic.utils.ToastUtil;
 
 public class MainActivity extends CommonActivity {
@@ -70,7 +57,7 @@ public class MainActivity extends CommonActivity {
 
     private void initView() {
         fragments.add(FriendsFragment.newInstance());
-        fragments.add(SocialPublic.newInstance());
+        fragments.add(SocialPublishFragment.newInstance());
         fragments.add(ChatFragment.newInstance());
         fragments.add(MineFragment.newInstance("",""));
         bottomBar.titleItems(navTitle)

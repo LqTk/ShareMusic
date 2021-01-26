@@ -10,6 +10,9 @@ import java.io.File;
 import tk.com.sharemusic.R;
 
 public class Constants {
+    /**
+     * 聊天内容类型
+     */
     public static final String MODE_TEXT = "TEXT";
     public static final String MODE_VOICE = "VOICE";
     public static final String MODE_IMAGE = "PIC";
@@ -17,10 +20,20 @@ public class Constants {
 
     public static final String VOICE_DIR = "voice";
 
+    //拍照
     public static final int IMAGE_TAKE_PHOTO = 0;
+    //相册
     public static final int IMAGE_CHOOSE_FROM_ALBUM = 1;
 
+    //权限请求返回
     public static final int PERMISSION_REQUEST_CODE = 110;
+
+    /**
+     * 未读消息类型
+     */
+    public static final String MSG_REVIEW = "review";
+    public static final String MSG_REVIEW_CHAT = "review_chat";
+    public static final String MSG_GOODS = "goods";
 
     /**
      * @param bMute 值为true时为关闭背景音乐。
@@ -39,6 +52,9 @@ public class Constants {
     }
 
 
+    /**
+     * glide图片加载配置
+     */
     public static RequestOptions picLoadOptions = new RequestOptions()
             .centerCrop()
             .placeholder(R.drawable.spinner)

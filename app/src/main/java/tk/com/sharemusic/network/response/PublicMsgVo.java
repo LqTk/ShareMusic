@@ -2,14 +2,14 @@ package tk.com.sharemusic.network.response;
 
 import java.util.List;
 
-import tk.com.sharemusic.entity.PublicMsgEntity;
+import tk.com.sharemusic.entity.PublishMsgEntity;
 
 public class PublicMsgVo {
     int status;
     String msg;
-    List<PublicMsgEntity> data;
+    List<PublishMsgEntity> data;
 
-    public PublicMsgVo(int status, String msg, List<PublicMsgEntity> data) {
+    public PublicMsgVo(int status, String msg, List<PublishMsgEntity> data) {
         this.status = status;
         this.msg = msg;
         this.data = data;
@@ -31,11 +31,11 @@ public class PublicMsgVo {
         this.msg = msg;
     }
 
-    public List<PublicMsgEntity> getData() {
+    public List<PublishMsgEntity> getData() {
         return data;
     }
 
-    public void setData(List<PublicMsgEntity> data) {
+    public void setData(List<PublishMsgEntity> data) {
         this.data = data;
     }
 }

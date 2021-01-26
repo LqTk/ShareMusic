@@ -8,8 +8,10 @@ public class ChatReviewEntity {
     private String reviewId;
 
     private String talkId;
+    private String talkHead;
 
     private String toId;
+    private String toHead;
 
     private String talkName;
 
@@ -19,15 +21,33 @@ public class ChatReviewEntity {
 
     private long chatTime;
 
-    public ChatReviewEntity(String reviewChatId, String reviewId, String talkId, String toId, String talkName, String toName, String chatText, long chatTime) {
+    public ChatReviewEntity(String reviewChatId, String reviewId, String talkId, String toId, String talkName,  String talkHead, String toName, String toHead, String chatText, long chatTime) {
         this.reviewChatId = reviewChatId;
         this.reviewId = reviewId;
         this.talkId = talkId;
         this.toId = toId;
         this.talkName = talkName;
+        this.talkHead = talkHead;
         this.toName = toName;
+        this.toHead = toHead;
         this.chatText = chatText;
         this.chatTime = chatTime;
+    }
+
+    public String getTalkHead() {
+        return talkHead;
+    }
+
+    public void setTalkHead(String talkHead) {
+        this.talkHead = talkHead;
+    }
+
+    public String getToHead() {
+        return toHead;
+    }
+
+    public void setToHead(String toHead) {
+        this.toHead = toHead;
     }
 
     public String getTalkName() {

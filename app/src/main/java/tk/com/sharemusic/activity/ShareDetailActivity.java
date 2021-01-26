@@ -118,6 +118,8 @@ public class ShareDetailActivity extends CommonActivity {
     private ChatReviewEntity chatReviewEntity;
     private PopWinUtil uiPopWinUtil;
     private Handler mHandler = new Handler();
+    private boolean fromMsg = false;
+    private String msgId="";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -132,6 +134,11 @@ public class ShareDetailActivity extends CommonActivity {
         uiPopWinUtil.setShade(true);
         inputManager = (InputMethodManager) etReview.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
 
+        String from = getIntent().getStringExtra("from");
+        if (!TextUtils.isEmpty(from) && from.equals("msgActivity")){
+            fromMsg = true;
+            msgId = getIntent().getStringExtra("msgId");
+        }
         initView();
         initRcyView();
         initData();
@@ -174,11 +181,12 @@ public class ShareDetailActivity extends CommonActivity {
 
         reviewAdapter = new ReviewAdapter(R.layout.layout_review, reviewEntities);
         rcyReview.setAdapter(reviewAdapter);
-        reviewAdapter.addChildClickViewIds(R.id.tv_name);
+        reviewAdapter.addChildClickViewIds(R.id.tv_name, R.id.iv_head);
         reviewAdapter.setOnItemChildClickListener(new OnItemChildClickListener() {
             @Override
             public void onItemChildClick(@NonNull BaseQuickAdapter adapter, @NonNull View view, int position) {
                 switch (view.getId()){
+                    case R.id.iv_head:
                     case R.id.tv_name:
                         String peopleId = reviewEntities.get(position).getPeopleId();
                         if (peopleId.equals(ShareApplication.user.getUserId())){
@@ -282,7 +290,28 @@ public class ShareDetailActivity extends CommonActivity {
             ToastUtil.showLongMessage(mContext, "获取失败");
             finish();
         }
-        getData();
+        if (!fromMsg) {
+            getData();
+        }else {
+            getMsgData();
+        }
+    }
+
+    private void getMsgData() {
+        service.getShareMsg(shareId,msgId)
+                .compose(RxSchedulers.compose(mContext))
+                .subscribe(new BaseObserver<GetPublicDataShareIdVo>() {
+                    @Override
+                    public void onSuccess(GetPublicDataShareIdVo getPublicDataShareIdVo) {
+                        publicEntity = getPublicDataShareIdVo.getData();
+                        loadData();
+                    }
+
+                    @Override
+                    public void onFailed(String msg) {
+                        ToastUtil.showShortMessage(mContext,msg);
+                    }
+                });
     }
 
     private void getData() {

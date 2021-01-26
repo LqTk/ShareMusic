@@ -133,7 +133,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:layout_marginLeft="@dimen/dp_20"
-                    android:layout_gravity="center_vertical">
+                    android:gravity="center_vertical">
                     <ImageView
                         android:layout_gravity="center_vertical"
                         android:layout_width="@dimen/dp_20"

@@ -40,6 +40,7 @@ import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.activity.MainActivity;
 import tk.com.sharemusic.activity.PeopleProfileActivity;
 import tk.com.sharemusic.activity.PlayerSongActivity;
+import tk.com.sharemusic.activity.PublishMsgActivity;
 import tk.com.sharemusic.activity.ShareActivity;
 import tk.com.sharemusic.activity.ShareDetailActivity;
 import tk.com.sharemusic.adapter.PublicSocialAdapter;
@@ -65,10 +66,10 @@ import tk.com.sharemusic.utils.ToastUtil;
 
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link SocialPublic#newInstance} factory method to
+ * Use the {@link SocialPublishFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class SocialPublic extends Fragment {
+public class SocialPublishFragment extends Fragment {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -111,7 +112,7 @@ public class SocialPublic extends Fragment {
         }
     };
 
-    public SocialPublic() {
+    public SocialPublishFragment() {
         // Required empty public constructor
     }
 
@@ -122,8 +123,8 @@ public class SocialPublic extends Fragment {
      * @return A new instance of fragment SocialPublic.
      */
     // TODO: Rename and change types and number of parameters
-    public static SocialPublic newInstance() {
-        SocialPublic fragment = new SocialPublic();
+    public static SocialPublishFragment newInstance() {
+        SocialPublishFragment fragment = new SocialPublishFragment();
         return fragment;
     }
 
@@ -198,6 +199,7 @@ public class SocialPublic extends Fragment {
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
                 initData(true);
+                loadMsgCount();
             }
         });
         srf.setOnLoadMoreListener(new OnLoadMoreListener() {
@@ -473,6 +475,8 @@ public class SocialPublic extends Fragment {
                 cyclerView.smoothScrollToPosition(0);
                 break;
             case R.id.rl_msg:
+                Intent intent = new Intent(getContext(), PublishMsgActivity.class);
+                startActivity(intent);
                 ToastUtil.showShortMessage(getContext(), "显示消息");
                 break;
         }

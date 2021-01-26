@@ -43,6 +43,22 @@ public class DateUtil {
         }
     }
 
+    public static String getReviewTime(long timesnap){
+        Date date = new Date(timesnap);
+        long time = System.currentTimeMillis()-timesnap;
+        if (time>TWO_DAY){
+            return "2天前";
+        }else if (time>ONE_DAY){
+            return "昨天 "+ourMiniteTime.format(date);
+        }else if (time>ONE_HOUR){
+            return time/ONE_HOUR+"小时前";
+        }else if (time>ONE_MINITE){
+            return time/ONE_MINITE+"分钟前";
+        }else {
+            return "刚刚";
+        }
+    }
+
     public static int getCurrentDay(int type){
         Date date = new Date();
         String str="1800";
