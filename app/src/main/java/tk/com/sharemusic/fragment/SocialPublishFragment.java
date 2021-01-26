@@ -45,6 +45,7 @@ import tk.com.sharemusic.activity.ShareActivity;
 import tk.com.sharemusic.activity.ShareDetailActivity;
 import tk.com.sharemusic.adapter.PublicSocialAdapter;
 import tk.com.sharemusic.entity.GoodsEntity;
+import tk.com.sharemusic.entity.PublishMsgEntity;
 import tk.com.sharemusic.entity.SocialPublicEntity;
 import tk.com.sharemusic.event.ChangeFragmentEvent;
 import tk.com.sharemusic.event.MsgCountEvent;
@@ -100,6 +101,7 @@ public class SocialPublishFragment extends Fragment {
     private TextView tvEmptyDes;
     private ImageView ivShow;
     public final static int CODE_TODETAIL = 1000;
+    public final static int CODE_TOMSG = 1001;
     private int toPos;
     private String shareId;
     private PopWinUtil uiPopWinUtil;
@@ -181,7 +183,14 @@ public class SocialPublishFragment extends Fragment {
                 .subscribe(new BaseObserver<PublicMsgVo>() {
                     @Override
                     public void onSuccess(PublicMsgVo publicMsgVo) {
-                        msgCount = publicMsgVo.getData().size();
+                        int count = 0;
+                        for (PublishMsgEntity publishMsgEntity:publicMsgVo.getData()){
+                            if(publishMsgEntity.isReaded==0){
+                                count++;
+                            }
+                        }
+//                        msgCount = publicMsgVo.getData().size();
+                        msgCount = count;
                         EventBus.getDefault().post(new MsgCountEvent(MainActivity.PAGE_PUBLIC,msgCount));
                     }
 
@@ -420,6 +429,9 @@ public class SocialPublishFragment extends Fragment {
             case CODE_TODETAIL:
                 getData(shareId);
                 break;
+            case CODE_TOMSG:
+                loadMsgCount();
+                break;
         }
     }
 
@@ -476,7 +488,7 @@ public class SocialPublishFragment extends Fragment {
                 break;
             case R.id.rl_msg:
                 Intent intent = new Intent(getContext(), PublishMsgActivity.class);
-                startActivity(intent);
+                startActivityForResult(intent, CODE_TOMSG);
                 ToastUtil.showShortMessage(getContext(), "显示消息");
                 break;
         }
