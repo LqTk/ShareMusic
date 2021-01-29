@@ -3,13 +3,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
-
     <com.luck.picture.lib.photoview.PhotoView
         android:id="@+id/iv_pre"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="@dimen/dp_50"
         android:layout_marginBottom="@dimen/dp_50"
+        android:layout_marginLeft="@dimen/dp_10"
+        android:layout_marginRight="@dimen/dp_10"
         android:scaleType="fitCenter"/>
+    <com.luck.picture.lib.widget.longimage.SubsamplingScaleImageView
+        android:id="@+id/longImageView"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"/>
 
 </LinearLayout>

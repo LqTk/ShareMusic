@@ -234,6 +234,7 @@ public class ChatFragment extends Fragment {
                 Intent intent = new Intent(getContext(), ChatActivity.class);
                 intent.putExtra("partnerId",chatLists.get(position).senderId);
                 startActivity(intent);
+                saveData();
             }
         });
 
@@ -553,6 +554,7 @@ public class ChatFragment extends Fragment {
                     chatEntity1.setCount(0);
                     chatEntity1.setSending(entity.isSending());
                     chatEntity1.setSendSuccess(entity.isSendSuccess());
+                    chatEntity1.setChatTime(entity.chatTime);
                     if (i != 0) {
                         chatListAdapter.remove(chatEntity1);
                         chatListAdapter.addData(0, chatEntity1);

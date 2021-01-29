@@ -51,7 +51,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
-                android:text="12:33"/>
+                android:text=""/>
 
             <LinearLayout
                 android:orientation="horizontal"
@@ -75,7 +75,7 @@
                 <ProgressBar
                     android:id="@+id/pb_sending"
                     android:visibility="gone"
-                    android:indeterminateTint="@color/main_grey"
+                    android:indeterminateTint="@color/lineGrey"
                     android:layout_width="@dimen/dp_20"
                     android:layout_height="@dimen/dp_20"
                     android:layout_gravity="center_vertical"
@@ -121,7 +121,26 @@
                     android:layout_height="@dimen/dp_120"
                     android:layout_alignParentRight="true"
                     android:gravity="center"
+                    android:scaleType="fitEnd"
                     android:visibility="gone"/>
+
+                <RelativeLayout
+                    android:id="@+id/rl_video"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:gravity="center"
+                    android:visibility="gone">
+                    <ImageView
+                        android:id="@+id/video"
+                        android:layout_width="@dimen/dp_120"
+                        android:layout_height="@dimen/dp_120"/>
+                    <ImageView
+                        android:layout_width="@dimen/dp_30"
+                        android:layout_height="@dimen/dp_30"
+                        android:layout_centerInParent="true"
+                        android:src="@drawable/picture_icon_video_play"/>
+                </RelativeLayout>
 
             </LinearLayout>
 
@@ -173,7 +192,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
-                android:text="12:33"/>
+                android:text=""/>
 
             <RelativeLayout
                 android:layout_width="wrap_content"
@@ -219,7 +238,26 @@
                     android:layout_width="@dimen/dp_120"
                     android:layout_height="@dimen/dp_120"
                     android:gravity="center"
+                    android:scaleType="fitStart"
                     android:visibility="gone"/>
+
+                <RelativeLayout
+                    android:id="@+id/rl_video_left"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:visibility="gone">
+                    <ImageView
+                        android:id="@+id/video_left"
+                        android:layout_width="@dimen/dp_120"
+                        android:layout_height="@dimen/dp_120"
+                        android:layout_centerInParent="true"/>
+                    <ImageView
+                        android:layout_width="@dimen/dp_30"
+                        android:layout_height="@dimen/dp_30"
+                        android:layout_centerInParent="true"
+                        android:src="@drawable/picture_icon_video_play"/>
+                </RelativeLayout>
 
             </RelativeLayout>
 

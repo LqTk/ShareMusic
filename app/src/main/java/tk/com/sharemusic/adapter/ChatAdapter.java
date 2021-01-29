@@ -1,7 +1,15 @@
 package tk.com.sharemusic.adapter;
 
+import android.graphics.Bitmap;
+import android.media.MediaMetadataRetriever;
+import android.media.MediaPlayer;
+import android.net.Uri;
+import android.os.Handler;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.MediaController;
+import android.widget.VideoView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
@@ -14,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 
 import tk.com.sharemusic.R;
@@ -28,10 +37,12 @@ import tk.com.sharemusic.utils.DateUtil;
 public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
 
     private String partnerHead;
+    private Handler handler;
 
-    public ChatAdapter(int layoutResId, @Nullable List<ChatEntity> data, String partnerHead) {
+    public ChatAdapter(int layoutResId, @Nullable List<ChatEntity> data, String partnerHead, Handler handler) {
         super(layoutResId, data);
         this.partnerHead = partnerHead;
+        this.handler = handler;
     }
 
     @Override
@@ -57,12 +68,14 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
             baseViewHolder.setVisible(R.id.tv_content,true);
             baseViewHolder.setGone(R.id.tv_voice,true);
             baseViewHolder.setGone(R.id.iv_pic,true);
+            baseViewHolder.setGone(R.id.rl_video,true);
 
             baseViewHolder.setEnabled(R.id.tv_content,false);
             baseViewHolder.setText(R.id.tv_content,msgEntity.msgContent);
         } else if (msgEntity.msgType.equals(Constants.MODE_VOICE)) {
             baseViewHolder.setGone(R.id.tv_content,true);
             baseViewHolder.setVisible(R.id.tv_voice,true);
+            baseViewHolder.setGone(R.id.rl_video,true);
             baseViewHolder.setGone(R.id.iv_pic,true);
 
             int voiceTime = Integer.parseInt(msgEntity.voiceTime);
@@ -76,21 +89,93 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
         } else if (msgEntity.msgType.equals(Constants.MODE_IMAGE)) {
             baseViewHolder.setGone(R.id.tv_content,true);
             baseViewHolder.setGone(R.id.tv_voice,true);
+            baseViewHolder.setGone(R.id.rl_video,true);
             baseViewHolder.setVisible(R.id.iv_pic,true);
 
             if (!TextUtils.isEmpty(msgEntity.msgContent)) {
                 if (msgEntity.isSending()){
                     File file = new File(msgEntity.msgContent);
-                    Glide.with(getContext()).load(file).
-                            apply(Constants.picLoadOptions).into((ImageView) baseViewHolder.getView(R.id.iv_pic));
+                    Glide.with(getContext()).load(file)
+                            .apply(Constants.picLoadOptions)
+                            .fitCenter()
+                            .into((ImageView) baseViewHolder.getView(R.id.iv_pic));
                 }else {
-                    GlideUrl url = new GlideUrl(NetWorkService.homeUrl + msgEntity.msgContent, new LazyHeaders.Builder()
-                            .build());
-                    Glide.with(getContext()).load(url).
-                            apply(Constants.picLoadOptions).into((ImageView) baseViewHolder.getView(R.id.iv_pic));
+                    if (!TextUtils.isEmpty(msgEntity.getLocalPath())){
+                        File file = new File(msgEntity.getLocalPath());
+                        if (file.exists()){
+                            Glide.with(getContext()).load(file)
+                                    .apply(Constants.picLoadOptions)
+                                    .fitCenter()
+                                    .into((ImageView) baseViewHolder.getView(R.id.iv_pic));
+                        }else {
+                            GlideUrl url = new GlideUrl(NetWorkService.homeUrl + msgEntity.msgContent, new LazyHeaders.Builder()
+                                    .build());
+                            Glide.with(getContext()).load(url).
+                                    apply(Constants.picLoadOptions)
+                                    .fitCenter()
+                                    .into((ImageView) baseViewHolder.getView(R.id.iv_pic));
+                        }
+                    }else {
+                        GlideUrl url = new GlideUrl(NetWorkService.homeUrl + msgEntity.msgContent, new LazyHeaders.Builder()
+                                .build());
+                        Glide.with(getContext()).load(url).
+                                apply(Constants.picLoadOptions)
+                                .fitCenter()
+                                .into((ImageView) baseViewHolder.getView(R.id.iv_pic));
+                    }
                 }
             } else {
                 baseViewHolder.setImageResource(R.id.iv_pic,R.drawable.picture_icon_data_error);
+            }
+        }else if (msgEntity.msgType.equals(Constants.MODE_VIDEO)){
+            baseViewHolder.setGone(R.id.tv_content,true);
+            baseViewHolder.setGone(R.id.tv_voice,true);
+            baseViewHolder.setGone(R.id.iv_pic,true);
+            baseViewHolder.setVisible(R.id.rl_video,true);
+
+            ImageView video = baseViewHolder.getView(R.id.video);
+            if (!TextUtils.isEmpty(msgEntity.msgContent)) {
+                if (msgEntity.isSending()){
+                    File file = new File(msgEntity.msgContent);
+                    Glide.with(getContext())
+                            .asBitmap()
+                            .load(file)
+                            .apply(Constants.picLoadOptions)
+                            .fitCenter()
+                            .into(video);
+                }else {
+                    if (!TextUtils.isEmpty(msgEntity.getLocalPath())){
+                        File file = new File(msgEntity.getLocalPath());
+                        if (file.exists()){
+                            Glide.with(getContext())
+                                    .asBitmap()
+                                    .load(file)
+                                    .apply(Constants.picLoadOptions)
+                                    .fitCenter()
+                                    .into(video);
+                        }else {
+                            GlideUrl url = new GlideUrl(NetWorkService.homeUrl + msgEntity.msgContent, new LazyHeaders.Builder()
+                                    .build());
+                            Glide.with(getContext())
+                                    .asBitmap()
+                                    .load(url).
+                                    apply(Constants.picLoadOptions)
+                                    .fitCenter()
+                                    .into(video);
+                        }
+                    }else {
+                        GlideUrl url = new GlideUrl(NetWorkService.homeUrl + msgEntity.msgContent, new LazyHeaders.Builder()
+                                .build());
+                        Glide.with(getContext())
+                                .asBitmap()
+                                .load(url).
+                                apply(Constants.picLoadOptions)
+                                .fitCenter()
+                                .into(video);
+                    }
+                }
+            } else {
+                baseViewHolder.setImageResource(R.id.video,R.drawable.picture_icon_data_error);
             }
         }
 
@@ -99,12 +184,14 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
             baseViewHolder.setVisible(R.id.tv_content_left,true);
             baseViewHolder.setGone(R.id.tv_voice_left,true);
             baseViewHolder.setGone(R.id.iv_pic_left,true);
+            baseViewHolder.setGone(R.id.rl_video_left,true);
 
             baseViewHolder.setEnabled(R.id.tv_content_left,false);
             baseViewHolder.setText(R.id.tv_content_left,msgEntity.msgContent);
         } else if (msgEntity.msgType.equals(Constants.MODE_VOICE)) {
             baseViewHolder.setGone(R.id.tv_content_left,true);
             baseViewHolder.setVisible(R.id.tv_voice_left,true);
+            baseViewHolder.setGone(R.id.rl_video_left,true);
             baseViewHolder.setGone(R.id.iv_pic_left,true);
 
             int voiceTime = Integer.parseInt(msgEntity.voiceTime);
@@ -119,17 +206,74 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
         } else if (msgEntity.msgType.equals(Constants.MODE_IMAGE)) {
             baseViewHolder.setGone(R.id.tv_content_left,true);
             baseViewHolder.setGone(R.id.tv_voice_left,true);
+            baseViewHolder.setGone(R.id.rl_video_left,true);
             baseViewHolder.setVisible(R.id.iv_pic_left,true);
 
-            GlideUrl url = new GlideUrl(NetWorkService.homeUrl+msgEntity.msgContent, new LazyHeaders.Builder()
-                    .build());
-
             if (!TextUtils.isEmpty(msgEntity.msgContent)) {
-                Glide.with(getContext()).load(url).
-                        apply(Constants.picLoadOptions).into((ImageView) baseViewHolder.getView(R.id.iv_pic_left));
+                if (!TextUtils.isEmpty(msgEntity.getLocalPath())){
+                    File file = new File(msgEntity.getLocalPath());
+                    if (file.exists()){
+                        Glide.with(getContext())
+                                .load(file)
+                                .apply(Constants.picLoadOptions)
+                                .fitCenter()
+                                .into((ImageView) baseViewHolder.getView(R.id.iv_pic_left));
+                    }else {
+                        GlideUrl url = new GlideUrl(NetWorkService.homeUrl+msgEntity.msgContent, new LazyHeaders.Builder()
+                                .build());
 
+                        Glide.with(getContext()).load(url)
+                                .apply(Constants.picLoadOptions)
+                                .fitCenter()
+                                .into((ImageView) baseViewHolder.getView(R.id.iv_pic_left));
+                    }
+                }else {
+                    GlideUrl url = new GlideUrl(NetWorkService.homeUrl + msgEntity.msgContent, new LazyHeaders.Builder()
+                            .build());
+
+                    Glide.with(getContext()).load(url)
+                            .apply(Constants.picLoadOptions)
+                            .fitCenter()
+                            .into((ImageView) baseViewHolder.getView(R.id.iv_pic_left));
+                }
             } else {
                 baseViewHolder.setImageResource(R.id.iv_pic_left,R.drawable.picture_icon_data_error);
+            }
+        }else if (msgEntity.msgType.equals(Constants.MODE_VIDEO)){
+            baseViewHolder.setGone(R.id.tv_content_left,true);
+            baseViewHolder.setGone(R.id.tv_voice_left,true);
+            baseViewHolder.setGone(R.id.iv_pic_left,true);
+            baseViewHolder.setVisible(R.id.rl_video_left,true);
+
+            if (!TextUtils.isEmpty(msgEntity.msgContent)){
+                if (!TextUtils.isEmpty(msgEntity.getLocalPath())){
+                    File file = new File(msgEntity.getLocalPath());
+                    if (file.exists()){
+                        Glide.with(getContext())
+                                .load(file)
+                                .apply(Constants.picLoadOptions)
+                                .fitCenter()
+                                .into((ImageView) baseViewHolder.getView(R.id.video_left));
+                    }else {
+                        GlideUrl url = new GlideUrl(NetWorkService.homeUrl + msgEntity.msgContent, new LazyHeaders.Builder()
+                                .build());
+
+                        Glide.with(getContext()).load(url)
+                                .apply(Constants.picLoadOptions)
+                                .fitCenter()
+                                .into((ImageView) baseViewHolder.getView(R.id.video_left));
+                    }
+                }else {
+                    GlideUrl url = new GlideUrl(NetWorkService.homeUrl + msgEntity.msgContent, new LazyHeaders.Builder()
+                            .build());
+
+                    Glide.with(getContext()).load(url)
+                            .apply(Constants.picLoadOptions)
+                            .fitCenter()
+                            .into((ImageView) baseViewHolder.getView(R.id.video_left));
+                }
+            }else {
+                baseViewHolder.setImageResource(R.id.video_left,R.drawable.picture_icon_data_error);
             }
         }
         baseViewHolder.setGone(R.id.tv_name,true);

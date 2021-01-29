@@ -25,11 +25,18 @@ public class SocialPublicEntity implements Serializable {
 
     private Integer isPublic;
 
+    private String type;
+
+    private String location;
+
     private List<GoodsEntity> goodsList;
 
     private List<ReviewEntity> reviewEntities;
 
-    public SocialPublicEntity(String shareId, String userId, String userName, String userHead, Integer userSex, String shareName, String shareUrl, String shareText, long createTime, Integer isPublic, List<GoodsEntity> goodsList, List<ReviewEntity> reviewEntities) {
+    public SocialPublicEntity(String shareId, String userId, String userName, String userHead,
+                              Integer userSex, String shareName, String shareUrl, String shareText,
+                              long createTime, Integer isPublic, String type, String location,
+                              List<GoodsEntity> goodsList, List<ReviewEntity> reviewEntities) {
         this.shareId = shareId;
         this.userId = userId;
         this.userName = userName;
@@ -40,11 +47,15 @@ public class SocialPublicEntity implements Serializable {
         this.shareText = shareText;
         this.createTime = createTime;
         this.isPublic = isPublic;
+        this.type = type;
+        this.location = location;
         this.goodsList = goodsList;
         this.reviewEntities = reviewEntities;
     }
 
-    public SocialPublicEntity(String userId, String userName, String userHead, Integer userSex, String shareName, String shareUrl, String shareText, Integer isPublic, List<GoodsEntity> goodsList, List<ReviewEntity> reviewEntities) {
+    public SocialPublicEntity(String userId, String userName, String userHead, Integer userSex,
+                              String shareName, String shareUrl, String shareText, Integer isPublic,
+                              String type, String location, List<GoodsEntity> goodsList, List<ReviewEntity> reviewEntities) {
         this.userId = userId;
         this.userName = userName;
         this.userHead = userHead;
@@ -53,11 +64,29 @@ public class SocialPublicEntity implements Serializable {
         this.shareUrl = shareUrl;
         this.shareText = shareText;
         this.isPublic = isPublic;
+        this.type = type;
+        this.location = location;
         this.goodsList = goodsList;
         this.reviewEntities = reviewEntities;
     }
 
     public SocialPublicEntity() {
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 
     public String getShareId() {

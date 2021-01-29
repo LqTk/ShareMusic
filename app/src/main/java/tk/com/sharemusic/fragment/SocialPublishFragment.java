@@ -44,6 +44,7 @@ import tk.com.sharemusic.activity.PublishMsgActivity;
 import tk.com.sharemusic.activity.ShareActivity;
 import tk.com.sharemusic.activity.ShareDetailActivity;
 import tk.com.sharemusic.adapter.PublicSocialAdapter;
+import tk.com.sharemusic.config.Constants;
 import tk.com.sharemusic.entity.GoodsEntity;
 import tk.com.sharemusic.entity.PublishMsgEntity;
 import tk.com.sharemusic.entity.SocialPublicEntity;
@@ -53,6 +54,7 @@ import tk.com.sharemusic.event.NewReviewEvent;
 import tk.com.sharemusic.event.RefreshPublicData;
 import tk.com.sharemusic.event.UpLoadSocialSuccess;
 import tk.com.sharemusic.myview.dialog.ClickMenuView;
+import tk.com.sharemusic.myview.dialog.ShareDialog;
 import tk.com.sharemusic.network.BaseResult;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
@@ -480,8 +482,37 @@ public class SocialPublishFragment extends Fragment {
         switch (view.getId()) {
             case R.id.iv_add:
                 Intent intent1 = new Intent(getContext(), ShareActivity.class);
-                intent1.putExtra("sharetext", "");
-                startActivity(intent1);
+                ShareDialog dialog = new ShareDialog(getContext());
+                dialog.setClickListener(new ShareDialog.ClickListener() {
+                    @Override
+                    public void textClick() {
+                        intent1.putExtra("shareType", Constants.SHARE_TEXT);
+                        startActivity(intent1);
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void musicClick() {
+                        intent1.putExtra("shareType", Constants.SHARE_MUSIC);
+                        startActivity(intent1);
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void cameraClick() {
+                        intent1.putExtra("shareType", Constants.SHARE_VIDEO);
+                        startActivity(intent1);
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void albumClick() {
+                        intent1.putExtra("shareType", Constants.SHARE_PIC);
+                        startActivity(intent1);
+                        dialog.dismiss();
+                    }
+                });
+                dialog.show();
                 break;
             case R.id.ll_to_top:
                 cyclerView.smoothScrollToPosition(0);

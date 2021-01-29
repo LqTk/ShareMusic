@@ -13,6 +13,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.danikula.videocache.HttpProxyCacheServer;
 import com.luck.picture.lib.PictureSelector;
 import com.luck.picture.lib.config.PictureConfig;
 import com.luck.picture.lib.config.PictureMimeType;
@@ -26,6 +27,7 @@ import cn.jpush.android.api.JPushInterface;
 import cn.jpush.android.ups.JPushUPSManager;
 import cn.jpush.android.ups.TokenResult;
 import cn.jpush.android.ups.UPSRegisterCallBack;
+import tk.com.sharemusic.entity.ChatEntity;
 import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.myview.dialog.ProgressDialog;
 import tk.com.sharemusic.utils.GlideEngine;
@@ -39,6 +41,7 @@ public class ShareApplication extends Application {
     public static User user;
     public static final int ACTION_TYPE_ALBUM = 0;
     public static final int ACTION_TYPE_PHOTO = 1;
+    public static boolean multiSending = false;
     private PreferenceConfig mCurrentConfig;
     private static ShareApplication mContext;
     private static List<AppCompatActivity> activityList = new ArrayList<>();
@@ -147,14 +150,17 @@ public class ShareApplication extends Application {
                 break;
             case ACTION_TYPE_ALBUM:
                 PictureSelector.create(context)
-                        .openGallery(PictureMimeType.ofImage())//全部.PictureMimeType.ofAll()、图片.ofImage()、视频.ofVideo()、音频.ofAudio()
+                        .openGallery(PictureMimeType.ofAll())//全部.PictureMimeType.ofAll()、图片.ofImage()、视频.ofVideo()、音频.ofAudio()
+                        .isWithVideoImage(true)
+                        .maxVideoSelectNum(1)
+                        .isGif(true)
                         .loadImageEngine(GlideEngine.createGlideEngine())
 //                .theme()//主题样式(不设置为默认样式) 也可参考demo values/styles下 例如：R.style.picture.white.style
                         .maxSelectNum(1)// 最大图片选择数量 int
                         .minSelectNum(1)// 最小选择数量 int
                         .imageSpanCount(3)// 每行显示个数 int
                         .selectionMode(PictureConfig.SINGLE)// 多选 or 单选 PictureConfig.MULTIPLE or PictureConfig.SINGLE
-                        .isCamera(false)// 是否显示拍照按钮 true or false
+                        .isCamera(true)// 是否显示拍照按钮 true or false
                         .enableCrop(isCrop)
                         .isDragFrame(true)// 是否可拖动裁剪框
                         .freeStyleCropEnabled(true)// 裁剪框是否可拖拽 true or false
@@ -169,6 +175,57 @@ public class ShareApplication extends Application {
         }
     }
 
+    /**
+     * 拍照
+     * @param activity
+     * @param isCrop 是否可以裁剪
+     */
+    public static void openTakePhoto(Activity activity, boolean isCrop){
+        PictureSelector.create(activity)
+                .openCamera(PictureMimeType.ofVideo())
+                .enableCrop(isCrop)
+                .videoQuality(1)// 视频录制质量 0 or 1 int
+                .videoMaxSecond(20)// 显示多少秒以内的视频or音频也可适用 int
+                //.videoMinSecond(10)// 显示多少秒以内的视频or音频也可适用 int
+                .recordVideoSecond(20)//视频秒数录制 默认60s int
+                .previewVideo(true)//是否预览视频
+                .freeStyleCropEnabled(true)//是否可播放音频 true or false
+                .forResult(PictureConfig.CHOOSE_REQUEST);
+    }
+
+    /**
+     * 相册选择照片
+     * @param activity
+     * @param count 可选择数量
+     * @param isCrop 是否裁剪
+     */
+    public static void openAlbumSelect(Activity activity,int count, boolean isCrop){
+        PictureSelector.create(activity)
+                .openGallery(PictureMimeType.ofAll())//全部.PictureMimeType.ofAll()、图片.ofImage()、视频.ofVideo()、音频.ofAudio()
+                .isWithVideoImage(true)
+                .maxVideoSelectNum(count)
+                .isGif(true)
+                .loadImageEngine(GlideEngine.createGlideEngine())
+//                .theme()//主题样式(不设置为默认样式) 也可参考demo values/styles下 例如：R.style.picture.white.style
+                .maxSelectNum(count)// 最大图片选择数量 int
+//                .minSelectNum(1)// 最小选择数量 int
+                .imageSpanCount(3)// 每行显示个数 int
+                .selectionMode(count>1?PictureConfig.MULTIPLE:PictureConfig.SINGLE)// 多选 or 单选 PictureConfig.MULTIPLE or PictureConfig.SINGLE
+                .isCamera(true)// 是否显示拍照按钮 true or false
+                .enableCrop(isCrop)
+                .isDragFrame(true)// 是否可拖动裁剪框
+                .freeStyleCropEnabled(true)// 裁剪框是否可拖拽 true or false
+                .withAspectRatio(1,1)// int 裁剪比例 如16:9 3:2 3:4 1:1 可自定义
+                .circleDimmedLayer(false)// 是否圆形裁剪 true or false
+                .showCropFrame(false)// 是否显示裁剪矩形边框 圆形裁剪时建议设为false   true or false
+                .showCropGrid(false)// 是否显示裁剪矩形网格 圆形裁剪时建议设为false    true or false
+                .forResult(PictureConfig.CHOOSE_REQUEST);//结果回调onActivityResult code
+    }
+
+    /**
+     * activity管理
+     * @param appCompatActivity
+     */
     public static void addActivity(AppCompatActivity appCompatActivity){
         activityList.add(appCompatActivity);
     }
@@ -185,6 +242,12 @@ public class ShareApplication extends Application {
         }
     }
 
+    /**
+     * 判断权限是否允许
+     * @param permissions
+     * @param context
+     * @return
+     */
     @RequiresApi(api = Build.VERSION_CODES.M)
     public static boolean isGrantPermission(String[] permissions, Context context){
         for (String permission:permissions){
@@ -193,5 +256,18 @@ public class ShareApplication extends Application {
             }
         }
         return true;
+    }
+
+    private HttpProxyCacheServer proxy;
+
+    public static HttpProxyCacheServer getProxy(Context context) {
+        ShareApplication app = (ShareApplication) context.getApplicationContext();
+        return app.proxy == null ? (app.proxy = app.newProxy()) : app.proxy;
+    }
+
+    private HttpProxyCacheServer newProxy() {
+        return new HttpProxyCacheServer.Builder(this)
+                .maxCacheSize(1024 * 1024 * 1024)       // 1 Gb for cache
+                .build();
     }
 }

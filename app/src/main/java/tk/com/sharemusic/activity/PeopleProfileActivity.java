@@ -11,10 +11,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 
 import org.greenrobot.eventbus.EventBus;
-import org.w3c.dom.Text;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +29,7 @@ import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.enums.Gender;
 import tk.com.sharemusic.event.RefreshPartnerEvent;
 import tk.com.sharemusic.myview.CircleImage;
-import tk.com.sharemusic.myview.dialog.ImgPreviewDIalog;
+import tk.com.sharemusic.myview.dialog.ImgPreviewDialog;
 import tk.com.sharemusic.myview.dialog.TextDialog;
 import tk.com.sharemusic.network.BaseResult;
 import tk.com.sharemusic.network.HttpMethod;
@@ -174,8 +172,8 @@ public class PeopleProfileActivity extends CommonActivity {
                 break;
             case R.id.iv_head:
                 if (!TextUtils.isEmpty(headUrl)) {
-                    ImgPreviewDIalog dialog = new ImgPreviewDIalog(context);
-                    dialog.setPhotoViewClick(new ImgPreviewDIalog.PhotoViewClick() {
+                    ImgPreviewDialog dialog = new ImgPreviewDialog(context);
+                    dialog.setPhotoViewClick(new ImgPreviewDialog.PhotoViewClick() {
                         @Override
                         public void ImgClick() {
                             dialog.dismiss();

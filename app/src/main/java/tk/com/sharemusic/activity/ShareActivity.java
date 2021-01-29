@@ -21,6 +21,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
+import tk.com.sharemusic.config.Constants;
 import tk.com.sharemusic.entity.SocialPublicEntity;
 import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.event.UpLoadSocialSuccess;
@@ -107,7 +108,7 @@ public class ShareActivity extends CommonActivity {
             return;
         }
         SocialPublicEntity socialPublicEntity = new SocialPublicEntity(user.getUserId(),user.getUserName(),
-                user.getHeadImg(),user.getSex(),title,url,string,1,new ArrayList<>(),new ArrayList<>());
+                user.getHeadImg(),user.getSex(),title,url,string,1, Constants.SHARE_MUSIC,"",new ArrayList<>(),new ArrayList<>());
         upLoadSocialPublid(socialPublicEntity);
     }
 

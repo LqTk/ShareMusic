@@ -53,6 +53,8 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.activation.MimetypesFileTypeMap;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -73,10 +75,12 @@ import tk.com.sharemusic.entity.MsgEntity;
 import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.event.MsgReadEvent;
 import tk.com.sharemusic.event.MyChatEntityEvent;
+import tk.com.sharemusic.event.NotifyItemChatAdapterEvent;
 import tk.com.sharemusic.event.RefreshPartnerMsgEvent;
-import tk.com.sharemusic.myview.dialog.ImgPreviewDIalog;
+import tk.com.sharemusic.myview.dialog.ImgPreviewDialog;
 import tk.com.sharemusic.myview.dialog.PagerMenuGridPicker;
 import tk.com.sharemusic.myview.dialog.TextDialog;
+import tk.com.sharemusic.myview.dialog.VideoPreviewDialog;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
 import tk.com.sharemusic.network.RxSchedulers;
@@ -138,7 +142,6 @@ public class ChatActivity extends CommonActivity {
     private NetWorkService service;
     private String partnerId;
     private String mode = Constants.MODE_TEXT;
-    ;
 
     private MediaPlayer mMediaPlayer;
     private MediaRecorder mRecorder;
@@ -171,6 +174,8 @@ public class ChatActivity extends CommonActivity {
     private String partnerHead = "";
     private InputMethodManager inputManager;
     private int reSendPos;
+    private List<ChatEntity> sendEntityList = new ArrayList<>();
+    private List<Integer> sending = new ArrayList<>();
 
     class CountdownHandler extends Handler {
         private final WeakReference<ChatActivity> mActivity;
@@ -210,10 +215,20 @@ public class ChatActivity extends CommonActivity {
         partnerId = getIntent().getStringExtra("partnerId");
 
         chatLists = preferenceConfig.getArrayList(user.getUserId()+partnerId+Config.CHAT_PARTNER_LIST,ChatEntity.class);
-        for (ChatEntity chatEntity:chatLists){
-            if (chatEntity.isSending()){
-                chatEntity.setSending(false);
-                chatEntity.setSendSuccess(false);
+
+        if (!ShareApplication.multiSending) {
+            for (ChatEntity chatEntity : chatLists) {
+                int index = 0;
+                if (chatEntity.isSending()) {
+                    if (!ShareApplication.multiSending) {
+                        chatEntity.setSending(false);
+                        chatEntity.setSendSuccess(false);
+                    } else if (chatEntity.isSending()) {
+                        sending.add(index);
+                        sendEntityList.add(chatEntity);
+                    }
+                }
+                index++;
             }
         }
 
@@ -310,8 +325,8 @@ public class ChatActivity extends CommonActivity {
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         rcvChat.setLayoutManager(linearLayoutManager);
 
-        chatAdapter = new ChatAdapter(R.layout.item_chat_content, chatLists, partnerHead);
-        chatAdapter.addChildClickViewIds(R.id.tv_voice,R.id.tv_voice_left,R.id.iv_pic,R.id.iv_pic_left, R.id.iv_send_fail);
+        chatAdapter = new ChatAdapter(R.layout.item_chat_content, chatLists, partnerHead,mHandler);
+        chatAdapter.addChildClickViewIds(R.id.tv_voice,R.id.tv_voice_left,R.id.iv_pic,R.id.iv_pic_left, R.id.iv_send_fail, R.id.rl_video_left, R.id.rl_video);
         rcvChat.setAdapter(chatAdapter);
         chatAdapter.setOnItemChildClickListener(new OnItemChildClickListener() {
             @Override
@@ -348,8 +363,8 @@ public class ChatActivity extends CommonActivity {
                         break;
                     case R.id.iv_pic:
                     case R.id.iv_pic_left:
-                        ImgPreviewDIalog dialog = new ImgPreviewDIalog(mContext);
-                        dialog.setPhotoViewClick(new ImgPreviewDIalog.PhotoViewClick() {
+                        ImgPreviewDialog dialog = new ImgPreviewDialog(mContext);
+                        dialog.setPhotoViewClick(new ImgPreviewDialog.PhotoViewClick() {
                             @Override
                             public void ImgClick() {
                                 dialog.dismiss();
@@ -369,7 +384,8 @@ public class ChatActivity extends CommonActivity {
                                 chatEntity.setSending(true);
                                 chatAdapter.notifyItemChanged(position,"state");
                                 reSendPos = position;
-                                send(chatEntity.msgType,chatEntity.msgContent,chatEntity.voiceTime,true);
+//                                send(chatEntity.msgType,chatEntity.msgContent,chatEntity.voiceTime,true);
+                                sendMultiPic(chatEntity.msgType,chatEntity.getMsgContent(),position,true,chatEntity.voiceTime);
                                 dialog1.dismiss();
                             }
 
@@ -379,6 +395,22 @@ public class ChatActivity extends CommonActivity {
                             }
                         });
                         dialog1.show();
+                        break;
+                    case R.id.rl_video_left:
+                    case R.id.rl_video:
+                        VideoPreviewDialog dialog2 = new VideoPreviewDialog(mContext);
+                        ChatEntity chatEntity = chatLists.get(position);
+                        if (!TextUtils.isEmpty(chatEntity.localPath)){
+                            File file1 = new File(chatEntity.localPath);
+                            if (file1.exists()){
+                                dialog2.setLocalVideo(chatEntity.localPath);
+                            }else {
+                                dialog2.setVideo(NetWorkService.homeUrl+chatEntity.getMsgContent());
+                            }
+                        }else {
+                            dialog2.setVideo(NetWorkService.homeUrl + chatEntity.getMsgContent());
+                        }
+                        dialog2.show();
                         break;
                 }
             }
@@ -570,16 +602,17 @@ public class ChatActivity extends CommonActivity {
         map.put("talkid",user.getUserId());
         map.put("toid",partnerInfo.getPeopleId());
         map.put("msgtype",msgType);
-        MultipartBody.Part part = null;
-        Observable<SendMsgVo> baseResultObservable = null;
+//        MultipartBody.Part part = null;
+//        Observable<SendMsgVo> baseResultObservable = null;
         switch (msgType){
             case Constants.MODE_IMAGE:
                 if (TextUtils.isEmpty(content)){
                     ToastUtil.showShortMessage(mContext,"图片获取失败");
                     return;
                 }
-                part = getFilePart(content);
-                baseResultObservable = service.sendMsg(map,part);
+                sendEntity.setLocalPath(content);
+//                part = getFilePart(content);
+//                baseResultObservable = service.sendMsg(map,part);
                 break;
             case Constants.MODE_VOICE:
                 map.put("voicetime",voiceTime);
@@ -588,24 +621,32 @@ public class ChatActivity extends CommonActivity {
                     ToastUtil.showShortMessage(mContext,"语音获取失败");
                     return;
                 }
-                part = getFilePart(content);
-                baseResultObservable = service.sendMsg(map,part);
+//                part = getFilePart(content);
+//                baseResultObservable = service.sendMsg(map,part);
                 break;
             case Constants.MODE_TEXT:
                 map.put("msgcontent",content);
                 sendEntity.setMsgContent(content);
-                baseResultObservable = service.sendMsg(map);
+//                baseResultObservable = service.sendMsg(map);
+                break;
+            case Constants.MODE_VIDEO:
+                sendEntity.setLocalPath(content);
                 break;
         }
         sendEntity.setSending(true);
         sendEntity.setChatTime(System.currentTimeMillis());
         if (!isReSend) {
             chatAdapter.addData(sendEntity);
+            sendEntityList.add(sendEntity);
             saveData();
-            rcvChat.smoothScrollToPosition(chatLists.size());
+
+            sending.add(chatLists.size());
+            saveData();
         }
+        rcvChat.smoothScrollToPosition(chatLists.size());
         EventBus.getDefault().post(new MyChatEntityEvent(sendEntity, partnerInfo));
-        baseResultObservable.compose(RxSchedulers.<SendMsgVo>compose(mContext))
+        startSending(sending.size()-1);
+        /*baseResultObservable.compose(RxSchedulers.<SendMsgVo>compose(mContext))
                 .subscribe(new BaseObserver<SendMsgVo>() {
                     @Override
                     public void onSuccess(SendMsgVo baseResult) {
@@ -640,15 +681,20 @@ public class ChatActivity extends CommonActivity {
                         ToastUtil.showShortMessage(mContext,"消息发送失败");
                         saveData();
                     }
-                });
+                });*/
     }
 
     private MultipartBody.Part getFilePart(String path) {
-        Log.d("picFile",path);
         File file = new File(path);
         RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
         MultipartBody.Part part = MultipartBody.Part.createFormData("file", file.getName(), requestFile);
         return part;
+    }
+
+    private String getFileType(String path){
+        String contentType = new MimetypesFileTypeMap().getContentType(path);
+        Log.d("fileType===",contentType);
+        return contentType;
     }
 
     private void initPressToSpeak() {
@@ -715,10 +761,12 @@ public class ChatActivity extends CommonActivity {
                                     requestPermissions(PERMISSIONS, Constants.PERMISSION_REQUEST_CODE);
                                     openType = Constants.IMAGE_TAKE_PHOTO;
                                 } else {
-                                    ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_PHOTO, mContext, false);
+                                    ShareApplication.openTakePhoto(mContext,false);
+//                                    ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_PHOTO, mContext, false);
                                 }
                             } else {
-                                ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_PHOTO, mContext, false);
+                                ShareApplication.openTakePhoto(mContext,false);
+//                                ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_PHOTO, mContext, false);
                             }
                             break;
                         case Constants.IMAGE_CHOOSE_FROM_ALBUM:
@@ -728,10 +776,12 @@ public class ChatActivity extends CommonActivity {
                                     requestPermissions(PERMISSIONS, Constants.PERMISSION_REQUEST_CODE);
                                     openType = Constants.IMAGE_CHOOSE_FROM_ALBUM;
                                 } else {
-                                    ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_ALBUM, mContext, false);
+                                    ShareApplication.openAlbumSelect(mContext,9,false);
+//                                    ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_ALBUM, mContext, false);
                                 }
                             } else {
-                                ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_ALBUM, mContext, false);
+                                ShareApplication.openAlbumSelect(mContext,9,false);
+//                                ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_ALBUM, mContext, false);
                             }
                             break;
                     }
@@ -874,12 +924,21 @@ public class ChatActivity extends CommonActivity {
                 // 2.media.getCutPath();为裁剪后path，需判断media.isCut();是否为true  注意：音视频除外
                 // 3.media.getCompressPath();为压缩后path，需判断media.isCompressed();是否为true  注意：音视频除外
                 // 如果裁剪并压缩了，以取压缩路径为准，因为是先裁剪后压缩的
-                if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.Q) {
-                    imgPath = selectList.get(0).getAndroidQToPath();
+                if (selectList.size()>1) {
+                    sendMultiPic(selectList);
                 }else {
-                    imgPath = selectList.get(0).getPath();
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        imgPath = selectList.get(0).getAndroidQToPath();
+                    } else {
+                        imgPath = selectList.get(0).getPath();
+                    }
+                    String fileType = getFileType(imgPath);
+                    if (fileType.contains("image/")) {
+                        send(Constants.MODE_IMAGE, imgPath, "", false);
+                    }else {
+                        send(Constants.MODE_VIDEO, imgPath, "", false);
+                    }
                 }
-                send(Constants.MODE_IMAGE, imgPath, "", false);
                 break;
             case Constants.PERMISSION_REQUEST_CODE:
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -888,10 +947,12 @@ public class ChatActivity extends CommonActivity {
                     } else {
                         switch (openType) {
                             case Constants.IMAGE_TAKE_PHOTO:
-                                ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_PHOTO, mContext, false);
+                                ShareApplication.openTakePhoto(mContext,false);
+//                                ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_PHOTO, mContext, false);
                                 break;
                             case Constants.IMAGE_CHOOSE_FROM_ALBUM:
-                                ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_ALBUM, mContext, false);
+                                ShareApplication.openAlbumSelect(mContext,9,false);
+//                                ShareApplication.goToSelectPicture(ShareApplication.ACTION_TYPE_ALBUM, mContext, false);
                                 break;
                         }
                     }
@@ -900,6 +961,151 @@ public class ChatActivity extends CommonActivity {
         }
     }
 
+    /**
+     * 发送多张图片
+     * @param selectList
+     */
+    private void sendMultiPic(List<LocalMedia> selectList) {
+        for (LocalMedia localMedia:selectList){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                imgPath = localMedia.getAndroidQToPath();
+            } else {
+                imgPath = localMedia.getPath();
+            }
+            String fileType = getFileType(imgPath);
+            ChatEntity sendEntity = new ChatEntity();
+            sendEntity.setSenderAvatar(ShareApplication.user.getHeadImg());
+            sendEntity.setSenderName(ShareApplication.user.getUserName());
+            sendEntity.setLocalPath(imgPath);
+            if (fileType.contains("image/")) {
+                sendEntity.setMsgType(Constants.MODE_IMAGE);
+            }else {
+                sendEntity.setMsgType(Constants.MODE_VIDEO);
+            }
+            sendEntity.setMsgType(Constants.MODE_IMAGE);
+            sendEntity.setSenderId(ShareApplication.user.getUserId());
+            sendEntity.setMsgContent(imgPath);
+            sendEntity.setSending(true);
+            sendEntity.setChatTime(System.currentTimeMillis());
+            sendEntityList.add(sendEntity);
+            chatAdapter.addData(sendEntity);
+            sending.add(chatLists.size());
+            saveData();
+
+            EventBus.getDefault().post(new MyChatEntityEvent(sendEntity, partnerInfo));
+        }
+
+        rcvChat.smoothScrollToPosition(chatLists.size());
+        if (!ShareApplication.multiSending) {
+            startSending(0);
+        }
+    }
+
+    private void startSending(int pos) {
+        if (sending.size()>0) {
+            ChatEntity chatEntity = sendEntityList.get(pos);
+            sendMultiPic(chatEntity.getMsgType(), chatEntity.getMsgContent(), pos, false, chatEntity.getVoiceTime());
+        }
+    }
+
+    private void sendMultiPic(String msgType, String content, int pos, boolean isReSend, String voiceTime) {
+        int adapterPos;
+        if (isReSend){
+            adapterPos = pos;
+        }else {
+            adapterPos = sending.get(pos) - 1;
+        }
+        HashMap map = new HashMap();
+        map.put("talkid",user.getUserId());
+        map.put("toid",partnerInfo.getPeopleId());
+        map.put("msgtype",msgType);
+        MultipartBody.Part part = null;
+        Observable<SendMsgVo> baseResultObservable = null;
+        switch (msgType){
+            case Constants.MODE_IMAGE:
+                if (TextUtils.isEmpty(content)){
+                    ToastUtil.showShortMessage(mContext,"图片获取失败");
+                    return;
+                }
+                part = getFilePart(content);
+                baseResultObservable = service.sendMsg(map,part);
+                break;
+            case Constants.MODE_VOICE:
+                map.put("voicetime",voiceTime);
+                if (TextUtils.isEmpty(content)){
+                    ToastUtil.showShortMessage(mContext,"语音获取失败");
+                    return;
+                }
+                part = getFilePart(content);
+                baseResultObservable = service.sendMsg(map,part);
+                break;
+            case Constants.MODE_TEXT:
+                map.put("msgcontent",content);
+                baseResultObservable = service.sendMsg(map);
+                break;
+            case Constants.MODE_VIDEO:
+                if (TextUtils.isEmpty(content)){
+                    ToastUtil.showShortMessage(mContext,"视频获取失败");
+                    return;
+                }
+                part = getFilePart(content);
+                baseResultObservable = service.sendMsg(map,part);
+                break;
+        }
+
+        EventBus.getDefault().post(new MyChatEntityEvent(chatLists.get(adapterPos), partnerInfo));
+        ShareApplication.multiSending = true;
+        baseResultObservable.compose(RxSchedulers.<SendMsgVo>compose(mContext))
+                .subscribe(new BaseObserver<SendMsgVo>() {
+                    @Override
+                    public void onSuccess(SendMsgVo baseResult) {
+                        ChatEntity data = baseResult.getData();
+                        chatLists.get(adapterPos).setSending(false);
+                        chatLists.get(adapterPos).setSendSuccess(true);
+                        chatLists.get(adapterPos).setMsgType(data.msgType);
+                        chatLists.get(adapterPos).setMsgContent(data.msgContent);
+                        chatLists.get(adapterPos).setChatTime(data.chatTime);
+                        chatLists.get(adapterPos).setVoiceTime(data.voiceTime);
+                        saveData();
+                        EventBus.getDefault().post(new NotifyItemChatAdapterEvent(adapterPos,"state",true,data));
+                        EventBus.getDefault().post(new MyChatEntityEvent(chatLists.get(adapterPos),partnerInfo));
+                        ShareApplication.multiSending = false;
+                        if (!isReSend) {
+                            sending.remove(pos);
+                            sendEntityList.remove(pos);
+                            startSending(0);
+                        }
+                    }
+
+                    @Override
+                    public void onFailed(String msg) {
+                        chatLists.get(adapterPos).setSending(false);
+                        chatLists.get(adapterPos).setSendSuccess(false);
+                        saveData();
+                        EventBus.getDefault().post(new NotifyItemChatAdapterEvent(adapterPos,"state",false,chatLists.get(adapterPos)));
+                        EventBus.getDefault().post(new MyChatEntityEvent(chatLists.get(adapterPos),partnerInfo));
+                        ToastUtil.showShortMessage(mContext,"消息发送失败");
+                        if (!isReSend) {
+                            startSending(pos + 1);
+                        }
+                    }
+                });
+    }
+
+    @Subscribe
+    public void notifyAdapter(NotifyItemChatAdapterEvent event){
+        if (event!=null){
+            if (chatAdapter!=null){
+                chatLists.get(event.pos).setSending(false);
+                chatLists.get(event.pos).setSendSuccess(event.isSuccess);
+                chatLists.get(event.pos).setMsgType(event.data.msgType);
+                chatLists.get(event.pos).setMsgContent(event.data.msgContent);
+                chatLists.get(event.pos).setChatTime(event.data.chatTime);
+                chatLists.get(event.pos).setVoiceTime(event.data.voiceTime);
+                chatAdapter.notifyItemChanged(event.pos, event.des);
+            }
+        }
+    }
     @Subscribe
     public void refreshData(RefreshPartnerMsgEvent event){
         if (event!=null){

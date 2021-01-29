@@ -14,6 +14,7 @@ public class ChatEntity {
     public String senderId;
     public String senderAvatar;
     public String senderName;
+    public String localPath;
     public long chatTime;
     public int count;
 
@@ -36,6 +37,14 @@ public class ChatEntity {
 
     public boolean isSendSuccess() {
         return sendSuccess;
+    }
+
+    public String getLocalPath() {
+        return localPath;
+    }
+
+    public void setLocalPath(String localPath) {
+        this.localPath = localPath;
     }
 
     public void setSendSuccess(boolean sendSuccess) {

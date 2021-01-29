@@ -42,6 +42,8 @@ public class ChatListAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder
             baseViewHolder.setText(R.id.tv_partner_chat, "[图片]");
         }else if (chatEntity.msgType.equals(Constants.MODE_VOICE)){
             baseViewHolder.setText(R.id.tv_partner_chat, "[语音]");
+        } else if (chatEntity.msgType.equals(Constants.MODE_VIDEO)){
+            baseViewHolder.setText(R.id.tv_partner_chat, "[视频]");
         }else {
             baseViewHolder.setText(R.id.tv_partner_chat, chatEntity.msgContent);
         }
@@ -62,11 +64,12 @@ public class ChatListAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder
         }else {
             if (chatEntity.isSendSuccess()){
                 baseViewHolder.setGone(R.id.iv_sending,true);
+                baseViewHolder.setText(R.id.tv_chat_time, DateUtil.getChatTime(chatEntity.chatTime));
             }else {
                 baseViewHolder.setVisible(R.id.iv_sending,true);
                 baseViewHolder.setImageResource(R.id.iv_sending,R.drawable.ic_send_fail);
+                baseViewHolder.setText(R.id.tv_chat_time, "发送失败");
             }
-            baseViewHolder.setText(R.id.tv_chat_time, DateUtil.getChatTime(chatEntity.chatTime));
         }
 
     }
@@ -84,11 +87,12 @@ public class ChatListAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder
         }else {
             if (item.isSendSuccess()){
                 holder.setGone(R.id.iv_sending,true);
+                holder.setText(R.id.tv_chat_time, DateUtil.getChatTime(item.chatTime));
             }else {
                 holder.setVisible(R.id.iv_sending,true);
                 holder.setImageResource(R.id.iv_sending,R.drawable.ic_send_fail);
+                holder.setText(R.id.tv_chat_time, "发送失败");
             }
-            holder.setText(R.id.tv_chat_time, DateUtil.getChatTime(item.chatTime));
         }
         if (item.count>0){
             holder.setVisible(R.id.tv_count,true);
@@ -107,6 +111,8 @@ public class ChatListAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder
                         holder.setText(R.id.tv_partner_chat, "[图片]");
                     }else if (item.msgType.equals(Constants.MODE_VOICE)){
                         holder.setText(R.id.tv_partner_chat, "[语音]");
+                    }else if (item.msgType.equals(Constants.MODE_VIDEO)){
+                        holder.setText(R.id.tv_partner_chat, "[视频]");
                     }else {
                         holder.setText(R.id.tv_partner_chat, item.msgContent);
                     }
@@ -116,6 +122,8 @@ public class ChatListAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder
                         holder.setText(R.id.tv_partner_chat, "[图片]");
                     }else if (item.msgType.equals(Constants.MODE_VOICE)){
                         holder.setText(R.id.tv_partner_chat, "[语音]");
+                    }else if (item.msgType.equals(Constants.MODE_VIDEO)){
+                        holder.setText(R.id.tv_partner_chat, "[视频]");
                     }else {
                         holder.setText(R.id.tv_partner_chat, item.msgContent);
                     }
@@ -126,6 +134,8 @@ public class ChatListAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder
                         holder.setText(R.id.tv_partner_chat, "[图片]");
                     }else if (item.msgType.equals(Constants.MODE_VOICE)){
                         holder.setText(R.id.tv_partner_chat, "[语音]");
+                    }else if (item.msgType.equals(Constants.MODE_VIDEO)){
+                        holder.setText(R.id.tv_partner_chat, "[视频]");
                     }else {
                         holder.setText(R.id.tv_partner_chat, item.msgContent);
                     }

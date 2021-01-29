@@ -38,19 +38,19 @@ public class PublishMsgAdapter extends BaseQuickAdapter<PublishMsgEntity, BaseVi
         String html = "";
         if (publishMsgEntity.isReaded==0){
             if (publishMsgEntity.msgType.equals(Constants.MSG_GOODS)){
-                html = "<b><myfont color='#dd222222'>" + publishMsgEntity.peopleName+"</myfont>  <img src='goodsd_bg'/><myfont size='29px' color='#333333'><b>赞</b></myfont>  <myfont color='#dd222222'>了您的分享</myfont>";
+                html = "<b><myfont size='25px' color='#dd222222'>" + publishMsgEntity.peopleName+"</myfont>  <img src='goodsd_bg'/><myfont size='29px' color='#333333'><b>赞</b></myfont>  <myfont csize='25px' olor='#dd222222'>了您的分享</myfont>";
             }else if (publishMsgEntity.msgType.equals(Constants.MSG_REVIEW)){
-                html = "<b><myfont color='#dd222222'>" + publishMsgEntity.peopleName+"</myfont>   <myfont size='29px' color='#333333'><b>评论</b></myfont>  <myfont color='#dd222222'>"+publishMsgEntity.reviewText+"</myfont>";
+                html = "<b><myfont size='25px' color='#dd222222'>" + publishMsgEntity.peopleName+"</myfont>   <myfont size='29px' color='#333333'><b>评论</b></myfont>  <myfont size='25px' color='#dd222222'>"+publishMsgEntity.reviewText+"</myfont>";
             }else {
-                html = "<b><myfont color='#dd222222'>" + publishMsgEntity.peopleName+"</myfont>   <myfont size='29px' color='#333333'><b>回复</b></myfont>  "+publishMsgEntity.chatText;
+                html = "<b><myfont size='25px' color='#dd222222'>" + publishMsgEntity.peopleName+"</myfont>   <myfont size='29px' color='#333333'><b>回复</b></myfont>  <myfont size='25px' color='#dd222222'>"+publishMsgEntity.chatText+"</myfont>";
             }
         }else {
             if (publishMsgEntity.msgType.equals(Constants.MSG_GOODS)){
-                html = "<b><myfont color='#939393'>" + publishMsgEntity.peopleName+"</myfont>  <img src='goodsd_bg'/><myfont size='28px' color='#939393'><b>赞</b></myfont>  <myfont color='#939393'>了您的分享</myfont>";
+                html = "<b><myfont size='25px' color='#939393'>" + publishMsgEntity.peopleName+"</myfont>  <img src='goodsd_bg'/><myfont size='28px' color='#939393'><b>赞</b></myfont>  <myfont size='25px' color='#939393'>了您的分享</myfont>";
             }else if (publishMsgEntity.msgType.equals(Constants.MSG_REVIEW)){
-                html = "<b><myfont color='#939393'>" + publishMsgEntity.peopleName+"</myfont>   <myfont size='28px' color='#939393'><b>评论</b></myfont>  <myfont color='#939393'>"+publishMsgEntity.reviewText+"</myfont>";
+                html = "<b><myfont size='25px' color='#939393'>" + publishMsgEntity.peopleName+"</myfont>   <myfont size='28px' color='#939393'><b>评论</b></myfont>  <myfont size='25px' color='#939393'>"+publishMsgEntity.reviewText+"</myfont>";
             }else {
-                html = "<b><myfont color='#939393'>" + publishMsgEntity.peopleName+"</myfont>   <myfont size='28px' color='#939393'><b>回复</b></myfont>  <myfont color='#939393'>"+publishMsgEntity.chatText+"</myfont>";
+                html = "<b><myfont size='25px' color='#939393'>" + publishMsgEntity.peopleName+"</myfont>   <myfont size='28px' color='#939393'><b>回复</b></myfont>  <myfont size='25px' color='#939393'>"+publishMsgEntity.chatText+"</myfont>";
             }
         }
         CharSequence charSequence = Html.fromHtml(html, new Html.ImageGetter() {

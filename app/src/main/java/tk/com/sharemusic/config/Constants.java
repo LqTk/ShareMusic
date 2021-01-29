@@ -16,7 +16,15 @@ public class Constants {
     public static final String MODE_TEXT = "TEXT";
     public static final String MODE_VOICE = "VOICE";
     public static final String MODE_IMAGE = "PIC";
+    public static final String MODE_VIDEO = "VIDEO";
 
+    /**
+     * 分享类型
+     */
+    public static final String SHARE_MUSIC = "music";
+    public static final String SHARE_TEXT = "text";
+    public static final String SHARE_PIC = "pic";
+    public static final String SHARE_VIDEO = "video";
 
     public static final String VOICE_DIR = "voice";
 
