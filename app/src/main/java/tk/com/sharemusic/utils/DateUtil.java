@@ -17,7 +17,7 @@ public class DateUtil {
     public static final int TYPE_DAY = 2;
     public static final int TYPE_HOUR = 3;
 
-    private static final SimpleDateFormat allTime = new SimpleDateFormat("yyyy年MM月dd HH:mm");
+    private static final SimpleDateFormat allTime = new SimpleDateFormat("yyyy年MM月dd日 HH:mm");
     private static final SimpleDateFormat year = new SimpleDateFormat("yyyy");
     private static final SimpleDateFormat month = new SimpleDateFormat("MM");
     private static final SimpleDateFormat day = new SimpleDateFormat("dd");

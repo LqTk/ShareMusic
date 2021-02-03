@@ -31,6 +31,7 @@ import tk.com.sharemusic.network.response.PartnerVo;
 import tk.com.sharemusic.network.response.PeopleVo;
 import tk.com.sharemusic.network.response.PublicMsgVo;
 import tk.com.sharemusic.network.response.SendMsgVo;
+import tk.com.sharemusic.network.response.UpLoadFileVo;
 import tk.com.sharemusic.network.response.UpLoadHeadVo;
 
 public interface NetWorkService {
@@ -136,6 +137,10 @@ public interface NetWorkService {
     @Multipart
     @POST("user/chat/sendMsg")
     Observable<SendMsgVo> sendMsg(@QueryMap Map<String,String> msgEntity, @Part MultipartBody.Part part);
+
+    @Multipart
+    @POST("spublic/uploadFile")
+    Observable<UpLoadFileVo> upLoadFile(@Part MultipartBody.Part part);
 
     //获取聊天消息列表
     @GET("user/chat/getAllChat/{userId}")

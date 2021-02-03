@@ -11,21 +11,24 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.listener.OnItemChildClickListener;
 import com.chad.library.adapter.base.listener.OnItemClickListener;
+import com.chad.library.adapter.base.viewholder.BaseViewHolder;
 import com.google.android.flexbox.FlexboxLayout;
 import com.luck.picture.lib.tools.ScreenUtils;
 
@@ -42,17 +45,22 @@ import butterknife.OnClick;
 import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.adapter.ReviewAdapter;
+import tk.com.sharemusic.adapter.SharePicAdapter;
 import tk.com.sharemusic.config.Constants;
 import tk.com.sharemusic.entity.ChatReviewEntity;
 import tk.com.sharemusic.entity.GoodsEntity;
 import tk.com.sharemusic.entity.ReviewEntity;
+import tk.com.sharemusic.entity.ShareGvEntity;
 import tk.com.sharemusic.entity.SocialPublicEntity;
 import tk.com.sharemusic.enums.Gender;
 import tk.com.sharemusic.event.ChangeFragmentEvent;
 import tk.com.sharemusic.event.ChatReviewDeleteEvent;
 import tk.com.sharemusic.event.ChatReviewEvent;
 import tk.com.sharemusic.myview.CircleImage;
+import tk.com.sharemusic.myview.MyGridView;
 import tk.com.sharemusic.myview.dialog.ClickMenuView;
+import tk.com.sharemusic.myview.dialog.ImgPreviewDialog;
+import tk.com.sharemusic.myview.dialog.VideoPreviewDialog;
 import tk.com.sharemusic.network.BaseResult;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
@@ -80,8 +88,8 @@ public class ShareDetailActivity extends CommonActivity {
     TextView tvSongName;
     @BindView(R.id.tv_song_des)
     TextView tvSongDes;
-    @BindView(R.id.ll_share_content)
-    LinearLayout llShareContent;
+    @BindView(R.id.ll_share_music)
+    LinearLayout llShareMusic;
     @BindView(R.id.iv_good)
     ImageView ivGood;
     @BindView(R.id.tv_goods)
@@ -102,6 +110,28 @@ public class ShareDetailActivity extends CommonActivity {
     EditText etReview;
     @BindView(R.id.tv_send)
     TextView tvSend;
+    @BindView(R.id.tv_text)
+    TextView tvText;
+    @BindView(R.id.rl_text)
+    RelativeLayout rlText;
+    @BindView(R.id.tv_text2)
+    TextView tvText2;
+    @BindView(R.id.iv_img)
+    ImageView ivImg;
+    @BindView(R.id.mgd_pic)
+    MyGridView mgdPic;
+    @BindView(R.id.ll_share_pic)
+    LinearLayout llSharePic;
+    @BindView(R.id.tv_text3)
+    TextView tvText3;
+    @BindView(R.id.iv_video)
+    ImageView ivVideo;
+    @BindView(R.id.iv_play)
+    ImageView ivPlay;
+    @BindView(R.id.rl_play)
+    RelativeLayout rlPlay;
+    @BindView(R.id.ll_share_video)
+    LinearLayout llShareVideo;
 
     private SocialPublicEntity publicEntity = new SocialPublicEntity();
     private Context mContext;
@@ -119,7 +149,7 @@ public class ShareDetailActivity extends CommonActivity {
     private PopWinUtil uiPopWinUtil;
     private Handler mHandler = new Handler();
     private boolean fromMsg = false;
-    private String msgId="";
+    private String msgId = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,7 +165,7 @@ public class ShareDetailActivity extends CommonActivity {
         inputManager = (InputMethodManager) etReview.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
 
         String from = getIntent().getStringExtra("from");
-        if (!TextUtils.isEmpty(from) && from.equals("msgActivity")){
+        if (!TextUtils.isEmpty(from) && from.equals("msgActivity")) {
             fromMsg = true;
             msgId = getIntent().getStringExtra("msgId");
         }
@@ -148,7 +178,7 @@ public class ShareDetailActivity extends CommonActivity {
         etReview.setFocusable(true);
         etReview.setFocusableInTouchMode(true);
         etReview.requestFocus();
-        inputManager.showSoftInput(etReview,InputMethodManager.SHOW_FORCED);
+        inputManager.showSoftInput(etReview, InputMethodManager.SHOW_FORCED);
     }
 
     private void initView() {
@@ -165,9 +195,9 @@ public class ShareDetailActivity extends CommonActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (TextUtils.isEmpty(etReview.getText().toString().trim())){
+                if (TextUtils.isEmpty(etReview.getText().toString().trim())) {
                     tvSend.setVisibility(View.GONE);
-                }else {
+                } else {
                     tvSend.setVisibility(View.VISIBLE);
                 }
             }
@@ -185,16 +215,16 @@ public class ShareDetailActivity extends CommonActivity {
         reviewAdapter.setOnItemChildClickListener(new OnItemChildClickListener() {
             @Override
             public void onItemChildClick(@NonNull BaseQuickAdapter adapter, @NonNull View view, int position) {
-                switch (view.getId()){
+                switch (view.getId()) {
                     case R.id.iv_head:
                     case R.id.tv_name:
                         String peopleId = reviewEntities.get(position).getPeopleId();
-                        if (peopleId.equals(ShareApplication.user.getUserId())){
+                        if (peopleId.equals(ShareApplication.user.getUserId())) {
                             return;
                         }
                         Intent intent1 = new Intent(mContext, PeopleProfileActivity.class);
                         intent1.putExtra("peopleId", peopleId);
-                        intent1.putExtra("from","public");
+                        intent1.putExtra("from", "public");
                         startActivity(intent1);
                         break;
                 }
@@ -204,7 +234,7 @@ public class ShareDetailActivity extends CommonActivity {
             @Override
             public void onItemClick(@NonNull BaseQuickAdapter<?, ?> adapter, @NonNull View view, int position) {
                 review = reviewEntities.get(position);
-                if (review.getPeopleId().equals(ShareApplication.user.getUserId())){
+                if (review.getPeopleId().equals(ShareApplication.user.getUserId())) {
                     inputManager.hideSoftInputFromWindow(etReview.getWindowToken(), 0);
                     ClickMenuView menuView = new ClickMenuView(mContext);
                     menuView.setClickListener(new ClickMenuView.ItemClickListener() {
@@ -215,7 +245,7 @@ public class ShareDetailActivity extends CommonActivity {
 
                         @Override
                         public void delete() {
-                            deleteReView(review,position);
+                            deleteReView(review, position);
                             uiPopWinUtil.dismissMenu();
                         }
 
@@ -229,9 +259,9 @@ public class ShareDetailActivity extends CommonActivity {
 
                         }
                     });
-                    uiPopWinUtil.showPopupBottom(menuView.getView(),R.id.rl_detail_public);
-                }else {
-                    if (publicEntity.getUserId().equals(ShareApplication.user.getUserId())){
+                    uiPopWinUtil.showPopupBottom(menuView.getView(), R.id.rl_detail_public);
+                } else {
+                    if (publicEntity.getUserId().equals(ShareApplication.user.getUserId())) {
                         ClickMenuView menuView = new ClickMenuView(mContext);
                         menuView.showReplay(View.VISIBLE);
                         menuView.setClickListener(new ClickMenuView.ItemClickListener() {
@@ -242,7 +272,7 @@ public class ShareDetailActivity extends CommonActivity {
 
                             @Override
                             public void delete() {
-                                deleteReView(review,position);
+                                deleteReView(review, position);
                                 uiPopWinUtil.dismissMenu();
                             }
 
@@ -265,11 +295,11 @@ public class ShareDetailActivity extends CommonActivity {
                                     public void run() {
                                         showInputTips();
                                     }
-                                },500);
+                                }, 500);
                             }
                         });
-                        uiPopWinUtil.showPopupBottom(menuView.getView(),R.id.rl_detail_public);
-                    }else {
+                        uiPopWinUtil.showPopupBottom(menuView.getView(), R.id.rl_detail_public);
+                    } else {
                         int pos = position + 1;
                         reviewPos = position;
                         etReview.setText("");
@@ -292,13 +322,13 @@ public class ShareDetailActivity extends CommonActivity {
         }
         if (!fromMsg) {
             getData();
-        }else {
+        } else {
             getMsgData();
         }
     }
 
     private void getMsgData() {
-        service.getShareMsg(shareId,msgId)
+        service.getShareMsg(shareId, msgId)
                 .compose(RxSchedulers.compose(mContext))
                 .subscribe(new BaseObserver<GetPublicDataShareIdVo>() {
                     @Override
@@ -309,7 +339,7 @@ public class ShareDetailActivity extends CommonActivity {
 
                     @Override
                     public void onFailed(String msg) {
-                        ToastUtil.showShortMessage(mContext,msg);
+                        ToastUtil.showShortMessage(mContext, msg);
                     }
                 });
     }
@@ -332,7 +362,7 @@ public class ShareDetailActivity extends CommonActivity {
     }
 
     private void loadData() {
-        if (tvName==null)
+        if (tvName == null)
             return;
         Glide.with(mContext)
                 .load(TextUtils.isEmpty(publicEntity.getUserHead()) ? Gender.getImage(publicEntity.getUserSex()) : NetWorkService.homeUrl + publicEntity.getUserHead())
@@ -340,8 +370,70 @@ public class ShareDetailActivity extends CommonActivity {
                 .into(ivHead);
         tvName.setText(publicEntity.getUserName());
         tvTime.setText(DateUtil.getPublicTime(publicEntity.getCreateTime()));
-        tvSongName.setText(publicEntity.getShareName());
-        tvSongDes.setText(publicEntity.getShareText());
+        if (publicEntity.getType().equals(Constants.SHARE_MUSIC)) {
+            llShareMusic.setVisibility(View.VISIBLE);
+            rlText.setVisibility(View.GONE);
+            llShareVideo.setVisibility(View.GONE);
+            llSharePic.setVisibility(View.GONE);
+
+            tvSongName.setText(publicEntity.getShareName());
+            tvSongDes.setText(publicEntity.getShareText());
+        } else if (publicEntity.getType().equals(Constants.SHARE_TEXT)) {
+            llShareMusic.setVisibility(View.GONE);
+            rlText.setVisibility(View.VISIBLE);
+            llShareVideo.setVisibility(View.GONE);
+            llSharePic.setVisibility(View.GONE);
+
+            tvText.setText(publicEntity.getShareText());
+        } else if (publicEntity.getType().equals(Constants.SHARE_PIC)) {
+            llShareMusic.setVisibility(View.GONE);
+            rlText.setVisibility(View.GONE);
+            llShareVideo.setVisibility(View.GONE);
+            llSharePic.setVisibility(View.VISIBLE);
+
+            if (TextUtils.isEmpty(publicEntity.getShareText())) {
+                tvText2.setVisibility(View.GONE);
+            } else {
+                tvText2.setVisibility(View.VISIBLE);
+                tvText2.setText(publicEntity.getShareText());
+            }
+            String[] split = publicEntity.getShareUrl().split(";");
+            if (split.length > 1) {
+                ivImg.setVisibility(View.GONE);
+                mgdPic.setVisibility(View.VISIBLE);
+                initGridView(split);
+            } else {
+                ivImg.setVisibility(View.VISIBLE);
+                mgdPic.setVisibility(View.GONE);
+
+                GlideUrl url = new GlideUrl(NetWorkService.homeUrl + split[0], new LazyHeaders.Builder()
+                        .build());
+                Glide.with(this)
+                        .load(url)
+                        .apply(Constants.picLoadOptions)
+                        .into(ivImg);
+            }
+        } else if (publicEntity.getType().equals(Constants.SHARE_VIDEO)) {
+            llShareMusic.setVisibility(View.GONE);
+            rlText.setVisibility(View.GONE);
+            llShareVideo.setVisibility(View.VISIBLE);
+            llSharePic.setVisibility(View.GONE);
+
+            if (TextUtils.isEmpty(publicEntity.getShareText())) {
+                tvText3.setVisibility(View.GONE);
+            } else {
+                tvText3.setVisibility(View.VISIBLE);
+                tvText3.setText(publicEntity.getShareText());
+            }
+
+            GlideUrl url = new GlideUrl(NetWorkService.homeUrl + publicEntity.getShareUrl(), new LazyHeaders.Builder()
+                    .build());
+            Glide.with(this)
+                    .load(url)
+                    .apply(Constants.picLoadOptions)
+                    .into(ivVideo);
+        }
+
         List<ReviewEntity> reviewEntities = publicEntity.getReviewEntities();
         if (reviewEntities.isEmpty()) {
             tvReview.setText("评论");
@@ -359,12 +451,27 @@ public class ShareDetailActivity extends CommonActivity {
             llGoods.setVisibility(View.VISIBLE);
             showGoodsView();
         }
-        if (!publicEntity.getUserId().equals(ShareApplication.user.getUserId())){
+        if (!publicEntity.getUserId().equals(ShareApplication.user.getUserId())) {
             showInputTips();
         }
     }
 
-    private void showGoodsView(){
+    private void initGridView(String[] split) {
+        List<ShareGvEntity> shareLists = new ArrayList<>();
+        for (String str:split){
+            shareLists.add(new ShareGvEntity(str,"net"));
+        }
+        SharePicAdapter adapter = new SharePicAdapter(shareLists, this);
+        mgdPic.setAdapter(adapter);
+        mgdPic.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+            }
+        });
+    }
+
+    private void showGoodsView() {
         flexGood.removeAllViews();
         ImageView imageView = new ImageView(mContext);
         imageView.setImageResource(R.drawable.goodsd_bg);
@@ -456,22 +563,22 @@ public class ShareDetailActivity extends CommonActivity {
         flexGood.addView(textView, index + 1);
     }
 
-    @OnClick({R.id.btn_back, R.id.ll_share_people, R.id.ll_share_content, R.id.ll_good, R.id.iv_review, R.id.rcy_review, R.id.tv_send})
+    @OnClick({R.id.btn_back, R.id.ll_share_people, R.id.ll_share_music, R.id.ll_good, R.id.iv_review, R.id.rcy_review, R.id.tv_send, R.id.rl_play, R.id.iv_img})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_back:
                 ShareDetailActivity.this.finish();
                 break;
             case R.id.ll_share_people:
-                if (publicEntity.getUserId().equals(ShareApplication.user.getUserId())){
+                if (publicEntity.getUserId().equals(ShareApplication.user.getUserId())) {
                     return;
                 }
                 Intent intent1 = new Intent(mContext, PeopleProfileActivity.class);
                 intent1.putExtra("peopleId", publicEntity.getUserId());
-                intent1.putExtra("from","public");
+                intent1.putExtra("from", "public");
                 startActivity(intent1);
                 break;
-            case R.id.ll_share_content:
+            case R.id.ll_share_music:
                 Intent intent = new Intent(mContext, PlayerSongActivity.class);
                 intent.putExtra("url", publicEntity.getShareUrl());
                 startActivity(intent);
@@ -492,16 +599,16 @@ public class ShareDetailActivity extends CommonActivity {
                 inputManager.hideSoftInputFromWindow(etReview.getWindowToken(), 0);
                 if (!isReviewChat) {
                     sendReview();
-                }else {
+                } else {
                     HashMap map = new HashMap();
-                    if (isReviewChatItem){
-                        if (chatReviewEntity==null)
+                    if (isReviewChatItem) {
+                        if (chatReviewEntity == null)
                             return;
                         map.put("reviewId", chatReviewEntity.getReviewId());
                         map.put("talkId", ShareApplication.user.getUserId());
                         map.put("toId", chatReviewEntity.getTalkId());
-                    }else {
-                        if (review==null)
+                    } else {
+                        if (review == null)
                             return;
                         map.put("reviewId", review.getReviewId());
                         map.put("talkId", ShareApplication.user.getUserId());
@@ -510,6 +617,23 @@ public class ShareDetailActivity extends CommonActivity {
                     map.put("chatText", etReview.getText().toString());
                     sendReviewChat(map);
                 }
+                break;
+            case R.id.rl_play:
+                VideoPreviewDialog dialog2 = new VideoPreviewDialog(this);
+                String path = publicEntity.getShareUrl();
+                dialog2.setVideo(NetWorkService.homeUrl+path);
+                dialog2.show();
+                break;
+            case R.id.iv_img:
+                ImgPreviewDialog dialog = new ImgPreviewDialog(mContext);
+                dialog.setPhotoViewClick(new ImgPreviewDialog.PhotoViewClick() {
+                    @Override
+                    public void ImgClick() {
+                        dialog.dismiss();
+                    }
+                });
+                dialog.setImageView(publicEntity.getShareUrl());
+                dialog.show();
                 break;
         }
     }
@@ -520,9 +644,9 @@ public class ShareDetailActivity extends CommonActivity {
                 .subscribe(new BaseObserver<ChatReviewVo>(mContext) {
                     @Override
                     public void onSuccess(ChatReviewVo chatReviewVo) {
-                        if (reviewEntities==null)
+                        if (reviewEntities == null)
                             return;
-                        if (etReview==null)
+                        if (etReview == null)
                             return;
                         isReviewChat = false;
                         isReviewChatItem = false;
@@ -535,23 +659,23 @@ public class ShareDetailActivity extends CommonActivity {
 
                     @Override
                     public void onFailed(String msg) {
-                        ToastUtil.showShortMessage(mContext,msg);
+                        ToastUtil.showShortMessage(mContext, msg);
                     }
                 });
     }
 
     private void addGoods() {
         boolean ishave = false;
-        for (int i=0; i<goodsList.size();i++){
+        for (int i = 0; i < goodsList.size(); i++) {
             GoodsEntity goodsEntity = goodsList.get(i);
-            if (goodsEntity.getPeopleId().equals(ShareApplication.user.getUserId())){
+            if (goodsEntity.getPeopleId().equals(ShareApplication.user.getUserId())) {
                 int finalI = i;
                 service.goodsCancel(goodsEntity.getGoodsId())
                         .compose(RxSchedulers.<BaseResult>compose(mContext))
                         .subscribe(new BaseObserver<BaseResult>() {
                             @Override
                             public void onSuccess(BaseResult baseResult) {
-                                if (goodsList==null)
+                                if (goodsList == null)
                                     return;
                                 goodsList.remove(goodsEntity);
                                 ivGood.setImageResource(R.drawable.goods_bg);
@@ -567,14 +691,14 @@ public class ShareDetailActivity extends CommonActivity {
 
                             @Override
                             public void onFailed(String msg) {
-                                ToastUtil.showShortMessage(mContext,"取消失败");
+                                ToastUtil.showShortMessage(mContext, "取消失败");
                             }
                         });
                 ishave = true;
                 break;
             }
         }
-        if (!ishave){
+        if (!ishave) {
             GoodsEntity goodsEntity = new GoodsEntity();
             goodsEntity.setPeopleId(ShareApplication.user.getUserId());
             goodsEntity.setPeopleName(ShareApplication.user.getUserName());
@@ -585,19 +709,19 @@ public class ShareDetailActivity extends CommonActivity {
                     .subscribe(new BaseObserver<GoodsResultVo>() {
                         @Override
                         public void onSuccess(GoodsResultVo goodsResultVo) {
-                            if (llGoods==null)
+                            if (llGoods == null)
                                 return;
                             llGoods.setVisibility(View.VISIBLE);
                             goodsList.add(goodsResultVo.getData());
                             tvGoods.setText(goodsList.size() + "");
                             ivGood.setImageResource(R.drawable.goodsd_bg);
                             showGoodsView();
-                            ToastUtil.showShortMessage(mContext,"点赞成功");
+                            ToastUtil.showShortMessage(mContext, "点赞成功");
                         }
 
                         @Override
                         public void onFailed(String msg) {
-                            ToastUtil.showShortMessage(mContext,"点赞失败");
+                            ToastUtil.showShortMessage(mContext, "点赞失败");
                         }
                     });
         }
@@ -605,49 +729,49 @@ public class ShareDetailActivity extends CommonActivity {
 
     private void sendReview() {
         HashMap map = new HashMap();
-        map.put("peopleId",ShareApplication.getUser().getUserId());
-        map.put("publicId",publicEntity.getShareId());
-        map.put("reviewText",etReview.getText().toString());
+        map.put("peopleId", ShareApplication.getUser().getUserId());
+        map.put("publicId", publicEntity.getShareId());
+        map.put("reviewText", etReview.getText().toString());
         service.addReview(map)
                 .compose(RxSchedulers.<AddReviewVo>compose(mContext))
                 .subscribe(new BaseObserver<AddReviewVo>(mContext) {
                     @Override
                     public void onSuccess(AddReviewVo addReviewVo) {
-                        if (etReview==null)
+                        if (etReview == null)
                             return;
                         etReview.setText("");
-                        reviewAdapter.addData(reviewEntities.size(),addReviewVo.getData());
-                        if (reviewEntities.isEmpty()){
+                        reviewAdapter.addData(reviewEntities.size(), addReviewVo.getData());
+                        if (reviewEntities.isEmpty()) {
                             tvReview.setText("评论");
-                        }else {
-                            tvReview.setText(reviewEntities.size()+"");
+                        } else {
+                            tvReview.setText(reviewEntities.size() + "");
                         }
                     }
 
                     @Override
                     public void onFailed(String msg) {
-                        ToastUtil.showShortMessage(mContext,"评论失败");
+                        ToastUtil.showShortMessage(mContext, "评论失败");
                     }
                 });
     }
 
     @Subscribe
-    public void refreshChatView(ChatReviewEvent event){
-        if (event!=null){
+    public void refreshChatView(ChatReviewEvent event) {
+        if (event != null) {
             isReviewChat = false;
             isReviewChatItem = true;
             chatReviewEntity = event.chatReviewEntity;
             showInputTips();
             reviewPos = event.pos;
             etReview.setText("");
-            etReview.setHint("评论"+chatReviewEntity.getTalkName());
+            etReview.setHint("评论" + chatReviewEntity.getTalkName());
             isReviewChat = true;
         }
     }
 
     @Subscribe
-    public void deleteChatView(ChatReviewDeleteEvent event){
-        if (event!=null){
+    public void deleteChatView(ChatReviewDeleteEvent event) {
+        if (event != null) {
             ChatReviewEntity chatReviewEntity = event.chatReviewEntity;
             inputManager.hideSoftInputFromWindow(etReview.getWindowToken(), 0);
             ClickMenuView menuView = new ClickMenuView(mContext);
@@ -659,7 +783,7 @@ public class ShareDetailActivity extends CommonActivity {
 
                 @Override
                 public void delete() {
-                    deleteChatView(chatReviewEntity,event.itemPos,event.chatPos);
+                    deleteChatView(chatReviewEntity, event.itemPos, event.chatPos);
                     uiPopWinUtil.dismissMenu();
                 }
 
@@ -673,18 +797,18 @@ public class ShareDetailActivity extends CommonActivity {
 
                 }
             });
-            uiPopWinUtil.showPopupBottom(menuView.getView(),R.id.rl_detail_public);
+            uiPopWinUtil.showPopupBottom(menuView.getView(), R.id.rl_detail_public);
         }
     }
 
-    private void deleteReView(ReviewEntity entity, int itemPos){
+    private void deleteReView(ReviewEntity entity, int itemPos) {
         service.deleteReview(entity.getReviewId())
                 .compose(RxSchedulers.<BaseResult>compose(mContext))
                 .subscribe(new BaseObserver<BaseResult>() {
                     @Override
                     public void onSuccess(BaseResult baseResult) {
-                        ToastUtil.showShortMessage(mContext,"评论已删除");
-                        if (reviewAdapter==null)
+                        ToastUtil.showShortMessage(mContext, "评论已删除");
+                        if (reviewAdapter == null)
                             return;
                         reviewAdapter.removeAt(itemPos);
                         if (reviewEntities.isEmpty()) {
@@ -696,18 +820,18 @@ public class ShareDetailActivity extends CommonActivity {
 
                     @Override
                     public void onFailed(String msg) {
-                        ToastUtil.showShortMessage(mContext,msg);
+                        ToastUtil.showShortMessage(mContext, msg);
                     }
                 });
     }
 
-    private void deleteChatView(ChatReviewEntity entity, int itemPos, int chatPos){
+    private void deleteChatView(ChatReviewEntity entity, int itemPos, int chatPos) {
         service.deleteReviewChat(entity.getReviewChatId())
                 .compose(RxSchedulers.<BaseResult>compose(mContext))
                 .subscribe(new BaseObserver<BaseResult>() {
                     @Override
                     public void onSuccess(BaseResult baseResult) {
-                        if (reviewEntities==null)
+                        if (reviewEntities == null)
                             return;
                         reviewEntities.get(itemPos).getChatReviewList().remove(chatPos);
                         reviewAdapter.notifyItemChanged(itemPos);
@@ -715,7 +839,7 @@ public class ShareDetailActivity extends CommonActivity {
 
                     @Override
                     public void onFailed(String msg) {
-                        ToastUtil.showShortMessage(mContext,msg);
+                        ToastUtil.showShortMessage(mContext, msg);
                     }
                 });
     }

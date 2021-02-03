@@ -128,6 +128,8 @@ public class LoginActivity extends CommonActivity {
                             .subscribe(new BaseObserver<BaseResult>() {
                                 @Override
                                 public void onSuccess(BaseResult baseResult) {
+                                    if (etName==null)
+                                        return;
                                     ShareApplication.setUser(loginVo.getData());
                                     ShareApplication.getInstance().getConfig().setString("userName",etName.getText().toString());
                                     ShareApplication.getInstance().getConfig().setString("password",etPassword.getText().toString());

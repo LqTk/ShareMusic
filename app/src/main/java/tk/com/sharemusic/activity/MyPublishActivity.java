@@ -36,10 +36,12 @@ import butterknife.OnClick;
 import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.adapter.PublicSocialAdapter;
+import tk.com.sharemusic.config.Constants;
 import tk.com.sharemusic.entity.GoodsEntity;
 import tk.com.sharemusic.entity.SocialPublicEntity;
 import tk.com.sharemusic.event.ChangeFragmentEvent;
 import tk.com.sharemusic.myview.dialog.ClickMenuView;
+import tk.com.sharemusic.myview.dialog.ShareDialog;
 import tk.com.sharemusic.network.BaseResult;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
@@ -202,12 +204,12 @@ public class MyPublishActivity extends CommonActivity {
         cyclerView.setAdapter(socialAdapter);
 
         socialAdapter.setEmptyView(emptyView);
-        socialAdapter.addChildClickViewIds(R.id.ll_share_content,R.id.iv_good,R.id.iv_review,R.id.iv_share,R.id.iv_more);
+        socialAdapter.addChildClickViewIds(R.id.ll_share_music,R.id.iv_good,R.id.iv_review,R.id.iv_share,R.id.iv_more);
         socialAdapter.setOnItemChildClickListener(new OnItemChildClickListener() {
             @Override
             public void onItemChildClick(@NonNull BaseQuickAdapter adapter, @NonNull View view, int position) {
                 switch (view.getId()){
-                    case R.id.ll_share_content:
+                    case R.id.ll_share_music:
                         SocialPublicEntity socialPublicEntity = entityList.get(position);
                         Intent intent = new Intent(mContext, PlayerSongActivity.class);
                         intent.putExtra("url", socialPublicEntity.getShareUrl());
@@ -374,8 +376,37 @@ public class MyPublishActivity extends CommonActivity {
                 break;
             case R.id.iv_add:
                 Intent intent1 = new Intent(this, ShareActivity.class);
-                intent1.putExtra("sharetext", "");
-                startActivity(intent1);
+                ShareDialog dialog = new ShareDialog(this);
+                dialog.setClickListener(new ShareDialog.ClickListener() {
+                    @Override
+                    public void textClick() {
+                        intent1.putExtra("shareType", Constants.SHARE_TEXT);
+                        startActivity(intent1);
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void musicClick() {
+                        intent1.putExtra("shareType", Constants.SHARE_MUSIC);
+                        startActivity(intent1);
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void cameraClick() {
+                        intent1.putExtra("shareType", Constants.SHARE_VIDEO);
+                        startActivity(intent1);
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void albumClick() {
+                        intent1.putExtra("shareType", Constants.SHARE_PIC);
+                        startActivity(intent1);
+                        dialog.dismiss();
+                    }
+                });
+                dialog.show();
                 break;
         }
     }

@@ -5,11 +5,14 @@ import android.graphics.Color;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.viewholder.BaseViewHolder;
@@ -20,6 +23,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import tk.com.sharemusic.R;
@@ -28,10 +32,12 @@ import tk.com.sharemusic.activity.MainActivity;
 import tk.com.sharemusic.activity.PeopleProfileActivity;
 import tk.com.sharemusic.config.Constants;
 import tk.com.sharemusic.entity.GoodsEntity;
+import tk.com.sharemusic.entity.ShareGvEntity;
 import tk.com.sharemusic.entity.SocialPublicEntity;
 import tk.com.sharemusic.enums.Gender;
 import tk.com.sharemusic.event.ChangeFragmentEvent;
 import tk.com.sharemusic.myview.CircleImage;
+import tk.com.sharemusic.myview.MyGridView;
 import tk.com.sharemusic.network.NetWorkService;
 import tk.com.sharemusic.utils.DateUtil;
 
@@ -52,8 +58,69 @@ public class PublicSocialAdapter extends BaseQuickAdapter<SocialPublicEntity, Ba
                 .apply(Constants.headOptions)
                 .into((CircleImage) baseViewHolder.getView(R.id.iv_head));
         baseViewHolder.setText(R.id.tv_name,socialPublicEntity.getUserName());
-        baseViewHolder.setText(R.id.tv_song_name,socialPublicEntity.getShareName());
-        baseViewHolder.setText(R.id.tv_song_des,socialPublicEntity.getShareText());
+        if (socialPublicEntity.getType().equals(Constants.SHARE_MUSIC)) {
+            baseViewHolder.setVisible(R.id.ll_share_music,true);
+            baseViewHolder.setGone(R.id.rl_text,true);
+            baseViewHolder.setGone(R.id.ll_share_video,true);
+            baseViewHolder.setGone(R.id.ll_share_pic,true);
+
+            baseViewHolder.setText(R.id.tv_song_name, socialPublicEntity.getShareName());
+            baseViewHolder.setText(R.id.tv_song_des, socialPublicEntity.getShareText());
+        }else if (socialPublicEntity.getType().equals(Constants.SHARE_TEXT)){
+            baseViewHolder.setGone(R.id.ll_share_music,true);
+            baseViewHolder.setGone(R.id.ll_share_pic,true);
+            baseViewHolder.setGone(R.id.ll_share_video,true);
+            baseViewHolder.setVisible(R.id.rl_text,true);
+
+            baseViewHolder.setText(R.id.tv_text,socialPublicEntity.getShareText());
+        }else if (socialPublicEntity.getType().equals(Constants.SHARE_PIC)){
+            baseViewHolder.setGone(R.id.ll_share_music,true);
+            baseViewHolder.setGone(R.id.rl_text,true);
+            baseViewHolder.setGone(R.id.ll_share_video,true);
+            baseViewHolder.setVisible(R.id.ll_share_pic,true);
+
+            if (TextUtils.isEmpty(socialPublicEntity.getShareText())){
+                baseViewHolder.setGone(R.id.tv_text2,true);
+            }else {
+                baseViewHolder.setVisible(R.id.tv_text2,true);
+                baseViewHolder.setText(R.id.tv_text2, socialPublicEntity.getShareText());
+            }
+            String[] split = socialPublicEntity.getShareUrl().split(";");
+            if (split.length>1) {
+                baseViewHolder.setGone(R.id.iv_img,true);
+                baseViewHolder.setVisible(R.id.mgd_pic, true);
+                initGridView(baseViewHolder, split);
+            }else {
+                baseViewHolder.setVisible(R.id.iv_img,true);
+                baseViewHolder.setGone(R.id.mgd_pic, true);
+
+                GlideUrl url = new GlideUrl(NetWorkService.homeUrl + split[0], new LazyHeaders.Builder()
+                        .build());
+                Glide.with(getContext())
+                        .load(url)
+                        .apply(Constants.picLoadOptions)
+                        .into((ImageView) baseViewHolder.getView(R.id.iv_img));
+            }
+        }else if (socialPublicEntity.getType().equals(Constants.SHARE_VIDEO)){
+            baseViewHolder.setGone(R.id.ll_share_music,true);
+            baseViewHolder.setGone(R.id.rl_text,true);
+            baseViewHolder.setGone(R.id.ll_share_pic,true);
+            baseViewHolder.setVisible(R.id.ll_share_video,true);
+
+            if (TextUtils.isEmpty(socialPublicEntity.getShareText())){
+                baseViewHolder.setGone(R.id.tv_text3,true);
+            }else {
+                baseViewHolder.setVisible(R.id.tv_text3,true);
+                baseViewHolder.setText(R.id.tv_text3, socialPublicEntity.getShareText());
+            }
+
+            GlideUrl url = new GlideUrl(NetWorkService.homeUrl + socialPublicEntity.getShareUrl(), new LazyHeaders.Builder()
+                    .build());
+            Glide.with(getContext())
+                    .load(url)
+                    .apply(Constants.picLoadOptions)
+                    .into((ImageView) baseViewHolder.getView(R.id.iv_video));
+        }
         baseViewHolder.setText(R.id.tv_time,DateUtil.getPublicTime(socialPublicEntity.getCreateTime()));
         baseViewHolder.setImageResource(R.id.iv_good, R.drawable.goods_bg);
         if (socialPublicEntity.getReviewEntities().isEmpty()){
@@ -101,6 +168,27 @@ public class PublicSocialAdapter extends BaseQuickAdapter<SocialPublicEntity, Ba
                 }
             }
         }
+    }
+
+    private void initGridView(BaseViewHolder baseViewHolder, String[] split) {
+        MyGridView gridView = baseViewHolder.getView(R.id.mgd_pic);
+        List<ShareGvEntity> shareLists = new ArrayList<>();
+        /*if (split.length>2){
+            gridView.setNumColumns(3);
+        }else{
+            gridView.setNumColumns(2);
+        }*/
+        for (String str:split){
+            shareLists.add(new ShareGvEntity(str,"net"));
+        }
+        SharePicAdapter adapter = new SharePicAdapter(shareLists, getContext());
+        gridView.setAdapter(adapter);
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+            }
+        });
     }
 
     private void addGoodsView(GoodsEntity goodsEntity, BaseViewHolder baseViewHolder, int index, int allCount) {

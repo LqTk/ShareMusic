@@ -1,5 +1,6 @@
 package tk.com.sharemusic.config;
 
+import android.Manifest;
 import android.content.Context;
 import android.os.Environment;
 
@@ -36,12 +37,37 @@ public class Constants {
     //权限请求返回
     public static final int PERMISSION_REQUEST_CODE = 110;
 
+    //跳转locationActivity
+    public static final int LocationRequestCode = 233;
+
     /**
      * 未读消息类型
      */
     public static final String MSG_REVIEW = "review";
     public static final String MSG_REVIEW_CHAT = "review_chat";
     public static final String MSG_GOODS = "goods";
+
+    /**
+     * 权限请求
+     */
+
+    public final static String[] PERMISSIONS = new String[]{
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+    };
+
+    public final static String[] PERMISSIONSCAMERA = new String[]{
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.CAMERA
+    };
+
+    /**
+     * 分享类型 1所有人，2自己，3隐身
+     */
+    public static final int PEOPLE_ALL = 1;
+    public static final int PEOPLE_MINE = 2;
+    public static final int PEOPLE_STEALTH = 3;
 
     /**
      * @param bMute 值为true时为关闭背景音乐。

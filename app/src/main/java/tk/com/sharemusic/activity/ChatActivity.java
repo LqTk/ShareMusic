@@ -160,10 +160,6 @@ public class ChatActivity extends CommonActivity {
     private PagerMenuGridPicker functionsPicker;
     PopWinUtil uiPopWinUtil;
 
-    private final static String[] PERMISSIONS = new String[]{
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE
-    };
     private String imgPath;
     private int openType;
     private MsgEntity partnerInfo;
@@ -756,9 +752,9 @@ public class ChatActivity extends CommonActivity {
                     switch (avatarItem.getCode()) {
                         case Constants.IMAGE_TAKE_PHOTO:
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                if (!ShareApplication.isGrantPermission(PERMISSIONS, mContext)) {
+                                if (!ShareApplication.isGrantPermission(Constants.PERMISSIONS, mContext)) {
                                     ToastUtil.showShortMessage(mContext,"权限不足");
-                                    requestPermissions(PERMISSIONS, Constants.PERMISSION_REQUEST_CODE);
+                                    requestPermissions(Constants.PERMISSIONS, Constants.PERMISSION_REQUEST_CODE);
                                     openType = Constants.IMAGE_TAKE_PHOTO;
                                 } else {
                                     ShareApplication.openTakePhoto(mContext,false);
@@ -771,9 +767,9 @@ public class ChatActivity extends CommonActivity {
                             break;
                         case Constants.IMAGE_CHOOSE_FROM_ALBUM:
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                if (!ShareApplication.isGrantPermission(PERMISSIONS, mContext)) {
+                                if (!ShareApplication.isGrantPermission(Constants.PERMISSIONS, mContext)) {
                                     ToastUtil.showShortMessage(mContext,"权限不足");
-                                    requestPermissions(PERMISSIONS, Constants.PERMISSION_REQUEST_CODE);
+                                    requestPermissions(Constants.PERMISSIONS, Constants.PERMISSION_REQUEST_CODE);
                                     openType = Constants.IMAGE_CHOOSE_FROM_ALBUM;
                                 } else {
                                     ShareApplication.openAlbumSelect(mContext,9,false);
@@ -942,7 +938,7 @@ public class ChatActivity extends CommonActivity {
                 break;
             case Constants.PERMISSION_REQUEST_CODE:
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (!ShareApplication.isGrantPermission(PERMISSIONS, mContext)) {
+                    if (!ShareApplication.isGrantPermission(Constants.PERMISSIONS, mContext)) {
                         ToastUtil.showShortMessage(mContext,"权限不足");
                     } else {
                         switch (openType) {

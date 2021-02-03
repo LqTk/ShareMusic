@@ -21,7 +21,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
+    <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" /> <!-- 用于申请调用A-GPS模块 -->
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
@@ -34,7 +34,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.PublishMsgActivity"></activity>
+        <activity android:name=".activity.PublishTypeActivity"></activity>
+        <activity android:name=".activity.LocationActivity" />
+        <activity android:name=".activity.PublishMsgActivity" />
         <activity android:name=".activity.ShareDetailActivity" />
         <activity android:name=".activity.RegisterActivity" />
         <activity android:name=".activity.ChatActivity" />
@@ -119,8 +121,12 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="${applicationId}" />
             </intent-filter>
-        </activity>
+        </activity> <!-- 高德定位服务 -->
+        <service android:name="com.amap.api.location.APSService" />
 
+        <meta-data
+            android:name="com.amap.api.v2.apikey"
+            android:value="a8624e8131381f445ef0ed557b0a469e" /> <!-- jpush推送 -->
         <service
             android:name=".jpush.PushService"
             android:enabled="true"

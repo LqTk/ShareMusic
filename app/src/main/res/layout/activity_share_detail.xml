@@ -77,26 +77,98 @@
             </LinearLayout>
         </LinearLayout>
         <LinearLayout
-            android:id="@+id/ll_share_content"
+            android:id="@+id/ll_share_music"
+            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="@dimen/dp_10">
             <TextView
-                android:padding="@dimen/dp_10"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/tv_song_name"
-                android:textColor="@color/textColorGrey"
+                android:textColor="@color/textColorBlack"
                 android:textSize="@dimen/sp_15"
-                android:text=""/>
+                android:text="我是王小二"/>
             <TextView
-                android:padding="@dimen/dp_10"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/tv_song_des"
                 android:textColor="@color/textColorGrey"
                 android:textSize="@dimen/sp_12"
-                android:text=""/>
+                android:text="我是王小二"/>
+        </LinearLayout>
+        <RelativeLayout
+            android:id="@+id/rl_text"
+            android:visibility="gone"
+            android:padding="@dimen/dp_10"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/tv_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/textColorBlack"
+                android:textSize="@dimen/sp_15"/>
+        </RelativeLayout>
+        <LinearLayout
+            android:id="@+id/ll_share_pic"
+            android:visibility="gone"
+            android:padding="@dimen/dp_10"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/sp_15"
+                android:textColor="@color/textColorBlack"
+                android:id="@+id/tv_text2"/>
+            <ImageView
+                android:layout_marginTop="@dimen/dp_5"
+                android:id="@+id/iv_img"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/dp_130"
+                android:minHeight="@dimen/dp_130"
+                android:adjustViewBounds="true"/>
+            <tk.com.sharemusic.myview.MyGridView
+                android:layout_marginTop="@dimen/dp_5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/mgd_pic"
+                android:numColumns="3"
+                android:verticalSpacing="@dimen/dp_3"
+                android:horizontalSpacing="@dimen/dp_3"/>
+        </LinearLayout>
+        <LinearLayout
+            android:visibility="gone"
+            android:id="@+id/ll_share_video"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/dp_10"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/sp_15"
+                android:textColor="@color/textColorBlack"
+                android:id="@+id/tv_text3"/>
+            <RelativeLayout
+                android:layout_marginTop="@dimen/dp_5"
+                android:id="@+id/rl_play"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:id="@+id/iv_video"
+                    android:layout_width="@dimen/dp_100"
+                    android:layout_height="@dimen/dp_150"/>
+                <ImageView
+                    android:layout_centerInParent="true"
+                    android:id="@+id/iv_play"
+                    android:layout_width="@dimen/dp_30"
+                    android:layout_height="@dimen/dp_30"
+                    android:src="@drawable/picture_icon_video_play"/>
+            </RelativeLayout>
         </LinearLayout>
         <RelativeLayout
             android:layout_width="match_parent"

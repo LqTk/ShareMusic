@@ -3,6 +3,7 @@ package tk.com.sharemusic.fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,6 +29,7 @@ import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,6 +47,7 @@ import tk.com.sharemusic.activity.ShareActivity;
 import tk.com.sharemusic.activity.ShareDetailActivity;
 import tk.com.sharemusic.adapter.PublicSocialAdapter;
 import tk.com.sharemusic.config.Constants;
+import tk.com.sharemusic.entity.ChatEntity;
 import tk.com.sharemusic.entity.GoodsEntity;
 import tk.com.sharemusic.entity.PublishMsgEntity;
 import tk.com.sharemusic.entity.SocialPublicEntity;
@@ -55,6 +58,7 @@ import tk.com.sharemusic.event.RefreshPublicData;
 import tk.com.sharemusic.event.UpLoadSocialSuccess;
 import tk.com.sharemusic.myview.dialog.ClickMenuView;
 import tk.com.sharemusic.myview.dialog.ShareDialog;
+import tk.com.sharemusic.myview.dialog.VideoPreviewDialog;
 import tk.com.sharemusic.network.BaseResult;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
@@ -273,7 +277,7 @@ public class SocialPublishFragment extends Fragment {
         cyclerView.setAdapter(socialAdapter);
 
         socialAdapter.setEmptyView(emptyView);
-        socialAdapter.addChildClickViewIds(R.id.ll_share_content, R.id.ll_share_people, R.id.ll_good, R.id.iv_review, R.id.iv_share, R.id.iv_more);
+        socialAdapter.addChildClickViewIds(R.id.ll_share_music, R.id.ll_share_people, R.id.ll_good, R.id.iv_review, R.id.iv_share, R.id.iv_more, R.id.rl_play);
         socialAdapter.setOnItemChildClickListener(new OnItemChildClickListener() {
             @Override
             public void onItemChildClick(@NonNull BaseQuickAdapter adapter, @NonNull View view, int position) {
@@ -288,7 +292,7 @@ public class SocialPublishFragment extends Fragment {
                         intent1.putExtra("from", "public");
                         startActivity(intent1);
                         break;
-                    case R.id.ll_share_content:
+                    case R.id.ll_share_music:
                         SocialPublicEntity socialPublicEntity = entityList.get(position);
                         Intent intent = new Intent(getContext(), PlayerSongActivity.class);
                         intent.putExtra("url", socialPublicEntity.getShareUrl());
@@ -353,6 +357,12 @@ public class SocialPublishFragment extends Fragment {
                         break;
                     case R.id.iv_more:
                         showChoose(entityList.get(position), position);
+                        break;
+                    case R.id.rl_play:
+                        VideoPreviewDialog dialog2 = new VideoPreviewDialog(getContext());
+                        String path = entityList.get(position).getShareUrl();
+                        dialog2.setVideo(NetWorkService.homeUrl+path);
+                        dialog2.show();
                         break;
                 }
             }

@@ -27,6 +27,30 @@ android {
 
     }
 
+    signingConfigs{
+        shareRelease{
+            storeFile file("F:\\mypro\\ShareMusic\\app\\shareKey.jks")
+            storePassword "tk123456"
+            keyAlias "shareKey"
+            keyPassword "tk123456"
+        }
+        shareDebug {
+            storeFile file('F:\\mypro\\ShareMusic\\app\\shareKey.jks')
+            storePassword 'tk123456'
+            keyAlias 'shareKey'
+            keyPassword 'tk123456'
+        }
+    }
+
+    buildTypes{
+        debug {
+            signingConfig signingConfigs.shareRelease
+        }
+        release{
+            signingConfig signingConfigs.shareRelease
+        }
+    }
+
     /*flavorDimensions "company"
     productFlavors{
         shareMusic{
@@ -121,4 +145,9 @@ dependencies {
 
     //视频缓存 边播边存
     implementation 'com.danikula:videocache:2.7.1'
+
+    //高德定位
+    implementation 'com.amap.api:location:5.2.0'
+    implementation 'com.amap.api:map2d:6.0.0'
+    implementation 'com.amap.api:search:7.7.0'
 }

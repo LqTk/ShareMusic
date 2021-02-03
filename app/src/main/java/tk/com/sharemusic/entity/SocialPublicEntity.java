@@ -29,6 +29,10 @@ public class SocialPublicEntity implements Serializable {
 
     private String location;
 
+    private Double latitude;
+
+    private Double longitude;
+
     private List<GoodsEntity> goodsList;
 
     private List<ReviewEntity> reviewEntities;
@@ -36,7 +40,7 @@ public class SocialPublicEntity implements Serializable {
     public SocialPublicEntity(String shareId, String userId, String userName, String userHead,
                               Integer userSex, String shareName, String shareUrl, String shareText,
                               long createTime, Integer isPublic, String type, String location,
-                              List<GoodsEntity> goodsList, List<ReviewEntity> reviewEntities) {
+                              Double latitude, Double longitude, List<GoodsEntity> goodsList, List<ReviewEntity> reviewEntities) {
         this.shareId = shareId;
         this.userId = userId;
         this.userName = userName;
@@ -49,13 +53,15 @@ public class SocialPublicEntity implements Serializable {
         this.isPublic = isPublic;
         this.type = type;
         this.location = location;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.goodsList = goodsList;
         this.reviewEntities = reviewEntities;
     }
 
     public SocialPublicEntity(String userId, String userName, String userHead, Integer userSex,
                               String shareName, String shareUrl, String shareText, Integer isPublic,
-                              String type, String location, List<GoodsEntity> goodsList, List<ReviewEntity> reviewEntities) {
+                              String type, String location, Double latitude, Double longitude, List<GoodsEntity> goodsList, List<ReviewEntity> reviewEntities) {
         this.userId = userId;
         this.userName = userName;
         this.userHead = userHead;
@@ -66,8 +72,26 @@ public class SocialPublicEntity implements Serializable {
         this.isPublic = isPublic;
         this.type = type;
         this.location = location;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.goodsList = goodsList;
         this.reviewEntities = reviewEntities;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 
     public SocialPublicEntity() {

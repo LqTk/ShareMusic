@@ -176,7 +176,7 @@ public class ShareApplication extends Application {
     }
 
     /**
-     * 拍照
+     * 拍视频
      * @param activity
      * @param isCrop 是否可以裁剪
      */

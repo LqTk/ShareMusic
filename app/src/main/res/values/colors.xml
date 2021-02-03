@@ -10,6 +10,8 @@
     <color name="color_f4f4f4">#f4f4f4</color>
     <color name="color_dddddd">#dddddd</color>
 
+    <color name="greenBg">#09BB07</color>
+
     <color name="hint_text">#ffae3e</color>
 
     <color name="lineGrey">#3a3a3a</color>
@@ -21,9 +23,9 @@
 
     <color name="transWhite">#aadddddd</color>
     <color name="transparent">#00000000</color>
-    <color name="dd">#dd222222</color>
     <color name="textColorBlack">#222222</color>
     <color name="textColorGrey">#939393</color>
+    <color name="textColorBlue">#546893</color>
 
     <color name="white">#ffffff</color>
     <color name="whiteGrey">#aa999999</color>

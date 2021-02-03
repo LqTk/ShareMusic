@@ -43,14 +43,9 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="拍摄"
+            android:text="视频"
             android:textColor="@color/textColorBlack"
             android:textSize="@dimen/sp_17"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="@dimen/sp_12"
-            android:text="照片或视频"/>
     </LinearLayout>
     <View
         android:layout_width="match_parent"
@@ -60,7 +55,7 @@
         android:id="@+id/tv_album"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="从相册选择"
+        android:text="照片"
         android:gravity="center"
         android:textColor="@color/textColorBlack"
         android:textSize="@dimen/sp_17"
