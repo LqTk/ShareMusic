@@ -359,14 +359,15 @@ public class ChatActivity extends CommonActivity {
                         break;
                     case R.id.iv_pic:
                     case R.id.iv_pic_left:
-                        ImgPreviewDialog dialog = new ImgPreviewDialog(mContext);
+                        List<String> list = new ArrayList<>();
+                        list.add(chatLists.get(position).getMsgContent());
+                        ImgPreviewDialog dialog = new ImgPreviewDialog(mContext, list);
                         dialog.setPhotoViewClick(new ImgPreviewDialog.PhotoViewClick() {
                             @Override
                             public void ImgClick() {
                                 dialog.dismiss();
                             }
                         });
-                        dialog.setImageView(chatLists.get(position).getMsgContent());
                         dialog.show();
                         break;
                     case R.id.iv_send_fail:
@@ -998,7 +999,7 @@ public class ChatActivity extends CommonActivity {
     }
 
     private void startSending(int pos) {
-        if (sending.size()>0) {
+        if (sending.size()>0 && pos<sendEntityList.size()) {
             ChatEntity chatEntity = sendEntityList.get(pos);
             sendMultiPic(chatEntity.getMsgType(), chatEntity.getMsgContent(), pos, false, chatEntity.getVoiceTime());
         }

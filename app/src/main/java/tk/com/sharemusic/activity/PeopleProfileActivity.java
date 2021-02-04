@@ -14,7 +14,9 @@ import com.bumptech.glide.Glide;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import butterknife.BindView;
@@ -172,14 +174,15 @@ public class PeopleProfileActivity extends CommonActivity {
                 break;
             case R.id.iv_head:
                 if (!TextUtils.isEmpty(headUrl)) {
-                    ImgPreviewDialog dialog = new ImgPreviewDialog(context);
+                    List<String> list = new ArrayList<>();
+                    list.add(headUrl);
+                    ImgPreviewDialog dialog = new ImgPreviewDialog(context,list);
                     dialog.setPhotoViewClick(new ImgPreviewDialog.PhotoViewClick() {
                         @Override
                         public void ImgClick() {
                             dialog.dismiss();
                         }
                     });
-                    dialog.setImageView(headUrl);
                     dialog.show();
                 }
                 break;

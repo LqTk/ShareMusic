@@ -34,17 +34,28 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.PublishTypeActivity"></activity>
-        <activity android:name=".activity.LocationActivity" />
-        <activity android:name=".activity.PublishMsgActivity" />
-        <activity android:name=".activity.ShareDetailActivity" />
-        <activity android:name=".activity.RegisterActivity" />
-        <activity android:name=".activity.ChatActivity" />
-        <activity android:name=".activity.PeopleProfileActivity" />
-        <activity android:name=".activity.MyPublishActivity" />
-        <activity android:name=".activity.ShareActivity" />
-        <activity android:name=".activity.PlayerSongActivity" />
-        <activity android:name=".activity.MainActivity">
+        <activity android:name=".activity.PublishTypeActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".activity.LocationActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".activity.PublishMsgActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".activity.ShareDetailActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".activity.RegisterActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".activity.ChatActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".activity.PeopleProfileActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".activity.MyPublishActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".activity.ShareActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".activity.PlayerSongActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".activity.MainActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 
@@ -102,7 +113,8 @@
                 <data android:mimeType="text/*" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.LoginActivity">
+        <activity android:name=".activity.LoginActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -111,6 +123,7 @@
         </activity>
         <activity
             android:name="cn.jpush.android.ui.PushActivity"
+            android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden"
             android:exported="true"
             android:theme="@android:style/Theme.NoTitleBar"

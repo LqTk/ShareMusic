@@ -3,6 +3,7 @@ package tk.com.sharemusic.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
@@ -15,8 +16,10 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -28,7 +31,7 @@ import com.bumptech.glide.load.model.LazyHeaders;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.listener.OnItemChildClickListener;
 import com.chad.library.adapter.base.listener.OnItemClickListener;
-import com.chad.library.adapter.base.viewholder.BaseViewHolder;
+import com.danikula.videocache.HttpProxyCacheServer;
 import com.google.android.flexbox.FlexboxLayout;
 import com.luck.picture.lib.tools.ScreenUtils;
 
@@ -132,6 +135,24 @@ public class ShareDetailActivity extends CommonActivity {
     RelativeLayout rlPlay;
     @BindView(R.id.ll_share_video)
     LinearLayout llShareVideo;
+    @BindView(R.id.rl_video_ready)
+    RelativeLayout rlVideoReady;
+    @BindView(R.id.video_view)
+    VideoView videoView;
+    @BindView(R.id.pb_load)
+    ProgressBar pbLoad;
+    @BindView(R.id.rl_video_play)
+    RelativeLayout rlVideoPlay;
+    @BindView(R.id.iv1)
+    ImageView iv1;
+    @BindView(R.id.iv2)
+    ImageView iv2;
+    @BindView(R.id.iv3)
+    ImageView iv3;
+    @BindView(R.id.iv4)
+    ImageView iv4;
+    @BindView(R.id.ll_iv4)
+    LinearLayout llIv4;
 
     private SocialPublicEntity publicEntity = new SocialPublicEntity();
     private Context mContext;
@@ -150,6 +171,7 @@ public class ShareDetailActivity extends CommonActivity {
     private Handler mHandler = new Handler();
     private boolean fromMsg = false;
     private String msgId = "";
+    private HttpProxyCacheServer proxy;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -182,6 +204,23 @@ public class ShareDetailActivity extends CommonActivity {
     }
 
     private void initView() {
+        videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                mp.setLooping(true);
+                pbLoad.setVisibility(View.GONE);
+                videoView.start();
+            }
+        });
+        videoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+            @Override
+            public boolean onError(MediaPlayer mp, int what, int extra) {
+                rlVideoPlay.setVisibility(View.GONE);
+                rlVideoReady.setVisibility(View.VISIBLE);
+                ToastUtil.showShortMessage(mContext, "视频播放出错");
+                return false;
+            }
+        });
         etReview.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -315,6 +354,7 @@ public class ShareDetailActivity extends CommonActivity {
     }
 
     private void initData() {
+        proxy = ShareApplication.getProxy(this);
         shareId = getIntent().getStringExtra("shareId");
         if (TextUtils.isEmpty(shareId)) {
             ToastUtil.showLongMessage(mContext, "获取失败");
@@ -398,13 +438,10 @@ public class ShareDetailActivity extends CommonActivity {
                 tvText2.setText(publicEntity.getShareText());
             }
             String[] split = publicEntity.getShareUrl().split(";");
-            if (split.length > 1) {
-                ivImg.setVisibility(View.GONE);
-                mgdPic.setVisibility(View.VISIBLE);
-                initGridView(split);
-            } else {
+            if (split.length == 1) {
                 ivImg.setVisibility(View.VISIBLE);
                 mgdPic.setVisibility(View.GONE);
+                llIv4.setVisibility(View.GONE);
 
                 GlideUrl url = new GlideUrl(NetWorkService.homeUrl + split[0], new LazyHeaders.Builder()
                         .build());
@@ -412,6 +449,43 @@ public class ShareDetailActivity extends CommonActivity {
                         .load(url)
                         .apply(Constants.picLoadOptions)
                         .into(ivImg);
+            } else if (split.length == 4) {
+                ivImg.setVisibility(View.GONE);
+                mgdPic.setVisibility(View.GONE);
+                llIv4.setVisibility(View.VISIBLE);
+
+                GlideUrl url1 = new GlideUrl(NetWorkService.homeUrl + split[0], new LazyHeaders.Builder()
+                        .build());
+                Glide.with(mContext)
+                        .load(url1)
+                        .apply(Constants.picLoadOptions)
+                        .into(iv1);
+
+                GlideUrl url2 = new GlideUrl(NetWorkService.homeUrl + split[1], new LazyHeaders.Builder()
+                        .build());
+                Glide.with(mContext)
+                        .load(url2)
+                        .apply(Constants.picLoadOptions)
+                        .into(iv2);
+
+                GlideUrl url3 = new GlideUrl(NetWorkService.homeUrl + split[2], new LazyHeaders.Builder()
+                        .build());
+                Glide.with(mContext)
+                        .load(url3)
+                        .apply(Constants.picLoadOptions)
+                        .into(iv3);
+
+                GlideUrl url4 = new GlideUrl(NetWorkService.homeUrl + split[3], new LazyHeaders.Builder()
+                        .build());
+                Glide.with(mContext)
+                        .load(url4)
+                        .apply(Constants.picLoadOptions)
+                        .into(iv4);
+            } else {
+                ivImg.setVisibility(View.GONE);
+                mgdPic.setVisibility(View.VISIBLE);
+                llIv4.setVisibility(View.GONE);
+                initGridView(split);
             }
         } else if (publicEntity.getType().equals(Constants.SHARE_VIDEO)) {
             llShareMusic.setVisibility(View.GONE);
@@ -442,6 +516,9 @@ public class ShareDetailActivity extends CommonActivity {
             reviewAdapter.addData(reviewEntities);
         }
 
+        rlVideoReady.setVisibility(View.GONE);
+        rlVideoPlay.setVisibility(View.VISIBLE);
+        playVideo();
         goodsList.addAll(publicEntity.getGoodsList());
         if (goodsList.isEmpty()) {
             tvGoods.setText("赞");
@@ -458,15 +535,28 @@ public class ShareDetailActivity extends CommonActivity {
 
     private void initGridView(String[] split) {
         List<ShareGvEntity> shareLists = new ArrayList<>();
-        for (String str:split){
-            shareLists.add(new ShareGvEntity(str,"net"));
+        for (String str : split) {
+            shareLists.add(new ShareGvEntity(str, "net"));
         }
         SharePicAdapter adapter = new SharePicAdapter(shareLists, this);
         mgdPic.setAdapter(adapter);
         mgdPic.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+                List<String> list = new ArrayList<>();
+                String[] split = publicEntity.getShareUrl().split(";");
+                for (String str:split){
+                    list.add(str);
+                }
+                ImgPreviewDialog dialog = new ImgPreviewDialog(mContext, list);
+                dialog.setPhotoViewClick(new ImgPreviewDialog.PhotoViewClick() {
+                    @Override
+                    public void ImgClick() {
+                        dialog.dismiss();
+                    }
+                });
+                dialog.setShowPos(position);
+                dialog.show();
             }
         });
     }
@@ -563,7 +653,8 @@ public class ShareDetailActivity extends CommonActivity {
         flexGood.addView(textView, index + 1);
     }
 
-    @OnClick({R.id.btn_back, R.id.ll_share_people, R.id.ll_share_music, R.id.ll_good, R.id.iv_review, R.id.rcy_review, R.id.tv_send, R.id.rl_play, R.id.iv_img})
+    @OnClick({R.id.btn_back, R.id.ll_share_people, R.id.ll_share_music, R.id.ll_good, R.id.iv_review,
+            R.id.rcy_review, R.id.tv_send, R.id.rl_play, R.id.iv_img, R.id.iv1, R.id.iv2, R.id.iv3, R.id.iv4})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_back:
@@ -621,21 +712,56 @@ public class ShareDetailActivity extends CommonActivity {
             case R.id.rl_play:
                 VideoPreviewDialog dialog2 = new VideoPreviewDialog(this);
                 String path = publicEntity.getShareUrl();
-                dialog2.setVideo(NetWorkService.homeUrl+path);
+                dialog2.setVideo(NetWorkService.homeUrl + path);
                 dialog2.show();
                 break;
             case R.id.iv_img:
-                ImgPreviewDialog dialog = new ImgPreviewDialog(mContext);
+                List<String> list = new ArrayList<>();
+                list.add(publicEntity.getShareUrl());
+                ImgPreviewDialog dialog = new ImgPreviewDialog(mContext, list);
                 dialog.setPhotoViewClick(new ImgPreviewDialog.PhotoViewClick() {
                     @Override
                     public void ImgClick() {
                         dialog.dismiss();
                     }
                 });
-                dialog.setImageView(publicEntity.getShareUrl());
                 dialog.show();
                 break;
+            case R.id.iv1:
+                showPreImg(0);
+                break;
+            case R.id.iv2:
+                showPreImg(1);
+                break;
+            case R.id.iv3:
+                showPreImg(2);
+                break;
+            case R.id.iv4:
+                showPreImg(3);
+                break;
         }
+    }
+
+    private void showPreImg(int pos){
+        List<String> list = new ArrayList<>();
+        String[] split = publicEntity.getShareUrl().split(";");
+        for (String str:split){
+            list.add(str);
+        }
+        ImgPreviewDialog dialog = new ImgPreviewDialog(mContext, list);
+        dialog.setPhotoViewClick(new ImgPreviewDialog.PhotoViewClick() {
+            @Override
+            public void ImgClick() {
+                dialog.dismiss();
+            }
+        });
+        dialog.setShowPos(pos);
+        dialog.show();
+    }
+
+    private void playVideo() {
+        String proxyUrl = proxy.getProxyUrl(NetWorkService.homeUrl + publicEntity.getShareUrl());
+        videoView.setVideoPath(proxyUrl);
     }
 
     private void sendReviewChat(HashMap map) {

@@ -131,6 +131,59 @@
                 android:layout_height="@dimen/dp_130"
                 android:minHeight="@dimen/dp_130"
                 android:adjustViewBounds="true"/>
+            <LinearLayout
+                android:visibility="gone"
+                android:id="@+id/ll_iv4"
+                android:layout_marginTop="@dimen/dp_5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:id="@+id/iv1"
+                        android:layout_width="0dp"
+                        android:layout_height="@dimen/dp_100"
+                        android:scaleType="centerCrop"
+                        android:layout_weight="1"/>
+                    <ImageView
+                        android:id="@+id/iv2"
+                        android:layout_marginLeft="@dimen/dp_3"
+                        android:layout_width="0dp"
+                        android:layout_height="@dimen/dp_100"
+                        android:scaleType="centerCrop"
+                        android:layout_weight="1"/>
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="@dimen/dp_100"
+                        android:layout_weight="1"/>
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_marginTop="@dimen/dp_3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:id="@+id/iv3"
+                        android:layout_width="0dp"
+                        android:layout_height="@dimen/dp_100"
+                        android:scaleType="centerCrop"
+                        android:layout_weight="1"/>
+                    <ImageView
+                        android:id="@+id/iv4"
+                        android:layout_marginLeft="@dimen/dp_3"
+                        android:layout_width="0dp"
+                        android:layout_height="@dimen/dp_100"
+                        android:scaleType="centerCrop"
+                        android:layout_weight="1"/>
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="@dimen/dp_100"
+                        android:layout_weight="1"/>
+                </LinearLayout>
+            </LinearLayout>
             <tk.com.sharemusic.myview.MyGridView
                 android:layout_marginTop="@dimen/dp_5"
                 android:layout_width="match_parent"
@@ -141,7 +194,7 @@
                 android:horizontalSpacing="@dimen/dp_3"/>
         </LinearLayout>
         <LinearLayout
-            android:visibility="gone"
+            android:visibility="visible"
             android:id="@+id/ll_share_video"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -158,16 +211,38 @@
                 android:id="@+id/rl_play"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
-                <ImageView
-                    android:id="@+id/iv_video"
-                    android:layout_width="@dimen/dp_100"
-                    android:layout_height="@dimen/dp_150"/>
-                <ImageView
-                    android:layout_centerInParent="true"
-                    android:id="@+id/iv_play"
-                    android:layout_width="@dimen/dp_30"
-                    android:layout_height="@dimen/dp_30"
-                    android:src="@drawable/picture_icon_video_play"/>
+                <RelativeLayout
+                    android:id="@+id/rl_video_ready"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <ImageView
+                        android:id="@+id/iv_video"
+                        android:layout_width="@dimen/dp_100"
+                        android:layout_height="@dimen/dp_150"/>
+                    <ImageView
+                        android:layout_centerInParent="true"
+                        android:id="@+id/iv_play"
+                        android:layout_width="@dimen/dp_30"
+                        android:layout_height="@dimen/dp_30"
+                        android:src="@drawable/picture_icon_video_play"/>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:visibility="gone"
+                    android:id="@+id/rl_video_play"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <VideoView
+                        android:layout_width="@dimen/dp_100"
+                        android:layout_height="@dimen/dp_150"
+                        android:id="@+id/video_view"/>
+                    <ProgressBar
+                        android:layout_width="@dimen/dp_20"
+                        android:layout_height="@dimen/dp_20"
+                        android:layout_centerInParent="true"
+                        android:id="@+id/pb_load"
+                        android:indeterminateTint="@color/light_gray"/>
+                </RelativeLayout>
             </RelativeLayout>
         </LinearLayout>
         <RelativeLayout

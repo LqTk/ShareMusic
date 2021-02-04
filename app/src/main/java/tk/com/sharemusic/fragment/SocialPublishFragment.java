@@ -57,6 +57,7 @@ import tk.com.sharemusic.event.NewReviewEvent;
 import tk.com.sharemusic.event.RefreshPublicData;
 import tk.com.sharemusic.event.UpLoadSocialSuccess;
 import tk.com.sharemusic.myview.dialog.ClickMenuView;
+import tk.com.sharemusic.myview.dialog.ImgPreviewDialog;
 import tk.com.sharemusic.myview.dialog.ShareDialog;
 import tk.com.sharemusic.myview.dialog.VideoPreviewDialog;
 import tk.com.sharemusic.network.BaseResult;
@@ -119,6 +120,7 @@ public class SocialPublishFragment extends Fragment {
             rlMsg.setVisibility(View.VISIBLE);
         }
     };
+    private int page = 0;
 
     public SocialPublishFragment() {
         // Required empty public constructor
@@ -213,6 +215,7 @@ public class SocialPublishFragment extends Fragment {
         srf.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
+                page = 0;
                 initData(true);
                 loadMsgCount();
             }
@@ -225,13 +228,14 @@ public class SocialPublishFragment extends Fragment {
                     srf.finishLoadMore();
                     return;
                 }
+                page++;
                 initData(false);
             }
         });
     }
 
     private void initData(boolean isRefresh) {
-        service.getTenDatas()
+        service.getTenDatas(page)
                 .compose(RxSchedulers.<GetPublicDataTenVo>compose(getContext()))
                 .subscribe(new BaseObserver<GetPublicDataTenVo>() {
                     @Override
@@ -240,7 +244,8 @@ public class SocialPublishFragment extends Fragment {
                         if (isRefresh) {
                             entityList.clear();
                         }
-                        if (data.size() < 10) {
+                        if (data.size() < 10 || data.size()==0) {
+                            page--;
                             noMore = true;
                         } else {
                             noMore = false;
@@ -257,6 +262,7 @@ public class SocialPublishFragment extends Fragment {
 
                     @Override
                     public void onFailed(String msg) {
+                        page--;
                         ToastUtil.showShortMessage(getContext(), msg);
                         if (isRefresh) {
                             srf.finishRefresh();
@@ -277,7 +283,8 @@ public class SocialPublishFragment extends Fragment {
         cyclerView.setAdapter(socialAdapter);
 
         socialAdapter.setEmptyView(emptyView);
-        socialAdapter.addChildClickViewIds(R.id.ll_share_music, R.id.ll_share_people, R.id.ll_good, R.id.iv_review, R.id.iv_share, R.id.iv_more, R.id.rl_play);
+        socialAdapter.addChildClickViewIds(R.id.ll_share_music, R.id.ll_share_people, R.id.ll_good,
+                R.id.iv_review, R.id.iv_share, R.id.iv_more, R.id.rl_play, R.id.iv1, R.id.iv2, R.id.iv3, R.id.iv4);
         socialAdapter.setOnItemChildClickListener(new OnItemChildClickListener() {
             @Override
             public void onItemChildClick(@NonNull BaseQuickAdapter adapter, @NonNull View view, int position) {
@@ -364,6 +371,18 @@ public class SocialPublishFragment extends Fragment {
                         dialog2.setVideo(NetWorkService.homeUrl+path);
                         dialog2.show();
                         break;
+                    case R.id.iv1:
+                        showPreImg(entityList.get(position),0);
+                        break;
+                    case R.id.iv2:
+                        showPreImg(entityList.get(position),1);
+                        break;
+                    case R.id.iv3:
+                        showPreImg(entityList.get(position),2);
+                        break;
+                    case R.id.iv4:
+                        showPreImg(entityList.get(position),3);
+                        break;
                 }
             }
         });
@@ -387,6 +406,22 @@ public class SocialPublishFragment extends Fragment {
         });
     }
 
+    private void showPreImg(SocialPublicEntity publicEntity, int pos){
+        List<String> list = new ArrayList<>();
+        String[] split = publicEntity.getShareUrl().split(";");
+        for (String str:split){
+            list.add(str);
+        }
+        ImgPreviewDialog dialog = new ImgPreviewDialog(getContext(), list);
+        dialog.setPhotoViewClick(new ImgPreviewDialog.PhotoViewClick() {
+            @Override
+            public void ImgClick() {
+                dialog.dismiss();
+            }
+        });
+        dialog.setShowPos(pos);
+        dialog.show();
+    }
     private void showChoose(SocialPublicEntity socialPublicEntity, int position) {
         ClickMenuView menuView = new ClickMenuView(getContext());
         if (!socialPublicEntity.getUserId().equals(ShareApplication.user.getUserId())) {

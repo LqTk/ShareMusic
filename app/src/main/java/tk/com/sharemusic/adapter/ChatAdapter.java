@@ -67,7 +67,7 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
         if (msgEntity.msgType.equals(Constants.MODE_TEXT)) {
             baseViewHolder.setVisible(R.id.tv_content,true);
             baseViewHolder.setGone(R.id.tv_voice,true);
-            baseViewHolder.setGone(R.id.iv_pic,true);
+            baseViewHolder.setGone(R.id.rl_img,true);
             baseViewHolder.setGone(R.id.rl_video,true);
 
             baseViewHolder.setEnabled(R.id.tv_content,false);
@@ -76,7 +76,7 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
             baseViewHolder.setGone(R.id.tv_content,true);
             baseViewHolder.setVisible(R.id.tv_voice,true);
             baseViewHolder.setGone(R.id.rl_video,true);
-            baseViewHolder.setGone(R.id.iv_pic,true);
+            baseViewHolder.setGone(R.id.rl_img,true);
 
             int voiceTime = Integer.parseInt(msgEntity.voiceTime);
 
@@ -90,22 +90,22 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
             baseViewHolder.setGone(R.id.tv_content,true);
             baseViewHolder.setGone(R.id.tv_voice,true);
             baseViewHolder.setGone(R.id.rl_video,true);
-            baseViewHolder.setVisible(R.id.iv_pic,true);
+            baseViewHolder.setVisible(R.id.rl_img,true);
 
             if (!TextUtils.isEmpty(msgEntity.msgContent)) {
                 if (msgEntity.isSending()){
                     File file = new File(msgEntity.msgContent);
                     Glide.with(getContext()).load(file)
-                            .apply(Constants.picLoadOptions)
-                            .fitCenter()
+//                            .apply(Constants.picLoadOptions)
+                            .centerInside()
                             .into((ImageView) baseViewHolder.getView(R.id.iv_pic));
                 }else {
                     if (!TextUtils.isEmpty(msgEntity.getLocalPath())){
                         File file = new File(msgEntity.getLocalPath());
                         if (file.exists()){
                             Glide.with(getContext()).load(file)
-                                    .apply(Constants.picLoadOptions)
-                                    .fitCenter()
+//                                    .apply(Constants.picLoadOptions)
+                                    .centerInside()
                                     .into((ImageView) baseViewHolder.getView(R.id.iv_pic));
                         }else {
                             GlideUrl url = new GlideUrl(NetWorkService.homeUrl + msgEntity.msgContent, new LazyHeaders.Builder()
@@ -130,7 +130,7 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
         }else if (msgEntity.msgType.equals(Constants.MODE_VIDEO)){
             baseViewHolder.setGone(R.id.tv_content,true);
             baseViewHolder.setGone(R.id.tv_voice,true);
-            baseViewHolder.setGone(R.id.iv_pic,true);
+            baseViewHolder.setGone(R.id.rl_img,true);
             baseViewHolder.setVisible(R.id.rl_video,true);
 
             ImageView video = baseViewHolder.getView(R.id.video);

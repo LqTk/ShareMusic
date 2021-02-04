@@ -57,8 +57,8 @@ public interface NetWorkService {
     Observable<UpLoadHeadVo> uploadHead(@Part MultipartBody.Part part, @Part("userId")RequestBody userId);
 
     //获取公场数据
-    @GET("spublic/getdatas")
-    Observable<GetPublicDataTenVo> getTenDatas();
+    @GET("spublic/getdatas/{page}")
+    Observable<GetPublicDataTenVo> getTenDatas(@Path("page") int page);
 
     //获取发布的单个详情
     @GET("spublic/getByShareId/{shareId}")

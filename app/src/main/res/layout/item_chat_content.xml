@@ -115,15 +115,24 @@
                     android:textSize="@dimen/sp_14"
                     android:visibility="gone"/>
 
-                <ImageView
-                    android:id="@+id/iv_pic"
-                    android:layout_width="@dimen/dp_120"
+                <RelativeLayout
+                    android:id="@+id/rl_img"
+                    android:layout_width="wrap_content"
                     android:layout_height="@dimen/dp_120"
-                    android:layout_alignParentRight="true"
-                    android:gravity="center"
-                    android:scaleType="fitEnd"
-                    android:visibility="gone"/>
+                    android:visibility="gone">
+                    <ImageView
+                        android:id="@+id/iv_pic"
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/dp_120"
+                        android:layout_alignParentRight="true"
+                        android:gravity="center"
+                        android:scaleType="centerInside"
+                        android:minHeight="@dimen/dp_40"
+                        android:minWidth="@dimen/dp_40"
+                        android:adjustViewBounds="true"
+                        android:src="@drawable/img_test"/>
 
+                </RelativeLayout>
                 <RelativeLayout
                     android:id="@+id/rl_video"
                     android:layout_width="wrap_content"
