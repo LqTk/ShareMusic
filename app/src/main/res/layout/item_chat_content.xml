@@ -118,20 +118,29 @@
                 <RelativeLayout
                     android:id="@+id/rl_img"
                     android:layout_width="wrap_content"
-                    android:layout_height="@dimen/dp_120"
+                    android:layout_height="wrap_content"
                     android:visibility="gone">
                     <ImageView
                         android:id="@+id/iv_pic"
                         android:layout_width="wrap_content"
-                        android:layout_height="@dimen/dp_120"
+                        android:layout_height="wrap_content"
                         android:layout_alignParentRight="true"
                         android:gravity="center"
-                        android:scaleType="centerInside"
+                        android:scaleType="fitXY"
                         android:minHeight="@dimen/dp_40"
                         android:minWidth="@dimen/dp_40"
-                        android:adjustViewBounds="true"
-                        android:src="@drawable/img_test"/>
-
+                        android:adjustViewBounds="true"/>
+                    <TextView
+                        android:id="@+id/tv_long_pic"
+                        android:visibility="gone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:layout_alignParentTop="true"
+                        android:text="长图"
+                        android:background="@color/transWhite"
+                        android:textColor="@color/light_gray"
+                        android:textSize="@dimen/sp_10"/>
                 </RelativeLayout>
                 <RelativeLayout
                     android:id="@+id/rl_video"
@@ -242,13 +251,32 @@
                     android:textSize="@dimen/sp_14"
                     android:visibility="gone"/>
 
-                <ImageView
-                    android:id="@+id/iv_pic_left"
-                    android:layout_width="@dimen/dp_120"
-                    android:layout_height="@dimen/dp_120"
-                    android:gravity="center"
-                    android:scaleType="fitStart"
-                    android:visibility="gone"/>
+                <RelativeLayout
+                    android:id="@+id/rl_img_left"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone">
+                    <ImageView
+                        android:id="@+id/iv_pic_left"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:minHeight="@dimen/dp_40"
+                        android:minWidth="@dimen/dp_40"
+                        android:adjustViewBounds="true"
+                        android:scaleType="fitXY"/>
+                    <TextView
+                        android:id="@+id/tv_long_pic_left"
+                        android:visibility="gone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentTop="true"
+                        android:text="长图"
+                        android:background="@color/transWhite"
+                        android:textColor="@color/light_gray"
+                        android:textSize="@dimen/sp_10"/>
+                </RelativeLayout>
 
                 <RelativeLayout
                     android:id="@+id/rl_video_left"

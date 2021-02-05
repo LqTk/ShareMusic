@@ -5,6 +5,8 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.AudioManager;
@@ -607,6 +609,11 @@ public class ChatActivity extends CommonActivity {
                     ToastUtil.showShortMessage(mContext,"图片获取失败");
                     return;
                 }
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                Bitmap bmp = BitmapFactory.decodeFile(content, options);//这里的bitmap是个空
+                options.inJustDecodeBounds = true;//这个参数设置为true才有效，
+                sendEntity.height = options.outHeight;
+                sendEntity.width = options.outWidth;
                 sendEntity.setLocalPath(content);
 //                part = getFilePart(content);
 //                baseResultObservable = service.sendMsg(map,part);
@@ -976,6 +983,11 @@ public class ChatActivity extends CommonActivity {
             sendEntity.setLocalPath(imgPath);
             if (fileType.contains("image/")) {
                 sendEntity.setMsgType(Constants.MODE_IMAGE);
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                Bitmap bmp = BitmapFactory.decodeFile(imgPath, options);//这里的bitmap是个空
+                options.inJustDecodeBounds = true;//这个参数设置为true才有效，
+                sendEntity.height = options.outHeight;
+                sendEntity.width = options.outWidth;
             }else {
                 sendEntity.setMsgType(Constants.MODE_VIDEO);
             }

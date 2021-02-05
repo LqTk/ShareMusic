@@ -18,10 +18,29 @@ public class ChatEntity {
     public long chatTime;
     public int count;
 
+    public int width;
+
+    public int height;
+
     private boolean isSending = false;
     private boolean sendSuccess = true;
 
-    public ChatEntity(String chatId, String msgContent, String msgType, String voiceTime, String senderId, String senderAvatar, String senderName, long chatTime) {
+    public ChatEntity(String chatId, String msgContent, String msgType, String voiceTime,
+                      String senderId, String senderAvatar, String senderName, int width, int height, long chatTime) {
+        this.chatId = chatId;
+        this.msgContent = msgContent;
+        this.msgType = msgType;
+        this.voiceTime = voiceTime;
+        this.senderId = senderId;
+        this.senderAvatar = senderAvatar;
+        this.senderName = senderName;
+        this.width = width;
+        this.height = height;
+        this.chatTime = chatTime;
+    }
+
+    public ChatEntity(String chatId, String msgContent, String msgType, String voiceTime,
+                      String senderId, String senderAvatar, String senderName, long chatTime) {
         this.chatId = chatId;
         this.msgContent = msgContent;
         this.msgType = msgType;
@@ -30,6 +49,22 @@ public class ChatEntity {
         this.senderAvatar = senderAvatar;
         this.senderName = senderName;
         this.chatTime = chatTime;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
     }
 
     public ChatEntity() {

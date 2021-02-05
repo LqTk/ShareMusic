@@ -8,7 +8,9 @@ import android.os.Handler;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.MediaController;
+import android.widget.RelativeLayout;
 import android.widget.VideoView;
 
 import com.bumptech.glide.Glide;
@@ -17,6 +19,8 @@ import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.viewholder.BaseViewHolder;
+import com.luck.picture.lib.tools.MediaUtils;
+import com.luck.picture.lib.tools.ScreenUtils;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,6 +29,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 
+import okhttp3.internal.cache2.Relay;
 import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.config.Constants;
@@ -91,37 +96,62 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
             baseViewHolder.setGone(R.id.tv_voice,true);
             baseViewHolder.setGone(R.id.rl_video,true);
             baseViewHolder.setVisible(R.id.rl_img,true);
+            baseViewHolder.setGone(R.id.tv_long_pic,true);
+
+            ImageView imageView = baseViewHolder.getView(R.id.iv_pic);
+            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            if (msgEntity.height!=0 && msgEntity.width!=0){
+                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) imageView.getLayoutParams();
+                boolean eqLongImage = MediaUtils.isLongImg(msgEntity.getWidth(),
+                        msgEntity.getHeight());
+                if (eqLongImage){
+                    imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+                    baseViewHolder.setVisible(R.id.tv_long_pic,true);
+                    layoutParams.height = ScreenUtils.dip2px(getContext(),200);
+                    layoutParams.width = ScreenUtils.dip2px(getContext(),100);
+                }else if (msgEntity.height>=400){
+                    layoutParams.height = ScreenUtils.dip2px(getContext(),150);
+                    layoutParams.width = ScreenUtils.dip2px(getContext(),(int) (150.0/msgEntity.height*msgEntity.width));
+                }else if (msgEntity.height<=60){
+                    layoutParams.height = ScreenUtils.dip2px(getContext(),60);
+                    layoutParams.width = ScreenUtils.dip2px(getContext(),(int) (60/msgEntity.height*msgEntity.width));
+                }else {
+                    layoutParams.height = ScreenUtils.dip2px(getContext(),100);
+                    layoutParams.width = ScreenUtils.dip2px(getContext(),100);
+                }
+                imageView.setLayoutParams(layoutParams);
+            }
 
             if (!TextUtils.isEmpty(msgEntity.msgContent)) {
                 if (msgEntity.isSending()){
                     File file = new File(msgEntity.msgContent);
                     Glide.with(getContext()).load(file)
-//                            .apply(Constants.picLoadOptions)
-                            .centerInside()
-                            .into((ImageView) baseViewHolder.getView(R.id.iv_pic));
+                            .apply(Constants.picLoadOptions)
+                            .centerCrop()
+                            .into(imageView);
                 }else {
                     if (!TextUtils.isEmpty(msgEntity.getLocalPath())){
                         File file = new File(msgEntity.getLocalPath());
                         if (file.exists()){
                             Glide.with(getContext()).load(file)
-//                                    .apply(Constants.picLoadOptions)
-                                    .centerInside()
-                                    .into((ImageView) baseViewHolder.getView(R.id.iv_pic));
+                                    .apply(Constants.picLoadOptions)
+                                    .centerCrop()
+                                    .into(imageView);
                         }else {
                             GlideUrl url = new GlideUrl(NetWorkService.homeUrl + msgEntity.msgContent, new LazyHeaders.Builder()
                                     .build());
                             Glide.with(getContext()).load(url).
                                     apply(Constants.picLoadOptions)
-                                    .fitCenter()
-                                    .into((ImageView) baseViewHolder.getView(R.id.iv_pic));
+                                    .centerCrop()
+                                    .into(imageView);
                         }
                     }else {
                         GlideUrl url = new GlideUrl(NetWorkService.homeUrl + msgEntity.msgContent, new LazyHeaders.Builder()
                                 .build());
                         Glide.with(getContext()).load(url).
                                 apply(Constants.picLoadOptions)
-                                .fitCenter()
-                                .into((ImageView) baseViewHolder.getView(R.id.iv_pic));
+                                .centerCrop()
+                                .into(imageView);
                     }
                 }
             } else {
@@ -183,7 +213,7 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
         if (msgEntity.msgType.equals(Constants.MODE_TEXT)) {
             baseViewHolder.setVisible(R.id.tv_content_left,true);
             baseViewHolder.setGone(R.id.tv_voice_left,true);
-            baseViewHolder.setGone(R.id.iv_pic_left,true);
+            baseViewHolder.setGone(R.id.rl_img_left,true);
             baseViewHolder.setGone(R.id.rl_video_left,true);
 
             baseViewHolder.setEnabled(R.id.tv_content_left,false);
@@ -192,7 +222,7 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
             baseViewHolder.setGone(R.id.tv_content_left,true);
             baseViewHolder.setVisible(R.id.tv_voice_left,true);
             baseViewHolder.setGone(R.id.rl_video_left,true);
-            baseViewHolder.setGone(R.id.iv_pic_left,true);
+            baseViewHolder.setGone(R.id.rl_img_left,true);
 
             int voiceTime = Integer.parseInt(msgEntity.voiceTime);
 
@@ -207,7 +237,32 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
             baseViewHolder.setGone(R.id.tv_content_left,true);
             baseViewHolder.setGone(R.id.tv_voice_left,true);
             baseViewHolder.setGone(R.id.rl_video_left,true);
-            baseViewHolder.setVisible(R.id.iv_pic_left,true);
+            baseViewHolder.setVisible(R.id.rl_img_left,true);
+            baseViewHolder.setGone(R.id.tv_long_pic_left,true);
+
+            ImageView imageView = baseViewHolder.getView(R.id.iv_pic_left);
+            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            if (msgEntity.height!=0 && msgEntity.width!=0){
+                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) imageView.getLayoutParams();
+                boolean eqLongImage = MediaUtils.isLongImg(msgEntity.getWidth(),
+                        msgEntity.getHeight());
+                if (eqLongImage){
+                    imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+                    baseViewHolder.setVisible(R.id.tv_long_pic_left,true);
+                    layoutParams.height = ScreenUtils.dip2px(getContext(),200);
+                    layoutParams.width = ScreenUtils.dip2px(getContext(),100);
+                }else if (msgEntity.height>=400){
+                    layoutParams.height = ScreenUtils.dip2px(getContext(),150);
+                    layoutParams.width = ScreenUtils.dip2px(getContext(),(int) (150.0/msgEntity.height*msgEntity.width));
+                }else if (msgEntity.height<=60){
+                    layoutParams.height = ScreenUtils.dip2px(getContext(),60);
+                    layoutParams.width = ScreenUtils.dip2px(getContext(),(int) (60/msgEntity.height*msgEntity.width));
+                }else {
+                    layoutParams.height = ScreenUtils.dip2px(getContext(),100);
+                    layoutParams.width = ScreenUtils.dip2px(getContext(),100);
+                }
+                imageView.setLayoutParams(layoutParams);
+            }
 
             if (!TextUtils.isEmpty(msgEntity.msgContent)) {
                 if (!TextUtils.isEmpty(msgEntity.getLocalPath())){
@@ -216,16 +271,16 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
                         Glide.with(getContext())
                                 .load(file)
                                 .apply(Constants.picLoadOptions)
-                                .fitCenter()
-                                .into((ImageView) baseViewHolder.getView(R.id.iv_pic_left));
+                                .centerCrop()
+                                .into(imageView);
                     }else {
                         GlideUrl url = new GlideUrl(NetWorkService.homeUrl+msgEntity.msgContent, new LazyHeaders.Builder()
                                 .build());
 
                         Glide.with(getContext()).load(url)
                                 .apply(Constants.picLoadOptions)
-                                .fitCenter()
-                                .into((ImageView) baseViewHolder.getView(R.id.iv_pic_left));
+                                .centerCrop()
+                                .into(imageView);
                     }
                 }else {
                     GlideUrl url = new GlideUrl(NetWorkService.homeUrl + msgEntity.msgContent, new LazyHeaders.Builder()
@@ -233,8 +288,8 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
 
                     Glide.with(getContext()).load(url)
                             .apply(Constants.picLoadOptions)
-                            .fitCenter()
-                            .into((ImageView) baseViewHolder.getView(R.id.iv_pic_left));
+                            .centerCrop()
+                            .into(imageView);
                 }
             } else {
                 baseViewHolder.setImageResource(R.id.iv_pic_left,R.drawable.picture_icon_data_error);
@@ -242,7 +297,7 @@ public class ChatAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder> {
         }else if (msgEntity.msgType.equals(Constants.MODE_VIDEO)){
             baseViewHolder.setGone(R.id.tv_content_left,true);
             baseViewHolder.setGone(R.id.tv_voice_left,true);
-            baseViewHolder.setGone(R.id.iv_pic_left,true);
+            baseViewHolder.setGone(R.id.rl_img_left,true);
             baseViewHolder.setVisible(R.id.rl_video_left,true);
 
             if (!TextUtils.isEmpty(msgEntity.msgContent)){

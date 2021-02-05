@@ -11,11 +11,13 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.viewpager.widget.PagerAdapter;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.CustomViewTarget;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.chad.library.adapter.base.BaseQuickAdapter;
@@ -27,7 +29,6 @@ import com.luck.picture.lib.widget.longimage.ImageViewState;
 import com.luck.picture.lib.widget.longimage.SubsamplingScaleImageView;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -115,7 +116,68 @@ public class PreImgAdapter extends PagerAdapter {
                             .override(1000,1000)
                             .error(R.drawable.picture_icon_data_error))
                     .fitCenter()
-                    .into(new SimpleTarget<Drawable>() {
+                    .into(new CustomViewTarget<SubsamplingScaleImageView,Drawable>(longImageView) {
+                              @Override
+                              public void onLoadFailed(@Nullable Drawable errorDrawable) {
+
+                              }
+
+                              @Override
+                              public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                                  BitmapDrawable bd = (BitmapDrawable) resource;
+                                  Bitmap bitmap = bd.getBitmap();
+                                  if (resource != null) {
+                                      boolean eqLongImage = MediaUtils.isLongImg(bitmap.getWidth(),
+                                              bitmap.getHeight());
+                                      longImageView.setVisibility(eqLongImage ? View.VISIBLE : View.GONE);
+                                      imageView.setVisibility(eqLongImage ? View.GONE : View.VISIBLE);
+                                      if (eqLongImage) {
+                                          // 加载长图
+                                          /*longImageView.setQuickScaleEnabled(true);
+                                          longImageView.setZoomEnabled(true);
+                                          longImageView.setPanEnabled(true);
+                                          longImageView.setDoubleTapZoomDuration(100);
+                                          longImageView.setMinimumScaleType(SubsamplingScaleImageView.SCALE_TYPE_CENTER_CROP);
+                                          longImageView.setDoubleTapZoomDpi(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER);
+                                          longImageView.setImage(ImageSource.bitmap(bitmap),
+                                                  new ImageViewState(0, new PointF(0, 0), 0));*/
+                                          Glide.with(context)
+                                                  .load(NetWorkService.homeUrl + url)
+                                                  .into(new SimpleTarget<Drawable>() {
+                                                      @Override
+                                                      public void onResourceReady(@NonNull Drawable resource, @androidx.annotation.Nullable Transition<? super Drawable> transition) {
+                                                          try {
+                                                              BitmapDrawable bd = (BitmapDrawable) resource;
+                                                              Bitmap bitmap = bd.getBitmap();
+                                                              longImageView.setQuickScaleEnabled(true);
+                                                              longImageView.setZoomEnabled(true);
+                                                              longImageView.setPanEnabled(true);
+                                                              longImageView.setDoubleTapZoomDuration(100);
+                                                              longImageView.setMinimumScaleType(SubsamplingScaleImageView.SCALE_TYPE_CENTER_CROP);
+                                                              longImageView.setDoubleTapZoomDpi(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER);
+                                                              longImageView.setImage(ImageSource.bitmap(bitmap),
+                                                                      new ImageViewState(0, new PointF(0, 0), 0));
+                                                          }catch (Exception e){
+                                                          }
+
+                                                      }
+                                                  });
+                                      } else {
+                                          // 普通图片
+                                          imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                                          imageView.setImageBitmap(bitmap);
+                                      }
+                                  }
+                              }
+
+                              @Override
+                              protected void onResourceCleared(@Nullable Drawable placeholder) {
+
+                              }
+                          }
+
+
+                            /*new SimpleTarget<Drawable>() {
                         @Override
                         public void onResourceReady(@NonNull Drawable resource, @androidx.annotation.Nullable Transition<? super Drawable> transition) {
                             try {
@@ -148,7 +210,7 @@ public class PreImgAdapter extends PagerAdapter {
                             }
 
                         }
-                    });
+                    }*/);
         }
         container.addView(v,ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT);
 
