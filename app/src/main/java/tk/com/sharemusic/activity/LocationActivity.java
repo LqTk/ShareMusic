@@ -41,6 +41,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
 import tk.com.sharemusic.R;
+import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.adapter.SearchPoiAdapter;
 import tk.com.sharemusic.entity.SearchLocationEntity;
 
@@ -149,6 +150,13 @@ public class LocationActivity extends CommonActivity {
         public void onLocationChanged(AMapLocation aMapLocation) {
             if (aMapLocation != null) {
                 if (aMapLocation.getErrorCode() == 0) {
+                    ShareApplication.showLocation = true;
+                    //可在其中解析amapLocation获取相应内容。
+                    ShareApplication.locationStr = aMapLocation.getProvince()+aMapLocation.getCity()+aMapLocation.getDistrict()+aMapLocation.getStreet();
+                    ShareApplication.latitude = aMapLocation.getLatitude();//获取纬度
+                    ShareApplication.longitude = aMapLocation.getLongitude();//获取经度
+                    ShareApplication.cityCode = aMapLocation.getCityCode();
+
                     showLocation = true;
                     //可在其中解析amapLocation获取相应内容。
                     city = aMapLocation.getCity();
@@ -192,13 +200,15 @@ public class LocationActivity extends CommonActivity {
     }
 
     private void startPoiSearch(String key, int page) {
-        PoiSearch.Query query = new PoiSearch.Query(key, "", "");
+        PoiSearch.Query query = new PoiSearch.Query(key, "", ShareApplication.cityCode);
         query.setPageSize(20);// 设置每页最多返回多少条poiitem
         query.setPageNum(page);//设置查询页码
         poiSearch = new PoiSearch(context, query);
         poiSearch.setOnPoiSearchListener(poiSearchListener);
-        poiSearch.setBound(new PoiSearch.SearchBound(new LatLonPoint(latitude,
-                longitude), 1000));//设置周边搜索的中心点以及半径
+        if (TextUtils.isEmpty(key)) {
+            poiSearch.setBound(new PoiSearch.SearchBound(new LatLonPoint(latitude,
+                    longitude), 1000));//设置周边搜索的中心点以及半径
+        }
         poiSearch.searchPOIAsyn();
     }
 
@@ -371,5 +381,8 @@ public class LocationActivity extends CommonActivity {
     protected void onDestroy() {
         super.onDestroy();
         bind.unbind();
+        if (mLocationClient!=null) {
+            mLocationClient.onDestroy();
+        }//销毁定位客户端，同时销毁本地定位服务。
     }
 }

@@ -153,6 +153,12 @@ public class ShareDetailActivity extends CommonActivity {
     ImageView iv4;
     @BindView(R.id.ll_iv4)
     LinearLayout llIv4;
+    @BindView(R.id.tv_where)
+    TextView tvWhere;
+    @BindView(R.id.tv_distance)
+    TextView tvDistance;
+    @BindView(R.id.rl_location)
+    LinearLayout rlLocation;
 
     private SocialPublicEntity publicEntity = new SocialPublicEntity();
     private Context mContext;
@@ -508,6 +514,24 @@ public class ShareDetailActivity extends CommonActivity {
                     .into(ivVideo);
         }
 
+        if (publicEntity.getLongitude() != null && publicEntity.getLatitude() != null) {
+            if (publicEntity.getLatitude() != 0.0 || publicEntity.getLongitude() != 0.0 || !TextUtils.isEmpty(publicEntity.getLocation())) {
+                rlLocation.setVisibility(View.VISIBLE);
+                tvWhere.setText(publicEntity.getLocation());
+                if (ShareApplication.showLocation) {
+                    tvDistance.setVisibility(View.VISIBLE);
+                    tvDistance.setText(ShareApplication.getDistance(ShareApplication.latitude,
+                            ShareApplication.longitude, publicEntity.getLatitude(), publicEntity.getLongitude()));
+                } else {
+                    tvDistance.setVisibility(View.GONE);
+                }
+            } else {
+                rlLocation.setVisibility(View.GONE);
+            }
+        } else {
+            rlLocation.setVisibility(View.GONE);
+        }
+
         List<ReviewEntity> reviewEntities = publicEntity.getReviewEntities();
         if (reviewEntities.isEmpty()) {
             tvReview.setText("评论");
@@ -545,7 +569,7 @@ public class ShareDetailActivity extends CommonActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 List<String> list = new ArrayList<>();
                 String[] split = publicEntity.getShareUrl().split(";");
-                for (String str:split){
+                for (String str : split) {
                     list.add(str);
                 }
                 ImgPreviewDialog dialog = new ImgPreviewDialog(mContext, list);
@@ -742,10 +766,10 @@ public class ShareDetailActivity extends CommonActivity {
         }
     }
 
-    private void showPreImg(int pos){
+    private void showPreImg(int pos) {
         List<String> list = new ArrayList<>();
         String[] split = publicEntity.getShareUrl().split(";");
-        for (String str:split){
+        for (String str : split) {
             list.add(str);
         }
         ImgPreviewDialog dialog = new ImgPreviewDialog(mContext, list);

@@ -4,9 +4,15 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.fragment.app.Fragment;
 
+import com.amap.api.location.AMapLocation;
+import com.amap.api.location.AMapLocationClient;
+import com.amap.api.location.AMapLocationClientOption;
+import com.amap.api.location.AMapLocationListener;
 import com.next.easynavigation.view.EasyNavigationBar;
 
 import org.greenrobot.eventbus.EventBus;
@@ -19,6 +25,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import tk.com.sharemusic.R;
+import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.event.ChangeFragmentEvent;
 import tk.com.sharemusic.event.MsgCountEvent;
 import tk.com.sharemusic.fragment.ChatFragment;
@@ -51,6 +58,9 @@ public class MainActivity extends CommonActivity {
         EventBus.getDefault().register(this);
 
         service = HttpMethod.getInstance().create(NetWorkService.class);
+        if(!ShareApplication.showLocation){
+            ShareApplication.initLocation();
+        }
         getIntentData();
         initView();
     }
@@ -83,6 +93,9 @@ public class MainActivity extends CommonActivity {
         super.onDestroy();
         bind.unbind();
         EventBus.getDefault().unregister(this);
+        if (ShareApplication.mLocationClient!=null) {
+            ShareApplication.mLocationClient.onDestroy();//销毁定位客户端，同时销毁本地定位服务。
+        }
     }
 
     @Subscribe

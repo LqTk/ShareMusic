@@ -110,7 +110,7 @@ public class ShareActivity extends CommonActivity {
     private boolean videoLoad = false;//视频是否加载成功
     private String videoPath = "";//视频地址
     private int publishType = Constants.PEOPLE_ALL;
-    private boolean showLocation = false;
+    private boolean showLocation = ShareApplication.showLocation;
     private double latitude;
     private double longitude;
     private String city="";
@@ -132,6 +132,7 @@ public class ShareActivity extends CommonActivity {
                     latitude = aMapLocation.getLatitude();//获取纬度
                     longitude = aMapLocation.getLongitude();//获取经度
                     tvLocation.setTextColor(getResources().getColor(R.color.greenBg));
+                    ShareApplication.cityCode = aMapLocation.getCityCode();
                     if (!TextUtils.isEmpty(aMapLocation.getPoiName())){
                         tvLocation.setText(aMapLocation.getPoiName().trim());
                         city = aMapLocation.getPoiName().trim();
@@ -186,7 +187,17 @@ public class ShareActivity extends CommonActivity {
         uiPopWinUtil = new PopWinUtil(this);
         uiPopWinUtil.setShade(true);
         initData();
-        initLocation();
+        if (!ShareApplication.showLocation) {
+            initLocation();
+        }else {
+            locationStr = ShareApplication.locationStr;
+            latitude = ShareApplication.latitude;//获取纬度
+            longitude = ShareApplication.longitude;//获取经度
+            tvLocation.setTextColor(getResources().getColor(R.color.greenBg));
+            city = ShareApplication.city;
+            tvLocation.setText(city);
+            ivLocation.setImageResource(R.drawable.location_ok);
+        }
         initBottomChoose();
         initView();
     }
@@ -797,6 +808,8 @@ public class ShareActivity extends CommonActivity {
     protected void onDestroy() {
         super.onDestroy();
         bind.unbind();
-        mLocationClient.onDestroy();//销毁定位客户端，同时销毁本地定位服务。
+        if (mLocationClient!=null) {
+            mLocationClient.onDestroy();
+        }//销毁定位客户端，同时销毁本地定位服务。
     }
 }

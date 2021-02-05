@@ -7,17 +7,23 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.amap.api.location.AMapLocation;
+import com.amap.api.location.AMapLocationClient;
+import com.amap.api.location.AMapLocationClientOption;
+import com.amap.api.location.AMapLocationListener;
 import com.danikula.videocache.HttpProxyCacheServer;
 import com.luck.picture.lib.PictureSelector;
 import com.luck.picture.lib.config.PictureConfig;
 import com.luck.picture.lib.config.PictureMimeType;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,6 +52,16 @@ public class ShareApplication extends Application {
     private static ShareApplication mContext;
     private static List<AppCompatActivity> activityList = new ArrayList<>();
 
+    /**
+     * 定位信息
+     */
+    public static boolean showLocation = false;
+    public static String locationStr = "";
+    public static double latitude;
+    public static double longitude;
+    public static String cityCode;
+    public static String city;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -64,6 +80,7 @@ public class ShareApplication extends Application {
                 Log.d("pushSReceiver","注册状态"+tokenResult.getReturnCode()+",string=="+tokenResult.toString());
             }
         });*/
+        initLocation();
         trustAllSSL();
     }
 
@@ -269,5 +286,111 @@ public class ShareApplication extends Application {
         return new HttpProxyCacheServer.Builder(this)
                 .maxCacheSize(1024 * 1024 * 1024)       // 1 Gb for cache
                 .build();
+    }
+
+    /**
+     * 计算两点之间的距离
+     */
+    private static double EARTH_RADIUS = 6378.137;//地球半径
+
+    private static double rad(double d) {
+        return d * Math.PI / 180.0;
+    }
+
+    /**
+     * 计算两个经纬度之间的距离
+     *
+     * @param lat1
+     * @param lng1
+     * @param lat2
+     * @param lng2
+     * @return km
+     */
+    public static String getDistance(double lat1, double lng1, double lat2, double lng2) {
+        double radLat1 = rad(lat1);
+        double radLat2 = rad(lat2);
+        double a = radLat1 - radLat2;
+        double b = rad(lng1) - rad(lng2);
+        //s单位km，如果需要其他单位请记得换算
+        double s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a / 2), 2) +
+                Math.cos(radLat1) * Math.cos(radLat2) * Math.pow(Math.sin(b / 2), 2)));
+        s = s * EARTH_RADIUS;
+        if (s>1) {
+            DecimalFormat df = new DecimalFormat("#.0");
+            s = Double.parseDouble(df.format(s));
+            return s+"km";
+        }
+        double dis = s*1000;//米
+        if (dis>100){
+            return dis%1000+"米";
+        }
+
+        return "<100米";
+    }
+
+    /**
+     * 定位
+     */
+
+    //定位
+    //声明AMapLocationClient类对象
+    public static AMapLocationClient mLocationClient = null;
+    //声明定位回调监听器
+    private static AMapLocationListener mLocationListener = new AMapLocationListener() {
+        @Override
+        public void onLocationChanged(AMapLocation aMapLocation) {
+            if (aMapLocation != null) {
+                if (aMapLocation.getErrorCode() == 0) {
+                    ShareApplication.showLocation = true;
+                    //可在其中解析amapLocation获取相应内容。
+                    ShareApplication.locationStr = aMapLocation.getProvince()+aMapLocation.getCity()+aMapLocation.getDistrict()+aMapLocation.getStreet();
+                    ShareApplication.latitude = aMapLocation.getLatitude();//获取纬度
+                    ShareApplication.longitude = aMapLocation.getLongitude();//获取经度
+                    ShareApplication.cityCode = aMapLocation.getCityCode();
+                    if (!TextUtils.isEmpty(aMapLocation.getPoiName())){
+                        ShareApplication.city = aMapLocation.getPoiName().trim();
+                    }else {
+                        ShareApplication.city = aMapLocation.getAoiName().trim();
+                    }
+                    mLocationClient.stopLocation();//停止定位后，本地定位服务并不会被销毁
+                }else {
+                    //定位失败时，可通过ErrCode（错误码）信息来确定失败的原因，errInfo是错误信息，详见错误码表。
+                    Log.e("AmapError","location Error, ErrCode:"
+                            + aMapLocation.getErrorCode() + ", errInfo:"
+                            + aMapLocation.getErrorInfo());
+                }
+            }
+        }
+    };
+
+    //声明AMapLocationClientOption对象
+    public static AMapLocationClientOption mLocationOption = null;
+
+    public static void initLocation() {
+        //初始化定位
+        mLocationClient = new AMapLocationClient(mContext);
+        //设置定位回调监听
+        mLocationClient.setLocationListener(mLocationListener);
+        //初始化AMapLocationClientOption对象
+        mLocationOption = new AMapLocationClientOption();
+        //设置定位模式为AMapLocationMode.Hight_Accuracy，高精度模式。
+        mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+        //获取一次定位结果：
+        //该方法默认为false。
+        mLocationOption.setOnceLocation(true);
+
+        //获取最近3s内精度最高的一次定位结果：
+        //设置setOnceLocationLatest(boolean b)接口为true，启动定位时SDK会返回最近3s内精度最高的一次定位结果。如果设置其为true，setOnceLocation(boolean b)接口也会被设置为true，反之不会，默认为false。
+        mLocationOption.setOnceLocationLatest(true);
+        //设置是否返回地址信息（默认返回地址信息）
+        mLocationOption.setNeedAddress(true);
+        //单位是毫秒，默认30000毫秒，建议超时时间不要低于8000毫秒。
+        mLocationOption.setHttpTimeOut(20000);
+        //关闭缓存机制
+        mLocationOption.setLocationCacheEnable(false);
+        //给定位客户端对象设置定位参数
+        mLocationClient.setLocationOption(mLocationOption);
+        //启动定位
+        mLocationClient.startLocation();
     }
 }

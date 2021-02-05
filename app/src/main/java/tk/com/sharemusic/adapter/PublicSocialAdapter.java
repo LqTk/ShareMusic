@@ -10,6 +10,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.viewpager.widget.PagerAdapter;
+
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
@@ -156,6 +158,25 @@ public class PublicSocialAdapter extends BaseQuickAdapter<SocialPublicEntity, Ba
                     .apply(Constants.picLoadOptions)
                     .into((ImageView) baseViewHolder.getView(R.id.iv_video));
         }
+
+        if (socialPublicEntity.getLongitude()!=null && socialPublicEntity.getLatitude()!=null) {
+            if (socialPublicEntity.getLatitude() != 0.0 || socialPublicEntity.getLongitude() != 0.0 || !TextUtils.isEmpty(socialPublicEntity.getLocation())) {
+                baseViewHolder.setVisible(R.id.rl_location, true);
+                baseViewHolder.setText(R.id.tv_where, socialPublicEntity.getLocation());
+                if (ShareApplication.showLocation) {
+                    baseViewHolder.setVisible(R.id.tv_distance, true);
+                    baseViewHolder.setText(R.id.tv_distance, ShareApplication.getDistance(ShareApplication.latitude,
+                            ShareApplication.longitude, socialPublicEntity.getLatitude(), socialPublicEntity.getLongitude()));
+                } else {
+                    baseViewHolder.setGone(R.id.tv_distance, true);
+                }
+            } else {
+                baseViewHolder.setGone(R.id.rl_location, true);
+            }
+        }else {
+            baseViewHolder.setGone(R.id.rl_location, true);
+        }
+
         baseViewHolder.setText(R.id.tv_time,DateUtil.getPublicTime(socialPublicEntity.getCreateTime()));
         baseViewHolder.setImageResource(R.id.iv_good, R.drawable.goods_bg);
         if (socialPublicEntity.getReviewEntities().isEmpty()){
