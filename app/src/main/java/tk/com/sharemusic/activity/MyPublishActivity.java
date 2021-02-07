@@ -25,6 +25,7 @@ import com.scwang.smartrefresh.layout.listener.OnLoadMoreListener;
 import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,6 +34,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import butterknife.Unbinder;
 import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.adapter.PublicSocialAdapter;
@@ -40,8 +42,11 @@ import tk.com.sharemusic.config.Constants;
 import tk.com.sharemusic.entity.GoodsEntity;
 import tk.com.sharemusic.entity.SocialPublicEntity;
 import tk.com.sharemusic.event.ChangeFragmentEvent;
+import tk.com.sharemusic.event.UpLoadSocialSuccess;
 import tk.com.sharemusic.myview.dialog.ClickMenuView;
+import tk.com.sharemusic.myview.dialog.ImgPreviewDialog;
 import tk.com.sharemusic.myview.dialog.ShareDialog;
+import tk.com.sharemusic.myview.dialog.VideoPreviewDialog;
 import tk.com.sharemusic.network.BaseResult;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
@@ -74,16 +79,18 @@ public class MyPublishActivity extends CommonActivity {
     private ImageView ivShow;
     private String userId;
     private Context mContext;
-    private final static int code_detail=1100;
+    public final static int CODE_TODETAIL = 1000;
     private int toPos;
     private String shareId;
     private PopWinUtil uiPopWinUtil;
+    private Unbinder bind;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_publish);
-        ButterKnife.bind(this);
+        bind = ButterKnife.bind(this);
+        EventBus.getDefault().register(this);
         mContext = this;
         service = HttpMethod.getInstance().create(NetWorkService.class);
         emptyView = LayoutInflater.from(this).inflate(R.layout.layout_empty,null);
@@ -138,9 +145,7 @@ public class MyPublishActivity extends CommonActivity {
             ivShow.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent1 = new Intent(MyPublishActivity.this, ShareActivity.class);
-                    intent1.putExtra("sharetext","");
-                    startActivity(intent1);
+                    goShare();
                 }
             });
 
@@ -204,44 +209,53 @@ public class MyPublishActivity extends CommonActivity {
         cyclerView.setAdapter(socialAdapter);
 
         socialAdapter.setEmptyView(emptyView);
-        socialAdapter.addChildClickViewIds(R.id.ll_share_music,R.id.iv_good,R.id.iv_review,R.id.iv_share,R.id.iv_more);
+        socialAdapter.addChildClickViewIds(R.id.ll_share_music, R.id.ll_share_people, R.id.ll_good,
+                R.id.iv_review, R.id.iv_share, R.id.iv_more, R.id.rl_play, R.id.iv1, R.id.iv2, R.id.iv3, R.id.iv4, R.id.iv_img);
         socialAdapter.setOnItemChildClickListener(new OnItemChildClickListener() {
             @Override
             public void onItemChildClick(@NonNull BaseQuickAdapter adapter, @NonNull View view, int position) {
-                switch (view.getId()){
+                switch (view.getId()) {
+                    case R.id.ll_share_people:
+                        if (entityList.get(position).getUserId().equals(ShareApplication.user.getUserId())) {
+                            EventBus.getDefault().post(new ChangeFragmentEvent(MainActivity.PAGE_MINE));
+                            return;
+                        }
+                        Intent intent1 = new Intent(mContext, PeopleProfileActivity.class);
+                        intent1.putExtra("peopleId", entityList.get(position).getUserId());
+                        intent1.putExtra("from", "public");
+                        startActivity(intent1);
+                        break;
                     case R.id.ll_share_music:
                         SocialPublicEntity socialPublicEntity = entityList.get(position);
                         Intent intent = new Intent(mContext, PlayerSongActivity.class);
                         intent.putExtra("url", socialPublicEntity.getShareUrl());
                         startActivity(intent);
                         break;
-                    case R.id.iv_good:
+                    case R.id.ll_good:
                         List<GoodsEntity> goodsList = entityList.get(position).getGoodsList();
                         boolean ishave = false;
-                        for (int i=0; i<goodsList.size();i++){
+                        for (int i = 0; i < goodsList.size(); i++) {
                             GoodsEntity goodsEntity = goodsList.get(i);
-                            if (goodsEntity.getPeopleId().equals(ShareApplication.user.getUserId())){
+                            if (goodsEntity.getPeopleId().equals(ShareApplication.user.getUserId())) {
                                 service.goodsCancel(goodsEntity.getGoodsId())
                                         .compose(RxSchedulers.<BaseResult>compose(mContext))
                                         .subscribe(new BaseObserver<BaseResult>() {
                                             @Override
                                             public void onSuccess(BaseResult baseResult) {
-                                                if (entityList==null)
-                                                    return;
                                                 entityList.get(position).getGoodsList().remove(goodsEntity);
-                                                adapter.notifyItemChanged(position,"goods");
+                                                adapter.notifyItemChanged(position, "goods");
                                             }
 
                                             @Override
                                             public void onFailed(String msg) {
-                                                ToastUtil.showShortMessage(mContext,msg);
+                                                ToastUtil.showShortMessage(mContext, "取消失败");
                                             }
                                         });
                                 ishave = true;
                                 break;
                             }
                         }
-                        if (!ishave){
+                        if (!ishave) {
                             GoodsEntity goodsEntity = new GoodsEntity();
                             goodsEntity.setPeopleId(ShareApplication.user.getUserId());
                             goodsEntity.setPeopleName(ShareApplication.user.getUserName());
@@ -252,43 +266,70 @@ public class MyPublishActivity extends CommonActivity {
                                     .subscribe(new BaseObserver<GoodsResultVo>() {
                                         @Override
                                         public void onSuccess(GoodsResultVo goodsResultVo) {
-                                            if (entityList==null)
-                                                return;
                                             entityList.get(position).getGoodsList().add(goodsResultVo.getData());
-                                            adapter.notifyItemChanged(position,"goods");
-                                            ToastUtil.showShortMessage(mContext,"点赞成功");
+                                            adapter.notifyItemChanged(position, "goods");
+                                            ToastUtil.showShortMessage(mContext, "点赞成功");
                                         }
 
                                         @Override
                                         public void onFailed(String msg) {
-                                            ToastUtil.showShortMessage(mContext,"点赞失败");
+                                            ToastUtil.showShortMessage(mContext, "点赞失败");
                                         }
                                     });
                         }
                         break;
                     case R.id.iv_review:
                         Intent detailIntent = new Intent(mContext, ShareDetailActivity.class);
-                        detailIntent.putExtra("shareId",entityList.get(position).getShareId());
-                        detailIntent.putExtra("position",position);
+                        detailIntent.putExtra("shareId", entityList.get(position).getShareId());
+                        detailIntent.putExtra("position", position);
                         toPos = position;
                         shareId = entityList.get(position).getShareId();
-                        startActivityForResult(detailIntent,code_detail);
+                        startActivityForResult(detailIntent, CODE_TODETAIL);
+                        break;
+                    case R.id.iv_share:
                         break;
                     case R.id.iv_more:
-                        showChoose(entityList.get(position),position);
+                        showChoose(entityList.get(position), position);
+                        break;
+                    case R.id.rl_play:
+                        VideoPreviewDialog dialog2 = new VideoPreviewDialog(mContext);
+                        String path = entityList.get(position).getShareUrl();
+                        dialog2.setVideo(NetWorkService.homeUrl+path);
+                        dialog2.show();
+                        break;
+                    case R.id.iv_img:
+                    case R.id.iv1:
+                        showPreImg(entityList.get(position),0);
+                        break;
+                    case R.id.iv2:
+                        showPreImg(entityList.get(position),1);
+                        break;
+                    case R.id.iv3:
+                        showPreImg(entityList.get(position),2);
+                        break;
+                    case R.id.iv4:
+                        showPreImg(entityList.get(position),3);
                         break;
                 }
             }
         });
-        socialAdapter.setOnItemClickListener(new OnItemClickListener() {
+    }
+
+    private void showPreImg(SocialPublicEntity publicEntity, int pos){
+        List<String> list = new ArrayList<>();
+        String[] split = publicEntity.getShareUrl().split(";");
+        for (String str:split){
+            list.add(str);
+        }
+        ImgPreviewDialog dialog = new ImgPreviewDialog(mContext, list);
+        dialog.setPhotoViewClick(new ImgPreviewDialog.PhotoViewClick() {
             @Override
-            public void onItemClick(@NonNull BaseQuickAdapter<?, ?> adapter, @NonNull View view, int position) {
-                SocialPublicEntity socialPublicEntity = entityList.get(position);
-                Intent intent = new Intent(MyPublishActivity.this, PlayerSongActivity.class);
-                intent.putExtra("url", socialPublicEntity.getShareUrl());
-                startActivity(intent);
+            public void ImgClick() {
+                dialog.dismiss();
             }
         });
+        dialog.setShowPos(pos);
+        dialog.show();
     }
 
     private void showChoose(SocialPublicEntity socialPublicEntity, int position){
@@ -343,7 +384,7 @@ public class MyPublishActivity extends CommonActivity {
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
-            case code_detail:
+            case CODE_TODETAIL:
                 getData(shareId);
                 break;
         }
@@ -375,39 +416,50 @@ public class MyPublishActivity extends CommonActivity {
                 this.finish();
                 break;
             case R.id.iv_add:
-                Intent intent1 = new Intent(this, ShareActivity.class);
-                ShareDialog dialog = new ShareDialog(this);
-                dialog.setClickListener(new ShareDialog.ClickListener() {
-                    @Override
-                    public void textClick() {
-                        intent1.putExtra("shareType", Constants.SHARE_TEXT);
-                        startActivity(intent1);
-                        dialog.dismiss();
-                    }
-
-                    @Override
-                    public void musicClick() {
-                        intent1.putExtra("shareType", Constants.SHARE_MUSIC);
-                        startActivity(intent1);
-                        dialog.dismiss();
-                    }
-
-                    @Override
-                    public void cameraClick() {
-                        intent1.putExtra("shareType", Constants.SHARE_VIDEO);
-                        startActivity(intent1);
-                        dialog.dismiss();
-                    }
-
-                    @Override
-                    public void albumClick() {
-                        intent1.putExtra("shareType", Constants.SHARE_PIC);
-                        startActivity(intent1);
-                        dialog.dismiss();
-                    }
-                });
-                dialog.show();
+                goShare();
                 break;
+        }
+    }
+
+    private void goShare() {
+        Intent intent1 = new Intent(this, ShareActivity.class);
+        ShareDialog dialog = new ShareDialog(this);
+        dialog.setClickListener(new ShareDialog.ClickListener() {
+            @Override
+            public void textClick() {
+                intent1.putExtra("shareType", Constants.SHARE_TEXT);
+                startActivity(intent1);
+                dialog.dismiss();
+            }
+
+            @Override
+            public void musicClick() {
+                intent1.putExtra("shareType", Constants.SHARE_MUSIC);
+                startActivity(intent1);
+                dialog.dismiss();
+            }
+
+            @Override
+            public void cameraClick() {
+                intent1.putExtra("shareType", Constants.SHARE_VIDEO);
+                startActivity(intent1);
+                dialog.dismiss();
+            }
+
+            @Override
+            public void albumClick() {
+                intent1.putExtra("shareType", Constants.SHARE_PIC);
+                startActivity(intent1);
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+
+    @Subscribe
+    public void refreshSuccessData(UpLoadSocialSuccess event) {
+        if (event != null) {
+            socialAdapter.addData(0, event.socialPublicEntity);
         }
     }
 
@@ -417,5 +469,12 @@ public class MyPublishActivity extends CommonActivity {
         if (!TextUtils.isEmpty(userId)){
             loadData(true,0);
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        bind.unbind();
+        EventBus.getDefault().unregister(this);
     }
 }

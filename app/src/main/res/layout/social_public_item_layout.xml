@@ -91,7 +91,7 @@
     </RelativeLayout>
     <LinearLayout
         android:id="@+id/ll_share_pic"
-        android:visibility="visible"
+        android:visibility="gone"
         android:padding="@dimen/dp_10"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -102,7 +102,8 @@
             android:textSize="@dimen/sp_15"
             android:textColor="@color/textColorBlack"
             android:id="@+id/tv_text2"/>
-        <ImageView
+        <com.shehuan.niv.NiceImageView
+            app:corner_radius="@dimen/dp_10"
             android:visibility="gone"
             android:layout_marginTop="@dimen/dp_5"
             android:id="@+id/iv_img"
@@ -121,13 +122,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
-                <ImageView
+                <com.shehuan.niv.NiceImageView
+                    app:corner_radius="@dimen/dp_10"
                     android:id="@+id/iv1"
                     android:layout_width="0dp"
                     android:layout_height="@dimen/dp_100"
                     android:scaleType="centerCrop"
                     android:layout_weight="1"/>
-                <ImageView
+                <com.shehuan.niv.NiceImageView
+                    app:corner_radius="@dimen/dp_10"
                     android:id="@+id/iv2"
                     android:layout_marginLeft="@dimen/dp_3"
                     android:layout_width="0dp"
@@ -144,13 +147,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
-                <ImageView
+                <com.shehuan.niv.NiceImageView
+                    app:corner_radius="@dimen/dp_10"
                     android:id="@+id/iv3"
                     android:layout_width="0dp"
                     android:layout_height="@dimen/dp_100"
                     android:scaleType="centerCrop"
                     android:layout_weight="1"/>
-                <ImageView
+                <com.shehuan.niv.NiceImageView
+                    app:corner_radius="@dimen/dp_10"
                     android:id="@+id/iv4"
                     android:layout_marginLeft="@dimen/dp_3"
                     android:layout_width="0dp"
@@ -218,7 +223,7 @@
             <ImageView
                 android:id="@+id/iv_first"
                 android:layout_width="@dimen/dp_20"
-                android:layout_height="@dimen/dp_20"
+                android:layout_height="@dimen/dp_15"
                 android:layout_gravity="center_vertical"
                 android:src="@drawable/ic_location_publish"/>
             <TextView

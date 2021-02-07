@@ -2,6 +2,7 @@ package tk.com.sharemusic.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -17,6 +18,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.HashMap;
@@ -29,6 +31,7 @@ import cn.jpush.android.api.JPushInterface;
 import cn.jpush.android.ups.JPushUPSManager;
 import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
+import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.network.BaseResult;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
@@ -68,13 +71,26 @@ public class LoginActivity extends CommonActivity {
                 requestPermissions(PERMISSIONS,111);
             }
         }
-
-        String name = ShareApplication.getInstance().getConfig().getString("userName","");
+        String name = ShareApplication.getInstance().getConfig().getString("userName", "");
         etName.setText(name);
-        String password = ShareApplication.getInstance().getConfig().getString("password","");
+        String password = ShareApplication.getInstance().getConfig().getString("password", "");
         etPassword.setText(password);
-        if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(password)){
+        if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(password)) {
             login();
+        }
+        String logout = getIntent().getStringExtra("logout");
+        if (!TextUtils.isEmpty(logout)){
+            AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setTitle("提示")
+                    .setMessage(logout)
+                    .setNegativeButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .create();
+            dialog.show();
         }
     }
 
@@ -120,7 +136,15 @@ public class LoginActivity extends CommonActivity {
                     @Override
                     public void onSuccess(LoginVo loginVo) {
                         if (loginVo.getStatus()==0){
-                            HashMap map1 = new HashMap();
+                            ShareApplication.getInstance().getConfig().setBoolean("logined",true);
+                            ShareApplication.getInstance().getConfig().setObject("userInfo",loginVo.getData());
+                            ShareApplication.notifyRegistrationId();
+                            ShareApplication.setUser(loginVo.getData());
+                            ShareApplication.getInstance().getConfig().setString("userName", etName.getText().toString());
+                            ShareApplication.getInstance().getConfig().setString("password", etPassword.getText().toString());
+                            startActivity(new Intent(LoginActivity.this,MainActivity.class));
+                            LoginActivity.this.finish();
+                            /*HashMap map1 = new HashMap();
                             map1.put("userId", loginVo.getData().getUserId());
                             map1.put("registerId",JPushInterface.getRegistrationID(getApplicationContext()));
                             service.updataRegisterId(map1)
@@ -141,7 +165,7 @@ public class LoginActivity extends CommonActivity {
                                 public void onFailed(String msg) {
                                     ToastUtil.showShortMessage(LoginActivity.this,"登录失败");
                                 }
-                            });
+                            });*/
                         }
                     }
 

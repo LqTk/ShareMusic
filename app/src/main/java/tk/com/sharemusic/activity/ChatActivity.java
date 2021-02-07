@@ -40,6 +40,8 @@ import com.luck.picture.lib.PictureSelector;
 import com.luck.picture.lib.config.PictureConfig;
 import com.luck.picture.lib.entity.LocalMedia;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
+import com.scwang.smartrefresh.layout.api.RefreshLayout;
+import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import org.greenrobot.eventbus.EventBus;
@@ -166,6 +168,7 @@ public class ChatActivity extends CommonActivity {
     private int openType;
     private MsgEntity partnerInfo;
     private User user;
+    private List<ChatEntity> localChatLists = new ArrayList<>();
     private List<ChatEntity> chatLists = new ArrayList<>();
     private ChatAdapter chatAdapter;
     private PreferenceConfig preferenceConfig;
@@ -174,6 +177,7 @@ public class ChatActivity extends CommonActivity {
     private int reSendPos;
     private List<ChatEntity> sendEntityList = new ArrayList<>();
     private List<Integer> sending = new ArrayList<>();
+    int page = 1;
 
     class CountdownHandler extends Handler {
         private final WeakReference<ChatActivity> mActivity;
@@ -212,7 +216,12 @@ public class ChatActivity extends CommonActivity {
         reLogin();
         partnerId = getIntent().getStringExtra("partnerId");
 
-        chatLists = preferenceConfig.getArrayList(user.getUserId()+partnerId+Config.CHAT_PARTNER_LIST,ChatEntity.class);
+        localChatLists = preferenceConfig.getArrayList(user.getUserId()+partnerId+Config.CHAT_PARTNER_LIST,ChatEntity.class);
+        if (localChatLists.size()>page*10){
+            chatLists.addAll(0,localChatLists.subList(localChatLists.size()-page*10, localChatLists.size()));
+        }else {
+            chatLists.addAll(0,localChatLists);
+        }
 
         if (!ShareApplication.multiSending) {
             for (ChatEntity chatEntity : chatLists) {
@@ -235,6 +244,21 @@ public class ChatActivity extends CommonActivity {
         initPicker();
         loadData(true);
         initPressToSpeak();
+    }
+
+    private void loadLocalData(){
+        localChatLists = preferenceConfig.getArrayList(user.getUserId()+partnerId+Config.CHAT_PARTNER_LIST,ChatEntity.class);
+        if (localChatLists.size()>page*10){
+            List<ChatEntity> chatEntities = localChatLists.subList(localChatLists.size() - page * 10, localChatLists.size());
+            chatLists.addAll(0,chatEntities);
+            if (chatAdapter!=null){
+                chatAdapter.notifyDataSetChanged();
+            }
+            rcvChat.scrollToPosition(chatEntities.size()+1);
+        }else {
+            page--;
+        }
+        refreshView.finishRefresh();
     }
 
     private void loadData(boolean firstLoad) {
@@ -415,6 +439,14 @@ public class ChatActivity extends CommonActivity {
             }
         });
         rcvChat.scrollToPosition(chatLists.size());
+
+        refreshView.setOnRefreshListener(new OnRefreshListener() {
+            @Override
+            public void onRefresh(@NonNull RefreshLayout refreshLayout) {
+                page++;
+                loadLocalData();
+            }
+        });
     }
 
     private void reLogin(){

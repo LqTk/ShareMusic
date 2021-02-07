@@ -283,6 +283,8 @@ public class MineFragment extends Fragment {
             case R.id.rl_logout:
                 ShareApplication.clearActivity();
                 ShareApplication.getInstance().getConfig().setString("password","");
+                ShareApplication.getInstance().getConfig().setBoolean("logined",false);
+                ShareApplication.getInstance().getConfig().setObject("userInfo",null);
                 startActivity(new Intent(getContext(),LoginActivity.class));
                 break;
         }

@@ -34,6 +34,7 @@ import com.chad.library.adapter.base.listener.OnItemClickListener;
 import com.danikula.videocache.HttpProxyCacheServer;
 import com.google.android.flexbox.FlexboxLayout;
 import com.luck.picture.lib.tools.ScreenUtils;
+import com.shehuan.niv.NiceImageView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -120,7 +121,7 @@ public class ShareDetailActivity extends CommonActivity {
     @BindView(R.id.tv_text2)
     TextView tvText2;
     @BindView(R.id.iv_img)
-    ImageView ivImg;
+    NiceImageView ivImg;
     @BindView(R.id.mgd_pic)
     MyGridView mgdPic;
     @BindView(R.id.ll_share_pic)
@@ -144,13 +145,13 @@ public class ShareDetailActivity extends CommonActivity {
     @BindView(R.id.rl_video_play)
     RelativeLayout rlVideoPlay;
     @BindView(R.id.iv1)
-    ImageView iv1;
+    NiceImageView iv1;
     @BindView(R.id.iv2)
-    ImageView iv2;
+    NiceImageView iv2;
     @BindView(R.id.iv3)
-    ImageView iv3;
+    NiceImageView iv3;
     @BindView(R.id.iv4)
-    ImageView iv4;
+    NiceImageView iv4;
     @BindView(R.id.ll_iv4)
     LinearLayout llIv4;
     @BindView(R.id.tv_where)

@@ -27,6 +27,7 @@ import butterknife.Unbinder;
 import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.event.ChangeFragmentEvent;
+import tk.com.sharemusic.event.LogoutEvent;
 import tk.com.sharemusic.event.MsgCountEvent;
 import tk.com.sharemusic.fragment.ChatFragment;
 import tk.com.sharemusic.fragment.FriendsFragment;
@@ -77,14 +78,12 @@ public class MainActivity extends CommonActivity {
                 .normalTextColor(Color.parseColor("#8a8a8a"))
                 .msgPointLeft(-5)
                 .msgPointTop(-5)
-                /*.setOnTabLoadListener(new EasyNavigationBar.OnTabLoadListener() { //Tab加载完毕回调
+                .setOnTabLoadListener(new EasyNavigationBar.OnTabLoadListener() { //Tab加载完毕回调
                     @Override
                     public void onTabLoadCompleteEvent() {
-                        bottomBar.setMsgPointCount(0, 0);
-                        bottomBar.setMsgPointCount(1, 109);
-                        bottomBar.setHintPoint(2, true);
+                        bottomBar.selectTab(1,false);
                     }
-                })*/
+                })
                 .build();
     }
 
@@ -102,6 +101,18 @@ public class MainActivity extends CommonActivity {
     public void changePage(ChangeFragmentEvent event){
         if (event!=null){
             bottomBar.selectTab(event.page,true);
+        }
+    }
+
+    @Subscribe
+    public void logOut(LogoutEvent event){
+        if (event!=null){
+            ShareApplication.clearActivity();
+            ShareApplication.getInstance().getConfig().setString("password","");
+            ShareApplication.getInstance().getConfig().setBoolean("logined",false);
+            ShareApplication.getInstance().getConfig().setObject("userInfo",null);
+            startActivity(new Intent(MainActivity.this,LoginActivity.class).putExtra(
+                    "logout","您的账号在其它设备登录，如果不是您本人操作，请及时修改密码。"));
         }
     }
 

@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
+import com.shehuan.niv.NiceImageView;
 
 import java.io.File;
 import java.util.List;
@@ -79,7 +80,7 @@ public class SharePicAdapter extends BaseAdapter {
     }
 
     class ViewHolder{
-        ImageView ivPic;
+        NiceImageView ivPic;
     }
 
     public interface OnItemChildClickListener {

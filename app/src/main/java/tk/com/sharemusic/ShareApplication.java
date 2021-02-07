@@ -25,6 +25,7 @@ import com.luck.picture.lib.config.PictureMimeType;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -33,9 +34,15 @@ import cn.jpush.android.api.JPushInterface;
 import cn.jpush.android.ups.JPushUPSManager;
 import cn.jpush.android.ups.TokenResult;
 import cn.jpush.android.ups.UPSRegisterCallBack;
+import tk.com.sharemusic.activity.LoginActivity;
 import tk.com.sharemusic.entity.ChatEntity;
 import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.myview.dialog.ProgressDialog;
+import tk.com.sharemusic.network.BaseResult;
+import tk.com.sharemusic.network.HttpMethod;
+import tk.com.sharemusic.network.NetWorkService;
+import tk.com.sharemusic.network.RxSchedulers;
+import tk.com.sharemusic.network.rxjava.BaseObserver;
 import tk.com.sharemusic.utils.GlideEngine;
 import tk.com.sharemusic.utils.NetworkStatusManager;
 import tk.com.sharemusic.utils.PreferenceConfig;
@@ -392,5 +399,32 @@ public class ShareApplication extends Application {
         mLocationClient.setLocationOption(mLocationOption);
         //启动定位
         mLocationClient.startLocation();
+    }
+
+    /**
+     * 更新registrationId
+     */
+    public static void notifyRegistrationId(){
+        User user = ShareApplication.getInstance().getConfig().getObject("userInfo", User.class);
+        NetWorkService service = HttpMethod.getInstance().create(NetWorkService.class);
+        if (user!=null) {
+            ShareApplication.setUser(user);
+            HashMap map1 = new HashMap();
+            map1.put("userId", user.getUserId());
+            map1.put("registerId", JPushInterface.getRegistrationID(mContext));
+            service.updataRegisterId(map1)
+                    .compose(RxSchedulers.compose(mContext))
+                    .subscribe(new BaseObserver<BaseResult>() {
+                        @Override
+                        public void onSuccess(BaseResult baseResult) {
+
+                        }
+
+                        @Override
+                        public void onFailed(String msg) {
+
+                        }
+                    });
+        }
     }
 }

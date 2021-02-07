@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import cn.jpush.android.api.CustomMessage;
 import cn.jpush.android.api.NotificationMessage;
 import cn.jpush.android.service.JPushMessageReceiver;
+import tk.com.sharemusic.event.LogoutEvent;
 import tk.com.sharemusic.event.NewReviewEvent;
 import tk.com.sharemusic.event.RefreshChatListEvent;
 import tk.com.sharemusic.event.RefreshPartnerMsgEvent;
@@ -34,6 +35,8 @@ public class PushMessageReceiver extends JPushMessageReceiver {
             EventBus.getDefault().post(new RefreshPartnerMsgEvent());
         }else if (customMessage.message.equals("新评论")){
             EventBus.getDefault().post(new NewReviewEvent());
+        }else if (customMessage.message.equals("掉线")){
+            EventBus.getDefault().post(new LogoutEvent());
         }
     }
 

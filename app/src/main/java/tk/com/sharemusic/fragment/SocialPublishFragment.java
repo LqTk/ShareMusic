@@ -170,9 +170,7 @@ public class SocialPublishFragment extends Fragment {
         ivShow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent1 = new Intent(getContext(), ShareActivity.class);
-                intent1.putExtra("sharetext", "");
-                startActivity(intent1);
+                goShare();
             }
         });
         uiPopWinUtil = new PopWinUtil(getActivity());
@@ -284,7 +282,7 @@ public class SocialPublishFragment extends Fragment {
 
         socialAdapter.setEmptyView(emptyView);
         socialAdapter.addChildClickViewIds(R.id.ll_share_music, R.id.ll_share_people, R.id.ll_good,
-                R.id.iv_review, R.id.iv_share, R.id.iv_more, R.id.rl_play, R.id.iv1, R.id.iv2, R.id.iv3, R.id.iv4);
+                R.id.iv_review, R.id.iv_share, R.id.iv_more, R.id.rl_play, R.id.iv1, R.id.iv2, R.id.iv3, R.id.iv4, R.id.iv_img);
         socialAdapter.setOnItemChildClickListener(new OnItemChildClickListener() {
             @Override
             public void onItemChildClick(@NonNull BaseQuickAdapter adapter, @NonNull View view, int position) {
@@ -371,6 +369,7 @@ public class SocialPublishFragment extends Fragment {
                         dialog2.setVideo(NetWorkService.homeUrl+path);
                         dialog2.show();
                         break;
+                    case R.id.iv_img:
                     case R.id.iv1:
                         showPreImg(entityList.get(position),0);
                         break;
@@ -526,38 +525,7 @@ public class SocialPublishFragment extends Fragment {
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.iv_add:
-                Intent intent1 = new Intent(getContext(), ShareActivity.class);
-                ShareDialog dialog = new ShareDialog(getContext());
-                dialog.setClickListener(new ShareDialog.ClickListener() {
-                    @Override
-                    public void textClick() {
-                        intent1.putExtra("shareType", Constants.SHARE_TEXT);
-                        startActivity(intent1);
-                        dialog.dismiss();
-                    }
-
-                    @Override
-                    public void musicClick() {
-                        intent1.putExtra("shareType", Constants.SHARE_MUSIC);
-                        startActivity(intent1);
-                        dialog.dismiss();
-                    }
-
-                    @Override
-                    public void cameraClick() {
-                        intent1.putExtra("shareType", Constants.SHARE_VIDEO);
-                        startActivity(intent1);
-                        dialog.dismiss();
-                    }
-
-                    @Override
-                    public void albumClick() {
-                        intent1.putExtra("shareType", Constants.SHARE_PIC);
-                        startActivity(intent1);
-                        dialog.dismiss();
-                    }
-                });
-                dialog.show();
+                goShare();
                 break;
             case R.id.ll_to_top:
                 cyclerView.smoothScrollToPosition(0);
@@ -570,6 +538,40 @@ public class SocialPublishFragment extends Fragment {
         }
     }
 
+    private void goShare(){
+        Intent intent1 = new Intent(getContext(), ShareActivity.class);
+        ShareDialog dialog = new ShareDialog(getContext());
+        dialog.setClickListener(new ShareDialog.ClickListener() {
+            @Override
+            public void textClick() {
+                intent1.putExtra("shareType", Constants.SHARE_TEXT);
+                startActivity(intent1);
+                dialog.dismiss();
+            }
+
+            @Override
+            public void musicClick() {
+                intent1.putExtra("shareType", Constants.SHARE_MUSIC);
+                startActivity(intent1);
+                dialog.dismiss();
+            }
+
+            @Override
+            public void cameraClick() {
+                intent1.putExtra("shareType", Constants.SHARE_VIDEO);
+                startActivity(intent1);
+                dialog.dismiss();
+            }
+
+            @Override
+            public void albumClick() {
+                intent1.putExtra("shareType", Constants.SHARE_PIC);
+                startActivity(intent1);
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
     @Subscribe
     public void newReviewMsg(NewReviewEvent event){
         if (event!=null){

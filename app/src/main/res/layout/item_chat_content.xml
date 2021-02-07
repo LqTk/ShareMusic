@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:orientation="vertical">
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
 
     <RelativeLayout
         android:id="@+id/layout_right"
@@ -120,7 +121,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:visibility="gone">
-                    <ImageView
+                    <com.shehuan.niv.NiceImageView
+                        app:corner_radius="@dimen/dp_10"
                         android:id="@+id/iv_pic"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -256,7 +258,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:visibility="gone">
-                    <ImageView
+                    <com.shehuan.niv.NiceImageView
+                        app:corner_radius="@dimen/dp_10"
                         android:id="@+id/iv_pic_left"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

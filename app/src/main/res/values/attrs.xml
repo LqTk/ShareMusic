@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <attr name="border_width" format="dimension"/>
     <declare-styleable name="CircleImage">
-        <attr name="border_width" format="dimension"/>
         <attr name="border_color" format="color"/>
+        <attr name="border_width"/>
+    </declare-styleable>
+
+    <declare-styleable name="RoundAngleImageView">
+        <attr name="radius" format="dimension"/>
+        <attr name="border_width"/>
     </declare-styleable>
 </resources>
