@@ -105,6 +105,7 @@ public class MyPublishActivity extends CommonActivity {
         initView();
         initRecyView();
         initData(true, page);
+        cyclerView.scrollToPosition(0);
     }
 
     private void initView() {

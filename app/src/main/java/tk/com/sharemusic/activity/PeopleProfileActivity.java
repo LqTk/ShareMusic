@@ -1,5 +1,6 @@
 package tk.com.sharemusic.activity;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,6 +10,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
 
@@ -37,6 +40,7 @@ import tk.com.sharemusic.network.BaseResult;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
 import tk.com.sharemusic.network.RxSchedulers;
+import tk.com.sharemusic.network.response.AddPartnerVo;
 import tk.com.sharemusic.network.response.PeopleVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
 import tk.com.sharemusic.utils.ToastUtil;
@@ -67,6 +71,8 @@ public class PeopleProfileActivity extends CommonActivity {
     CircleImage ivHead;
     @BindView(R.id.tv_age)
     TextView tvAge;
+    @BindView(R.id.tv_set_name)
+    TextView tvSetName;
 
     private Unbinder bind;
     private NetWorkService service;
@@ -74,6 +80,8 @@ public class PeopleProfileActivity extends CommonActivity {
     private String peopleId;
     private boolean isOpenedChat = false;
     private String headUrl;
+    private final int CODE_SETNAME = 1000;//跳转到设置备注页面
+    private String friendId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,14 +108,14 @@ public class PeopleProfileActivity extends CommonActivity {
         if (TextUtils.isEmpty(peopleId))
             return;
         Map map = new HashMap();
-        map.put("userId",ShareApplication.user.getUserId());
-        map.put("peopleId",peopleId);
+        map.put("userId", ShareApplication.user.getUserId());
+        map.put("peopleId", peopleId);
         service.getPeopleInfo(map)
                 .compose(RxSchedulers.<PeopleVo>compose(this))
                 .subscribe(new BaseObserver<PeopleVo>(this) {
                     @Override
                     public void onSuccess(PeopleVo peopleVo) {
-                        if (tvName==null)
+                        if (tvName == null)
                             return;
                         MsgEntity data = peopleVo.getData();
                         headUrl = data.getPeopleHead();
@@ -115,13 +123,15 @@ public class PeopleProfileActivity extends CommonActivity {
                                 .load(TextUtils.isEmpty(headUrl) ? Gender.getImage(data.getPeopleSex()) : NetWorkService.homeUrl + data.getPeopleHead())
                                 .apply(Constants.headOptions)
                                 .into(ivHead);
+                        tvSetName.setText(TextUtils.isEmpty(data.getSetName()) ? data.getPeopleName() : data.getSetName());
                         tvName.setText(data.getPeopleName());
                         tvSex.setText(Gender.getName(data.getPeopleSex()));
                         tvDes.setText(data.getPeopleDes());
-                        tvAge.setText(data.getPeopleAge()+"岁");
-                        if (data.isConcern()){
+                        tvAge.setText(data.getPeopleAge() + "岁");
+                        if (data.isConcern()) {
+                            friendId = data.getPartnerId();
                             tvAdd.setText("已关注");
-                        }else {
+                        } else {
                             tvAdd.setText("关注");
                         }
                     }
@@ -133,7 +143,7 @@ public class PeopleProfileActivity extends CommonActivity {
                 });
     }
 
-    @OnClick({R.id.rl_publish, R.id.tv_add, R.id.tv_chat, R.id.iv_head, R.id.iv_back, R.id.tv_setting})
+    @OnClick({R.id.rl_publish, R.id.tv_add, R.id.tv_chat, R.id.iv_head, R.id.iv_back, R.id.tv_setting, R.id.ll_edit_name})
     public void onViewClicked(View view) {
         Intent intent;
         switch (view.getId()) {
@@ -145,7 +155,7 @@ public class PeopleProfileActivity extends CommonActivity {
             case R.id.tv_add:
                 if (tvAdd.getText().toString().equals("关注")) {
                     addPartner();
-                }else {
+                } else {
                     TextDialog dialog = new TextDialog(this);
                     dialog.setTitle1("是否取消关注？");
                     dialog.setContent("茫茫人海，可能再也见不到啦！");
@@ -176,7 +186,7 @@ public class PeopleProfileActivity extends CommonActivity {
                 if (!TextUtils.isEmpty(headUrl)) {
                     List<String> list = new ArrayList<>();
                     list.add(headUrl);
-                    ImgPreviewDialog dialog = new ImgPreviewDialog(context,list);
+                    ImgPreviewDialog dialog = new ImgPreviewDialog(context, list);
                     dialog.setPhotoViewClick(new ImgPreviewDialog.PhotoViewClick() {
                         @Override
                         public void ImgClick() {
@@ -190,7 +200,28 @@ public class PeopleProfileActivity extends CommonActivity {
                 PeopleProfileActivity.this.finish();
                 break;
             case R.id.tv_setting:
-                ToastUtil.showShortMessage(context,"设置");
+                ToastUtil.showShortMessage(context, "设置");
+                break;
+            case R.id.ll_edit_name:
+                if (TextUtils.isEmpty(friendId)){
+                    ToastUtil.showShortMessage(context,"需要先关注");
+                    return;
+                }
+                startActivityForResult(new Intent(this, SetNameActivity.class)
+                        .putExtra("id",friendId)
+                        .putExtra("name",tvSetName.getText().toString()), CODE_SETNAME);
+                break;
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != Activity.RESULT_OK)
+            return;
+        switch (requestCode) {
+            case CODE_SETNAME:
+                tvSetName.setText(data.getStringExtra("name"));
                 break;
         }
     }
@@ -210,8 +241,10 @@ public class PeopleProfileActivity extends CommonActivity {
                     public void onSuccess(BaseResult baseResult) {
                         ToastUtil.showShortMessage(PeopleProfileActivity.this, "已取消关注");
                         EventBus.getDefault().post(new RefreshPartnerEvent());
-                        if (tvAdd!=null)
-                        tvAdd.setText("关注");
+                        tvSetName.setText(tvName.getText().toString());
+                        friendId = "";
+                        if (tvAdd != null)
+                            tvAdd.setText("关注");
                     }
 
                     @Override
@@ -231,13 +264,14 @@ public class PeopleProfileActivity extends CommonActivity {
         map.put("partnerId", peopleId);
         service.addPartner(map)
                 .compose(RxSchedulers.<BaseResult>compose(this))
-                .subscribe(new BaseObserver<BaseResult>() {
+                .subscribe(new BaseObserver<AddPartnerVo>() {
                     @Override
-                    public void onSuccess(BaseResult baseResult) {
+                    public void onSuccess(AddPartnerVo baseResult) {
                         ToastUtil.showShortMessage(PeopleProfileActivity.this, baseResult.getMsg());
                         EventBus.getDefault().post(new RefreshPartnerEvent());
-                        if (tvAdd!=null)
-                        tvAdd.setText("已关注");
+                        friendId = (String) baseResult.getData().get("friendId");
+                        if (tvAdd != null)
+                            tvAdd.setText("已关注");
                     }
 
                     @Override

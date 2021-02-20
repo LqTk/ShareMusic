@@ -20,6 +20,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import tk.com.sharemusic.R;
+import tk.com.sharemusic.config.Constants;
 import tk.com.sharemusic.entity.User;
 import tk.com.sharemusic.network.BaseResult;
 import tk.com.sharemusic.network.HttpMethod;
@@ -118,6 +119,9 @@ public class RegisterActivity extends CommonActivity {
                 if (TextUtils.isEmpty(etName.getText().toString().trim()) && TextUtils.isEmpty(etPhone.getText().toString().trim())){
                     ToastUtil.showShortMessage(this,"请输入用户名或电话号码");
                     return;
+                }else if (!Constants.MOBILE_PHONE_NUMBER_PATTERN.matcher(etPhone.getText().toString().trim()).matches()) {
+                    ToastUtil.showShortMessage(this,"请输入正确的手机号码");
+                    return;
                 }else if (TextUtils.isEmpty(etPassword1.getText().toString().trim())){
                     ToastUtil.showShortMessage(this,"请输入密码");
                     return;
@@ -152,7 +156,7 @@ public class RegisterActivity extends CommonActivity {
 
                     @Override
                     public void onFailed(String msg) {
-                        ToastUtil.showShortMessage(RegisterActivity.this,"注册失败");
+                        ToastUtil.showShortMessage(RegisterActivity.this,msg);
                     }
                 });
     }

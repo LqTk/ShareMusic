@@ -1,10 +1,15 @@
 package tk.com.sharemusic.activity;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AppOpsManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -20,7 +25,10 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationManagerCompat;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 
 import butterknife.BindView;
@@ -59,6 +67,7 @@ public class LoginActivity extends CommonActivity {
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.READ_EXTERNAL_STORAGE};
     private static final int PERMISSION_REQUEST_CODE = 110;
+    private String shareText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +80,7 @@ public class LoginActivity extends CommonActivity {
                 requestPermissions(PERMISSIONS,111);
             }
         }
+        shareText = getIntent().getStringExtra("shareText");
         String name = ShareApplication.getInstance().getConfig().getString("userName", "");
         etName.setText(name);
         String password = ShareApplication.getInstance().getConfig().getString("password", "");
@@ -92,6 +102,56 @@ public class LoginActivity extends CommonActivity {
                     .create();
             dialog.show();
         }
+        if (!isNotificationEnabled(this)) {
+            new android.app.AlertDialog.Builder(this).setTitle("温馨提示")
+                    .setMessage("你还未开启系统通知，将影响消息的接收，要去开启吗？")
+                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            gotoSet();//去设置开启通知
+                        }
+                    }).setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                }
+            }).show();
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    private boolean isNotificationEnabled(Context context) {
+        boolean isOpened = false;
+        try {
+            isOpened = NotificationManagerCompat.from(context).areNotificationsEnabled();
+        } catch (Exception e) {
+            e.printStackTrace();
+            isOpened = false;
+        }
+        return isOpened;
+    }
+
+    /**
+     * 通知栏设置
+     */
+    private void gotoSet() {
+        Intent intent = new Intent();
+        if (Build.VERSION.SDK_INT >= 26) {
+            // android 8.0引导
+            intent.setAction("android.settings.APP_NOTIFICATION_SETTINGS");
+            intent.putExtra("android.provider.extra.APP_PACKAGE", getPackageName());
+        } else if (Build.VERSION.SDK_INT >=  Build.VERSION_CODES.LOLLIPOP) {
+            // android 5.0-7.0
+            intent.setAction("android.settings.APP_NOTIFICATION_SETTINGS");
+            intent.putExtra("app_package", getPackageName());
+            intent.putExtra("app_uid", getApplicationInfo().uid);
+        } else {
+            // 其他
+            intent.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
+            intent.setData(Uri.fromParts("package", getPackageName(), null));
+        }
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 
     @Override
@@ -118,6 +178,7 @@ public class LoginActivity extends CommonActivity {
                 startActivity(intent);
                 break;
             case R.id.tv_forget:
+                startActivity(new Intent(this,ForgetPassWordActivity.class));
                 break;
         }
     }
@@ -142,7 +203,11 @@ public class LoginActivity extends CommonActivity {
                             ShareApplication.setUser(loginVo.getData());
                             ShareApplication.getInstance().getConfig().setString("userName", etName.getText().toString());
                             ShareApplication.getInstance().getConfig().setString("password", etPassword.getText().toString());
-                            startActivity(new Intent(LoginActivity.this,MainActivity.class));
+                            if (TextUtils.isEmpty(shareText)) {
+                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                            }else {
+                                setResult(Activity.RESULT_OK);
+                            }
                             LoginActivity.this.finish();
                             /*HashMap map1 = new HashMap();
                             map1.put("userId", loginVo.getData().getUserId());

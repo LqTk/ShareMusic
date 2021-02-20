@@ -22,6 +22,28 @@
                 android:padding="@dimen/dp_10"
                 android:src="@drawable/ic_back_white"
                 android:layout_marginLeft="@dimen/dp_5"/>
+            <LinearLayout
+                android:id="@+id/ll_edit_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="@dimen/dp_10">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tv_set_name"
+                    android:text="ddddd"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/sp_20"/>
+                <ImageView
+                    android:layout_gravity="bottom"
+                    android:layout_toRightOf="@+id/tv_set_name"
+                    android:layout_marginLeft="@dimen/dp_5"
+                    android:layout_width="@dimen/dp_20"
+                    android:layout_height="@dimen/dp_20"
+                    android:src="@drawable/edit_bg"/>
+            </LinearLayout>
             <TextView
                 android:id="@+id/tv_setting"
                 android:layout_width="@dimen/dp_40"
@@ -41,19 +63,26 @@
                 android:layout_marginTop="@dimen/dp_50"
                 android:src="@drawable/default_head_boy"/>
         </RelativeLayout>
-        <TextView
-            android:layout_below="@id/rl_head"
-            android:layout_marginTop="@dimen/dp_10"
+        <LinearLayout
+            android:id="@+id/ll_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@id/rl_head"
             android:layout_centerHorizontal="true"
-            android:textSize="@dimen/sp_20"
-            android:text=""
-            android:textColor="@color/textColorBlack"
-            android:id="@+id/tv_name"/>
+            android:layout_marginTop="@dimen/dp_10"
+            android:gravity="bottom">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/sp_20"
+                android:text=""
+                android:textColor="@color/textColorBlack"
+                android:id="@+id/tv_name"/>
+        </LinearLayout>
         <LinearLayout
             android:id="@+id/ll_detail"
-            android:layout_below="@id/tv_name"
+            android:layout_below="@id/ll_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"

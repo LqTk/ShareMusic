@@ -69,6 +69,7 @@ import tk.com.sharemusic.network.response.GetPublicDataTenVo;
 import tk.com.sharemusic.network.response.GoodsResultVo;
 import tk.com.sharemusic.network.response.PublicMsgVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
+import tk.com.sharemusic.utils.Config;
 import tk.com.sharemusic.utils.PopWinUtil;
 import tk.com.sharemusic.utils.ToastUtil;
 
@@ -248,7 +249,15 @@ public class SocialPublishFragment extends Fragment {
                         } else {
                             noMore = false;
                         }
+                        if (!isRefresh) {
+                            for (SocialPublicEntity item : data) {
+                                if (entityList.contains(item)) {
+                                    socialAdapter.remove(item);
+                                }
+                            }
+                        }
                         socialAdapter.addData(data);
+                        ShareApplication.getInstance().getConfig().setObject(Config.SOCIAL_PUBLISH, data);
                         if (srf==null)
                             return;
                         if (isRefresh) {
@@ -272,6 +281,11 @@ public class SocialPublishFragment extends Fragment {
     }
 
     private void initRecyView() {
+        ArrayList<SocialPublicEntity> list = ShareApplication.getInstance().getConfig().getArrayList(Config.SOCIAL_PUBLISH, SocialPublicEntity.class);
+        if (list!=null){
+            entityList.addAll(list);
+        }
+
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         cyclerView.setLayoutManager(linearLayoutManager);
@@ -292,6 +306,8 @@ public class SocialPublishFragment extends Fragment {
                             EventBus.getDefault().post(new ChangeFragmentEvent(MainActivity.PAGE_MINE));
                             return;
                         }
+                        if (entityList.get(position).getIsPublic()==Constants.PEOPLE_STEALTH)
+                            return;
                         Intent intent1 = new Intent(getContext(), PeopleProfileActivity.class);
                         intent1.putExtra("peopleId", entityList.get(position).getUserId());
                         intent1.putExtra("from", "public");
@@ -340,7 +356,7 @@ public class SocialPublishFragment extends Fragment {
                                         public void onSuccess(GoodsResultVo goodsResultVo) {
                                             entityList.get(position).getGoodsList().add(goodsResultVo.getData());
                                             adapter.notifyItemChanged(position, "goods");
-                                            ToastUtil.showShortMessage(getContext(), "点赞成功");
+//                                            ToastUtil.showShortMessage(getContext(), "点赞成功");
                                         }
 
                                         @Override
@@ -533,7 +549,7 @@ public class SocialPublishFragment extends Fragment {
             case R.id.rl_msg:
                 Intent intent = new Intent(getContext(), PublishMsgActivity.class);
                 startActivityForResult(intent, CODE_TOMSG);
-                ToastUtil.showShortMessage(getContext(), "显示消息");
+//                ToastUtil.showShortMessage(getContext(), "显示消息");
                 break;
         }
     }

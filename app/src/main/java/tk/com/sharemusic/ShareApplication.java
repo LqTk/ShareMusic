@@ -1,12 +1,20 @@
 package tk.com.sharemusic;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.AppOpsManager;
 import android.app.Application;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -23,6 +31,8 @@ import com.luck.picture.lib.PictureSelector;
 import com.luck.picture.lib.config.PictureConfig;
 import com.luck.picture.lib.config.PictureMimeType;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,7 +67,7 @@ public class ShareApplication extends Application {
     public static boolean multiSending = false;
     private PreferenceConfig mCurrentConfig;
     private static ShareApplication mContext;
-    private static List<AppCompatActivity> activityList = new ArrayList<>();
+    public static List<AppCompatActivity> activityList = new ArrayList<>();
 
     /**
      * 定位信息
@@ -74,9 +84,6 @@ public class ShareApplication extends Application {
         super.onCreate();
         mContext = this;
         NetworkStatusManager.init(this);
-        if (!isNotificationEnabled(this)) {
-            gotoSet();//去设置开启通知
-        }
         JPushInterface.setDebugMode(true);
         JPushInterface.init(this);
         String registrationID = JPushInterface.getRegistrationID(this);
@@ -116,41 +123,6 @@ public class ShareApplication extends Application {
     private void trustAllSSL(){
         HttpsURLConnection.setDefaultSSLSocketFactory(SSLSocketFactoryUtils.createSSLSocketFactory());
         HttpsURLConnection.setDefaultHostnameVerifier(new SSLSocketFactoryUtils.TrustAllHostnameVerifier());
-    }
-
-    private boolean isNotificationEnabled(Context context) {
-        boolean isOpened = false;
-        try {
-            isOpened = NotificationManagerCompat.from(context).areNotificationsEnabled();
-        } catch (Exception e) {
-            e.printStackTrace();
-            isOpened = false;
-        }
-        return isOpened;
-
-    }
-
-    /**
-     * 通知栏设置
-     */
-    private void gotoSet() {
-        Intent intent = new Intent();
-        if (Build.VERSION.SDK_INT >= 26) {
-            // android 8.0引导
-            intent.setAction("android.settings.APP_NOTIFICATION_SETTINGS");
-            intent.putExtra("android.provider.extra.APP_PACKAGE", getPackageName());
-        } else if (Build.VERSION.SDK_INT >= 21) {
-            // android 5.0-7.0
-            intent.setAction("android.settings.APP_NOTIFICATION_SETTINGS");
-            intent.putExtra("app_package", getPackageName());
-            intent.putExtra("app_uid", getApplicationInfo().uid);
-        } else {
-            // 其他
-            intent.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
-            intent.setData(Uri.fromParts("package", getPackageName(), null));
-        }
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
     }
 
     /**
@@ -426,5 +398,103 @@ public class ShareApplication extends Application {
                         }
                     });
         }
+    }
+
+
+    /**
+     * 马赛克图片
+     * @param bitmap
+     * @param BLOCK_SIZE
+     * @return
+     */
+    public static Bitmap BitmapMosaic(Bitmap bitmap, int BLOCK_SIZE) {
+
+        if (bitmap == null || bitmap.getWidth() == 0 || bitmap.getHeight() == 0
+                || bitmap.isRecycled()) {
+            return null;
+        }
+        int mBitmapWidth = bitmap.getWidth();
+        int mBitmapHeight = bitmap.getHeight();
+        Bitmap mBitmap = Bitmap.createBitmap(mBitmapWidth, mBitmapHeight,
+                Bitmap.Config.ARGB_8888);//创建画布
+        int row = mBitmapWidth / BLOCK_SIZE;// 获得列的切线
+        int col = mBitmapHeight / BLOCK_SIZE;// 获得行的切线
+        int[] block = new int[BLOCK_SIZE * BLOCK_SIZE];
+        for (int i = 0; i <=row; i++)
+        {
+            for (int j =0; j <= col; j++)
+            {
+                int length = block.length;
+                int flag = 0;// 是否到边界标志
+                if (i == row && j != col) {
+                    length = (mBitmapWidth - i * BLOCK_SIZE) * BLOCK_SIZE;
+                    if (length == 0) {
+                        break;// 边界外已经没有像素
+                    }
+                    bitmap.getPixels(block, 0, BLOCK_SIZE, i * BLOCK_SIZE, j
+                                    * BLOCK_SIZE, mBitmapWidth - i * BLOCK_SIZE,
+                            BLOCK_SIZE);
+
+                    flag = 1;
+                } else if (i != row && j == col) {
+                    length = (mBitmapHeight - j * BLOCK_SIZE) * BLOCK_SIZE;
+                    if (length == 0) {
+                        break;// 边界外已经没有像素
+                    }
+                    bitmap.getPixels(block, 0, BLOCK_SIZE, i * BLOCK_SIZE, j
+                            * BLOCK_SIZE, BLOCK_SIZE, mBitmapHeight - j
+                            * BLOCK_SIZE);
+                    flag = 2;
+                } else if (i == row && j == col) {
+                    length = (mBitmapWidth - i * BLOCK_SIZE)
+                            * (mBitmapHeight - j * BLOCK_SIZE);
+                    if (length == 0) {
+                        break;// 边界外已经没有像素
+                    }
+                    bitmap.getPixels(block, 0, BLOCK_SIZE, i * BLOCK_SIZE, j
+                                    * BLOCK_SIZE, mBitmapWidth - i * BLOCK_SIZE,
+                            mBitmapHeight - j * BLOCK_SIZE);
+
+                    flag = 3;
+                } else
+                {
+                    bitmap.getPixels(block, 0, BLOCK_SIZE, i * BLOCK_SIZE, j
+                            * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);//取出像素数组
+                }
+
+                int r = 0, g = 0, b = 0, a = 0;
+                for (int k = 0; k < length; k++) {
+                    r += Color.red(block[k]);
+                    g += Color.green(block[k]);
+                    b += Color.blue(block[k]);
+                    a += Color.alpha(block[k]);
+                }
+                int color = Color.argb(a / length, r / length, g / length, b
+                        / length);//求块内所有颜色的平均值
+                for (int k = 0; k < length; k++) {
+                    block[k] = color;
+                }
+                if (flag == 1) {
+                    mBitmap.setPixels(block, 0, mBitmapWidth - i * BLOCK_SIZE,
+                            i * BLOCK_SIZE, j
+                                    * BLOCK_SIZE, mBitmapWidth - i * BLOCK_SIZE,
+                            BLOCK_SIZE);
+                } else if (flag == 2) {
+                    mBitmap.setPixels(block, 0, BLOCK_SIZE, i * BLOCK_SIZE, j
+                            * BLOCK_SIZE, BLOCK_SIZE, mBitmapHeight - j
+                            * BLOCK_SIZE);
+                } else if (flag == 3) {
+                    mBitmap.setPixels(block, 0, BLOCK_SIZE, i * BLOCK_SIZE, j
+                                    * BLOCK_SIZE, mBitmapWidth - i * BLOCK_SIZE,
+                            mBitmapHeight - j * BLOCK_SIZE);
+                } else {
+                    mBitmap.setPixels(block, 0, BLOCK_SIZE, i * BLOCK_SIZE, j
+                            * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                }
+
+            }
+        }
+        //并没有回收传进来的bitmap  原因是JAVA传值默认是引用,如果回收了之后,其他地方用到bitmap的位置可能报NULL指针异常,请根据实际情况决定是否回收.
+        return mBitmap;
     }
 }

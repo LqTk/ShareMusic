@@ -1,5 +1,6 @@
 package tk.com.sharemusic.activity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
@@ -26,6 +27,7 @@ import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
+import tk.com.sharemusic.config.Constants;
 import tk.com.sharemusic.event.ChangeFragmentEvent;
 import tk.com.sharemusic.event.LogoutEvent;
 import tk.com.sharemusic.event.MsgCountEvent;
@@ -145,6 +147,7 @@ public class MainActivity extends CommonActivity {
                     String string = extras.getString("android.intent.extra.TEXT");
                     Intent intent1 = new Intent(this,ShareActivity.class);
                     intent1.putExtra("sharetext",string);
+                    intent1.putExtra("shareType", Constants.SHARE_MUSIC);
                     startActivity(intent1);
                 }
             } else if (Intent.ACTION_SEND_MULTIPLE.equals(action) && type != null) {
@@ -166,4 +169,20 @@ public class MainActivity extends CommonActivity {
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        new android.app.AlertDialog.Builder(this).setTitle("温馨提示")
+                .setMessage("是否退出分享生活")
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        System.exit(0);
+                    }
+                }).setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        }).show();
+    }
 }

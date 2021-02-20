@@ -57,6 +57,7 @@ import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.activity.LoginActivity;
 import tk.com.sharemusic.activity.MyPublishActivity;
+import tk.com.sharemusic.activity.ResetPasswordActivity;
 import tk.com.sharemusic.config.Constants;
 import tk.com.sharemusic.entity.UpLoadHead;
 import tk.com.sharemusic.entity.User;
@@ -273,7 +274,8 @@ public class MineFragment extends Fragment {
                 dialog.show();
                 break;
             case R.id.rl_change_password:
-
+                Intent intent1 = new Intent(getContext(), ResetPasswordActivity.class);
+                startActivity(intent1);
                 break;
             case R.id.rl_my_public:
                 Intent intent = new Intent(getContext(), MyPublishActivity.class);
@@ -323,9 +325,11 @@ public class MineFragment extends Fragment {
                     public void onSuccess(BaseResult baseResult) {
                         switch (updataType){
                             case 1:
+                                if (ShareApplication.getInstance().getConfig().getString("userName","").equals(tvName.getText().toString().trim())) {
+                                    ShareApplication.getInstance().getConfig().setString("userName", str);
+                                }
                                 tvName.setText(str);
                                 user.setUserName(str);
-                                ShareApplication.getInstance().getConfig().setString("userName",str);
                                 ShareApplication.user.setUserName(str);
                                 break;
                             case 2:

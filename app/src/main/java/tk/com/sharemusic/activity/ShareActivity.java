@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
@@ -175,6 +176,7 @@ public class ShareActivity extends CommonActivity {
     public AMapLocationClientOption mLocationOption = null;
     private Unbinder bind;
     private static final int TYPECODE = 234;//跳转选择发布类型activity
+    private static final int TYPELoginCODE = 235;//跳转登录页面
     private String shareContent="";
 
     @Override
@@ -199,7 +201,52 @@ public class ShareActivity extends CommonActivity {
             ivLocation.setImageResource(R.drawable.location_ok);
         }
         initBottomChoose();
+
+        getIntentData();
         initView();
+    }
+
+    private void getIntentData(){
+
+        Intent intent = getIntent();
+        if (intent!=null) {
+            String action = intent.getAction();
+            String type = intent.getType();
+            if (Intent.ACTION_SEND.equals(action) && type!=null){
+                Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                Bundle extras = intent.getExtras();
+                if ("audio/".equals(type)) {
+                    // 处理发送来音频
+                    ToastUtil.showShortMessage(this,"audio");
+                } else if (type.startsWith("video/")) {
+                    // 处理发送来的视频
+                    ToastUtil.showShortMessage(this,"video");
+                } else if (type.startsWith("*/")) {
+                    //处理发送过来的其他文件
+                    ToastUtil.showShortMessage(this,"other");
+                }else if (type.startsWith("text/")){
+                    String string = extras.getString("android.intent.extra.TEXT");
+                    shareType = Constants.SHARE_MUSIC;
+                    if (!TextUtils.isEmpty(string)) {
+                        etContext.setText(string);
+                    }
+                }
+            } else if (Intent.ACTION_SEND_MULTIPLE.equals(action) && type != null) {
+                ArrayList<Uri> arrayList = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+                if (type.startsWith("audio/")) {
+                    // 处理发送来的多个音频
+                    ToastUtil.showShortMessage(this,"audio");
+                } else if (type.startsWith("video/")) {
+                    //处理发送过来的多个视频
+                    ToastUtil.showShortMessage(this,"video");
+                } else if (type.startsWith("*/")) {
+                    //处理发送过来的多个文件
+                    ToastUtil.showShortMessage(this,"other");
+                }else if (type.startsWith("text/")){
+                    ToastUtil.showShortMessage(this,"text");
+                }
+            }
+        }
     }
 
     private void initLocation() {
@@ -297,6 +344,7 @@ public class ShareActivity extends CommonActivity {
             case Constants.SHARE_MUSIC:
                 gvShare.setVisibility(View.GONE);
                 rlVideo.setVisibility(View.GONE);
+                etContext.setHint("说明：音乐分享直接复制例如网易云中的音乐分享链接到这里，点击发布即可，广场上即可点击分享内容听歌。\n例如：推荐一首好听的歌曲：小乐哥的《执迷不悟》。@vivo音乐https://music.vivo.com.cn/#/Songshare?id=647508700");
                 break;
             case Constants.SHARE_VIDEO:
                 gvShare.setVisibility(View.GONE);
@@ -348,12 +396,14 @@ public class ShareActivity extends CommonActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 shareContent = s.toString();
-                if (shareType.equals(Constants.SHARE_TEXT)) {
+                if (shareType.equals(Constants.SHARE_TEXT) || shareType.equals(Constants.SHARE_MUSIC)) {
                     String str = etContext.getText().toString();
                     setEnable(!TextUtils.isEmpty(str));
                 }
             }
         });
+        String str = etContext.getText().toString();
+        setEnable(!TextUtils.isEmpty(str));
     }
 
     /**
@@ -389,6 +439,10 @@ public class ShareActivity extends CommonActivity {
         if (TextUtils.isEmpty(string)) {
             return;
         }
+        if (!string.contains("《") || !string.contains("》")){
+            ToastUtil.showShortMessage(mContext,"格式不正确");
+            return;
+        }
         String title = string.substring(string.indexOf("《") + 1, string.indexOf("》"));
         ArrayList containedUrls = new ArrayList();
         String urlRegex = "((https?|ftp|gopher|telnet|file|http):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)";
@@ -399,18 +453,23 @@ public class ShareActivity extends CommonActivity {
             containedUrls.add(string.substring(matcher.start(0),
                     matcher.end(0)));
         }
+        if (containedUrls.isEmpty()){
+            ToastUtil.showShortMessage(mContext,"没有发现音乐链接");
+            return;
+        }
         String url = containedUrls.get(0).toString();
         ToastUtil.showShortMessage(this, url);
 //                    web.loadUrl(url);
         User user = ShareApplication.getUser();
         if (user == null) {
-            ToastUtil.showShortMessage(this, "分享失败");
+            ToastUtil.showShortMessage(this, "分享失败,请先登录");
             return;
         }
         SocialPublicEntity socialPublicEntity = new SocialPublicEntity(user.getUserId(), user.getUserName(),
-                user.getHeadImg(), user.getSex(), title, url, string, publishType, shareType,
+                user.getHeadImg(), user.getSex(), title, url, string, publishType, 0, shareType,
                 showLocation?city:"", showLocation?latitude:null, showLocation?longitude:null, new ArrayList<>(), new ArrayList<>());
         upLoadSocialPublid(socialPublicEntity);
+        ShareActivity.this.finish();
     }
 
 
@@ -461,16 +520,30 @@ public class ShareActivity extends CommonActivity {
                 break;
             case R.id.btn_share:
                 if (shareType.equals(Constants.SHARE_MUSIC)) {
-                    musicShare();
+                    if (ShareApplication.activityList.size()==1){
+                        Intent logIntent = new Intent(this,LoginActivity.class);
+                        logIntent.putExtra("shareText",etContext.getText().toString());
+                        startActivityForResult(logIntent,TYPELoginCODE);
+                    }else {
+                        musicShare();
+                    }
                 } else if (shareType.equals(Constants.SHARE_TEXT)) {
                     SocialPublicEntity socialPublicEntity = new SocialPublicEntity(ShareApplication.user.getUserId(),
                             ShareApplication.user.getUserName(),ShareApplication.user.getHeadImg(),
                             ShareApplication.user.getSex(), "", "", shareContent,
-                            publishType, shareType, showLocation?city:"", showLocation?latitude:null, showLocation?longitude:null,new ArrayList<>(), new ArrayList<>());
+                            publishType, 0, shareType, showLocation?city:"", showLocation?latitude:null, showLocation?longitude:null,new ArrayList<>(), new ArrayList<>());
                     upLoadSocialPublid(socialPublicEntity);
+                    ShareActivity.this.finish();
                 } else if (shareType.equals(Constants.SHARE_VIDEO)) {
+                    if (TextUtils.isEmpty(videoPath)) {
+                        return;
+                    }
                     upLoadFile(videoPath);
+                    ShareActivity.this.finish();
                 } else if (shareType.equals(Constants.SHARE_PIC)) {
+                    if (shareLists.size()==1) {
+                        return;
+                    }
                     upLoadPicLists.clear();
                     for (ShareGvEntity entity:shareLists){
                         if (entity.type.equals("file")){
@@ -478,8 +551,8 @@ public class ShareActivity extends CommonActivity {
                         }
                     }
                     upLoadFile(upLoadPicLists.get(0).path);
+                    ShareActivity.this.finish();
                 }
-                ShareActivity.this.finish();
                 break;
             case R.id.iv_delete:
                 if (videoLoad) {
@@ -533,7 +606,7 @@ public class ShareActivity extends CommonActivity {
                             SocialPublicEntity socialPublicEntity = new SocialPublicEntity(ShareApplication.user.getUserId(),
                                     ShareApplication.user.getUserName(),ShareApplication.user.getHeadImg(),
                                     ShareApplication.user.getSex(), "", shareUrl, shareContent,
-                                    publishType, shareType, showLocation?city:"", showLocation?latitude:null, showLocation?longitude:null,new ArrayList<>(), new ArrayList<>());
+                                    publishType, 0, shareType, showLocation?city:"", showLocation?latitude:null, showLocation?longitude:null,new ArrayList<>(), new ArrayList<>());
                             upLoadSocialPublid(socialPublicEntity);
                         }else if (shareType.equals(Constants.SHARE_PIC)){
                             shareUrl = shareUrl+(String) upLoadFileVo.getData().get("url")+";";
@@ -544,7 +617,7 @@ public class ShareActivity extends CommonActivity {
                                 SocialPublicEntity socialPublicEntity = new SocialPublicEntity(ShareApplication.user.getUserId(),
                                         ShareApplication.user.getUserName(),ShareApplication.user.getHeadImg(),
                                         ShareApplication.user.getSex(), "", shareUrl, shareContent,
-                                        publishType, shareType, showLocation?city:"", showLocation?latitude:null, showLocation?longitude:null,new ArrayList<>(), new ArrayList<>());
+                                        publishType, 0, shareType, showLocation?city:"", showLocation?latitude:null, showLocation?longitude:null,new ArrayList<>(), new ArrayList<>());
                                 upLoadSocialPublid(socialPublicEntity);
                             }
                         }
@@ -668,8 +741,13 @@ public class ShareActivity extends CommonActivity {
     @Override
     public void onActivityResult(final int requestCode, final int resultCode,
                                  final Intent data) {
-        if (resultCode != Activity.RESULT_OK)
+        if (resultCode != Activity.RESULT_OK) {
+            Glide.with(mContext)
+                    .load(R.drawable.add_pic)
+                    .apply(Constants.picLoadOptions)
+                    .into(ivVideo);
             return;
+        }
         switch (requestCode) {
             case PictureConfig.CHOOSE_REQUEST:
                 // 图片、视频、音频选择结果回调
@@ -751,6 +829,9 @@ public class ShareActivity extends CommonActivity {
                     tvPeopleType.setText(type);
                 }
                 break;
+            case TYPELoginCODE:
+                musicShare();
+                break;
         }
     }
 
@@ -811,5 +892,8 @@ public class ShareActivity extends CommonActivity {
         if (mLocationClient!=null) {
             mLocationClient.onDestroy();
         }//销毁定位客户端，同时销毁本地定位服务。
+        if (ShareApplication.activityList.isEmpty()){
+            startActivity(new Intent(this,LoginActivity.class));
+        }
     }
 }

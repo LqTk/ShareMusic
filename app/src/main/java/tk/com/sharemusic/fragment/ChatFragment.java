@@ -233,6 +233,8 @@ public class ChatFragment extends Fragment {
                 EventBus.getDefault().post(new MsgCountEvent(MainActivity.PAGE_MESSAGE,chatListAdapter.getAllMsgCount()));
                 Intent intent = new Intent(getContext(), ChatActivity.class);
                 intent.putExtra("partnerId",chatLists.get(position).senderId);
+                intent.putExtra("partnerName",chatLists.get(position).senderName);
+                intent.putExtra("head",chatLists.get(position).senderAvatar);
                 startActivity(intent);
                 saveData();
             }

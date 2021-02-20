@@ -57,6 +57,12 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/edit_reg_bg"
                 android:hint="请输入手机号"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/sp_10"
+                android:textColor="@color/hint_text"
+                android:text="请填写正确的电话号码，以便找回密码时使用\n填写后不可再修改"/>
 
             <EditText
                 android:id="@+id/et_password1"
@@ -73,7 +79,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/edit_reg_bg"
-                android:hint="请再次密码"
+                android:hint="请再次输入密码"
                 android:inputType="textPassword"/>
 
             <Button

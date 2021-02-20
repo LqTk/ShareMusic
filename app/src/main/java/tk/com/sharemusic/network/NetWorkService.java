@@ -20,6 +20,7 @@ import retrofit2.http.QueryMap;
 import tk.com.sharemusic.entity.GoodsEntity;
 import tk.com.sharemusic.entity.SocialPublicEntity;
 import tk.com.sharemusic.entity.User;
+import tk.com.sharemusic.network.response.AddPartnerVo;
 import tk.com.sharemusic.network.response.AddReviewVo;
 import tk.com.sharemusic.network.response.ChatListVo;
 import tk.com.sharemusic.network.response.ChatReviewVo;
@@ -50,6 +51,14 @@ public interface NetWorkService {
     //更新用户信息
     @POST("user/updataInfo")
     Observable<BaseResult> updataInfo(@Body Map map);
+
+    //重置密码
+    @POST("user/resetPassword")
+    Observable<BaseResult> resetPassword(@Body Map map);
+
+    //修改密码
+    @POST("user/changePassword")
+    Observable<BaseResult> changePassword(@Body Map map);
 
     //上传头像
     @Multipart
@@ -123,7 +132,11 @@ public interface NetWorkService {
 
     //关注好友
     @POST("user/addPartner")
-    Observable<BaseResult> addPartner(@Body Map<String,Object> map);
+    Observable<AddPartnerVo> addPartner(@Body Map<String,Object> map);
+
+    //设置备注
+    @POST("user/setNote")
+    Observable<BaseResult> setNote(@Body Map<String,Object> map);
 
     //取消关注好友
     @POST("user/cancelPartner")

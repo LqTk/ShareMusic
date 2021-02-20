@@ -95,7 +95,7 @@ public abstract class BaseObserver<T> implements Observer<T> {
             ToastUtil.showShortMessage(context,e.getMessage());
         }
 
-        onFailed("网络错误");
+        onFailed("服务器响应超时");
     }
 
     @Override

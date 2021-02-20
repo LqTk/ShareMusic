@@ -26,7 +26,7 @@ public class PartnerAdapter extends BaseQuickAdapter<MsgEntity, BaseViewHolder> 
 
     @Override
     protected void convert(@NotNull BaseViewHolder baseViewHolder, MsgEntity peopleEntity) {
-        baseViewHolder.setText(R.id.tv_name,peopleEntity.getPeopleName());
+        baseViewHolder.setText(R.id.tv_name,TextUtils.isEmpty(peopleEntity.getSetName())?peopleEntity.getPeopleName():peopleEntity.getSetName());
         baseViewHolder.setText(R.id.tv_des,peopleEntity.getPeopleDes());
         Glide.with(getContext())
                 .load(TextUtils.isEmpty(peopleEntity.getPeopleHead()) ? Gender.getImage(peopleEntity.getPeopleSex()) : NetWorkService.homeUrl+peopleEntity.getPeopleHead())

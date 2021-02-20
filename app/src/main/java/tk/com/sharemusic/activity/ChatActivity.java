@@ -177,7 +177,7 @@ public class ChatActivity extends CommonActivity {
     private int reSendPos;
     private List<ChatEntity> sendEntityList = new ArrayList<>();
     private List<Integer> sending = new ArrayList<>();
-    int page = 1;
+    int page = 0;
 
     class CountdownHandler extends Handler {
         private final WeakReference<ChatActivity> mActivity;
@@ -215,10 +215,14 @@ public class ChatActivity extends CommonActivity {
         user = ShareApplication.getUser();
         reLogin();
         partnerId = getIntent().getStringExtra("partnerId");
-
+        String name = getIntent().getStringExtra("partnerName");
+        if (!TextUtils.isEmpty(name)) {
+            tvName.setText(name);
+            tvTitle.setText("");
+        }
         localChatLists = preferenceConfig.getArrayList(user.getUserId()+partnerId+Config.CHAT_PARTNER_LIST,ChatEntity.class);
-        if (localChatLists.size()>page*10){
-            chatLists.addAll(0,localChatLists.subList(localChatLists.size()-page*10, localChatLists.size()));
+        if (localChatLists.size()-10>page*10){
+            chatLists.addAll(0,localChatLists.subList(0, 10));
         }else {
             chatLists.addAll(0,localChatLists);
         }
@@ -248,7 +252,7 @@ public class ChatActivity extends CommonActivity {
 
     private void loadLocalData(){
         localChatLists = preferenceConfig.getArrayList(user.getUserId()+partnerId+Config.CHAT_PARTNER_LIST,ChatEntity.class);
-        if (localChatLists.size()>page*10){
+        if (localChatLists.size()-10>page*10){
             List<ChatEntity> chatEntities = localChatLists.subList(localChatLists.size() - page * 10, localChatLists.size());
             chatLists.addAll(0,chatEntities);
             if (chatAdapter!=null){
@@ -256,7 +260,16 @@ public class ChatActivity extends CommonActivity {
             }
             rcvChat.scrollToPosition(chatEntities.size()+1);
         }else {
-            page--;
+            if (localChatLists.size()>page*10) {
+                List<ChatEntity> chatEntities = localChatLists.subList(page * 10, localChatLists.size());
+                chatLists.addAll(0, chatEntities);
+                if (chatAdapter != null) {
+                    chatAdapter.notifyDataSetChanged();
+                }
+                rcvChat.scrollToPosition(chatEntities.size() + 1);
+            }else {
+                page--;
+            }
         }
         refreshView.finishRefresh();
     }
@@ -447,6 +460,9 @@ public class ChatActivity extends CommonActivity {
                 loadLocalData();
             }
         });
+
+        String head = getIntent().getStringExtra("head");
+        chatAdapter.setPartnerHead(partnerId,head);
     }
 
     private void reLogin(){

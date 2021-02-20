@@ -2,12 +2,10 @@ package tk.com.sharemusic.activity;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.text.Html;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -19,19 +17,18 @@ import com.chad.library.adapter.base.listener.OnItemClickListener;
 
 import org.greenrobot.eventbus.EventBus;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import butterknife.Unbinder;
 import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.adapter.PublishMsgAdapter;
 import tk.com.sharemusic.entity.PublishMsgEntity;
 import tk.com.sharemusic.event.ChangeFragmentEvent;
-import tk.com.sharemusic.event.MsgCountEvent;
 import tk.com.sharemusic.network.BaseResult;
 import tk.com.sharemusic.network.HttpMethod;
 import tk.com.sharemusic.network.NetWorkService;
@@ -53,6 +50,7 @@ public class PublishMsgActivity extends CommonActivity {
     private NetWorkService service;
     private List<PublishMsgEntity> msgEntities = new ArrayList<>();
     private PublishMsgAdapter adapter;
+    private View emptyView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +60,7 @@ public class PublishMsgActivity extends CommonActivity {
         context = this;
         service = HttpMethod.getInstance().create(NetWorkService.class);
 
+        emptyView = LayoutInflater.from(context).inflate(R.layout.layout_empty_msg, null);
         initView();
         loadData();
     }
@@ -78,7 +77,7 @@ public class PublishMsgActivity extends CommonActivity {
         adapter.setOnItemChildClickListener(new OnItemChildClickListener() {
             @Override
             public void onItemChildClick(@NonNull BaseQuickAdapter adapter, @NonNull View view, int position) {
-                switch (view.getId()){
+                switch (view.getId()) {
                     case R.id.iv_head:
                         PublishMsgEntity publishMsgEntity = msgEntities.get(position);
                         if (publishMsgEntity.peopleId.equals(ShareApplication.user.getUserId())) {
@@ -99,8 +98,8 @@ public class PublishMsgActivity extends CommonActivity {
                 PublishMsgEntity publishMsgEntity = msgEntities.get(position);
                 Intent detailIntent = new Intent(context, ShareDetailActivity.class);
                 detailIntent.putExtra("shareId", publishMsgEntity.publishId);
-                detailIntent.putExtra("from","msgActivity");
-                detailIntent.putExtra("msgId",publishMsgEntity.msgId);
+                detailIntent.putExtra("from", "msgActivity");
+                detailIntent.putExtra("msgId", publishMsgEntity.msgId);
                 startActivity(detailIntent);
                 updateReadState(position);
             }
@@ -114,7 +113,7 @@ public class PublishMsgActivity extends CommonActivity {
                     @Override
                     public void onSuccess(BaseResult baseResult) {
                         adapter.getData().get(position).setIsReaded(1);
-                        adapter.notifyItemChanged(position,"updateState");
+                        adapter.notifyItemChanged(position, "updateState");
                     }
 
                     @Override
@@ -125,19 +124,24 @@ public class PublishMsgActivity extends CommonActivity {
     }
 
     private void loadData() {
-        if (ShareApplication.user==null)
+        if (ShareApplication.user == null)
             return;
         service.getPublicMsg(ShareApplication.user.getUserId())
                 .compose(RxSchedulers.<PublicMsgVo>compose(context))
                 .subscribe(new BaseObserver<PublicMsgVo>() {
                     @Override
                     public void onSuccess(PublicMsgVo publicMsgVo) {
-                        adapter.addData(publicMsgVo.getData());
+                        List<PublishMsgEntity> data = publicMsgVo.getData();
+                        if (data.isEmpty()) {
+                            adapter.setEmptyView(emptyView);
+                        } else {
+                            adapter.addData(data);
+                        }
                     }
 
                     @Override
                     public void onFailed(String msg) {
-                        ToastUtil.showShortMessage(context,msg);
+                        ToastUtil.showShortMessage(context, msg);
                     }
                 });
     }
@@ -146,5 +150,14 @@ public class PublishMsgActivity extends CommonActivity {
     protected void onDestroy() {
         super.onDestroy();
         bind.unbind();
+    }
+
+    @OnClick({R.id.btn_back, R.id.rcy_msg})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.btn_back:
+                PublishMsgActivity.this.finish();
+                break;
+        }
     }
 }

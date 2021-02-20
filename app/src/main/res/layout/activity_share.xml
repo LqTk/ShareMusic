@@ -60,6 +60,7 @@
                         android:layout_height="wrap_content"
                         android:hint="此刻的心情"
                         android:text=""
+                        android:gravity="start"
                         android:textSize="@dimen/sp_13"
                         android:textColor="@color/textColorBlack"
                         android:background="@color/transparent"

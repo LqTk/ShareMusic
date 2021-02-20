@@ -6,8 +6,21 @@ public class MsgEntity {
     private String peopleHead;
     private int peopleSex;
     private String peopleDes;
+    private String setName;
+    private String partnerId;
     private int peopleAge;
     private boolean isConcern;
+
+    public MsgEntity(String peopleName, String peopleId, String peopleHead, int peopleSex, String peopleDes, String setName, int peopleAge, boolean isConcern) {
+        this.peopleName = peopleName;
+        this.peopleId = peopleId;
+        this.peopleHead = peopleHead;
+        this.peopleSex = peopleSex;
+        this.peopleDes = peopleDes;
+        this.setName = setName;
+        this.peopleAge = peopleAge;
+        this.isConcern = isConcern;
+    }
 
     public MsgEntity(String peopleName, String peopleId, String peopleHead, int peopleSex, String peopleDes, int peopleAge, boolean isConcern) {
         this.peopleName = peopleName;
@@ -17,6 +30,34 @@ public class MsgEntity {
         this.peopleDes = peopleDes;
         this.peopleAge = peopleAge;
         this.isConcern = isConcern;
+    }
+
+    public MsgEntity(String peopleName, String peopleId, String peopleHead, int peopleSex, String peopleDes, String setName, String partnerId, int peopleAge, boolean isConcern) {
+        this.peopleName = peopleName;
+        this.peopleId = peopleId;
+        this.peopleHead = peopleHead;
+        this.peopleSex = peopleSex;
+        this.peopleDes = peopleDes;
+        this.setName = setName;
+        this.partnerId = partnerId;
+        this.peopleAge = peopleAge;
+        this.isConcern = isConcern;
+    }
+
+    public String getPartnerId() {
+        return partnerId;
+    }
+
+    public void setPartnerId(String partnerId) {
+        this.partnerId = partnerId;
+    }
+
+    public String getSetName() {
+        return setName;
+    }
+
+    public void setSetName(String setName) {
+        this.setName = setName;
     }
 
     public String getPeopleName() {

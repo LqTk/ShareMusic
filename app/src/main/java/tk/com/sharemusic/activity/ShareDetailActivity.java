@@ -2,7 +2,10 @@ package tk.com.sharemusic.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
@@ -22,12 +25,15 @@ import android.widget.TextView;
 import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.listener.OnItemChildClickListener;
 import com.chad.library.adapter.base.listener.OnItemClickListener;
@@ -411,10 +417,24 @@ public class ShareDetailActivity extends CommonActivity {
     private void loadData() {
         if (tvName == null)
             return;
-        Glide.with(mContext)
-                .load(TextUtils.isEmpty(publicEntity.getUserHead()) ? Gender.getImage(publicEntity.getUserSex()) : NetWorkService.homeUrl + publicEntity.getUserHead())
-                .apply(Constants.headOptions)
-                .into(ivHead);
+        if (publicEntity.getIsPublic().equals(Constants.PEOPLE_STEALTH)){
+            Glide.with(mContext)
+                    .load(TextUtils.isEmpty(publicEntity.getUserHead()) ? Gender.getImage(publicEntity.getUserSex()) : NetWorkService.homeUrl + publicEntity.getUserHead())
+                    .apply(Constants.headOptions)
+                    .into(new SimpleTarget<Drawable>() {
+                        @Override
+                        public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                            BitmapDrawable drawable = (BitmapDrawable) resource;
+                            Bitmap bitmap = drawable.getBitmap();
+                            ivHead.setImageBitmap(ShareApplication.BitmapMosaic(bitmap,80));
+                        }
+                    });
+        }else {
+            Glide.with(mContext)
+                    .load(TextUtils.isEmpty(publicEntity.getUserHead()) ? Gender.getImage(publicEntity.getUserSex()) : NetWorkService.homeUrl + publicEntity.getUserHead())
+                    .apply(Constants.headOptions)
+                    .into(ivHead);
+        }
         tvName.setText(publicEntity.getUserName());
         tvTime.setText(DateUtil.getPublicTime(publicEntity.getCreateTime()));
         if (publicEntity.getType().equals(Constants.SHARE_MUSIC)) {

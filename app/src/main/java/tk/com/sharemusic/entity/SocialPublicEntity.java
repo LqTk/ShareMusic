@@ -25,6 +25,8 @@ public class SocialPublicEntity implements Serializable {
 
     private Integer isPublic;
 
+    private Integer reportCount;
+
     private String type;
 
     private String location;
@@ -39,7 +41,7 @@ public class SocialPublicEntity implements Serializable {
 
     public SocialPublicEntity(String shareId, String userId, String userName, String userHead,
                               Integer userSex, String shareName, String shareUrl, String shareText,
-                              long createTime, Integer isPublic, String type, String location,
+                              long createTime, Integer isPublic, Integer reportCount, String type, String location,
                               Double latitude, Double longitude, List<GoodsEntity> goodsList, List<ReviewEntity> reviewEntities) {
         this.shareId = shareId;
         this.userId = userId;
@@ -51,6 +53,7 @@ public class SocialPublicEntity implements Serializable {
         this.shareText = shareText;
         this.createTime = createTime;
         this.isPublic = isPublic;
+        this.reportCount = reportCount;
         this.type = type;
         this.location = location;
         this.latitude = latitude;
@@ -60,7 +63,7 @@ public class SocialPublicEntity implements Serializable {
     }
 
     public SocialPublicEntity(String userId, String userName, String userHead, Integer userSex,
-                              String shareName, String shareUrl, String shareText, Integer isPublic,
+                              String shareName, String shareUrl, String shareText, Integer isPublic, Integer reportCount,
                               String type, String location, Double latitude, Double longitude, List<GoodsEntity> goodsList, List<ReviewEntity> reviewEntities) {
         this.userId = userId;
         this.userName = userName;
@@ -70,12 +73,21 @@ public class SocialPublicEntity implements Serializable {
         this.shareUrl = shareUrl;
         this.shareText = shareText;
         this.isPublic = isPublic;
+        this.reportCount = reportCount;
         this.type = type;
         this.location = location;
         this.latitude = latitude;
         this.longitude = longitude;
         this.goodsList = goodsList;
         this.reviewEntities = reviewEntities;
+    }
+
+    public Integer getReportCount() {
+        return reportCount;
+    }
+
+    public void setReportCount(Integer reportCount) {
+        this.reportCount = reportCount;
     }
 
     public Double getLatitude() {

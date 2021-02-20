@@ -1,7 +1,12 @@
 package tk.com.sharemusic.adapter;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,12 +15,15 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.viewpager.widget.PagerAdapter;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.viewholder.BaseViewHolder;
 import com.google.android.flexbox.FlexboxLayout;
@@ -56,10 +64,25 @@ public class PublicSocialAdapter extends BaseQuickAdapter<SocialPublicEntity, Ba
 
     @Override
     protected void convert(@NotNull BaseViewHolder baseViewHolder, SocialPublicEntity socialPublicEntity) {
-        Glide.with(getContext())
-                .load(TextUtils.isEmpty(socialPublicEntity.getUserHead())? Gender.getImage(socialPublicEntity.getUserSex()): NetWorkService.homeUrl+socialPublicEntity.getUserHead())
-                .apply(Constants.headOptions)
-                .into((CircleImage) baseViewHolder.getView(R.id.iv_head));
+        CircleImage imageHead = (CircleImage) baseViewHolder.getView(R.id.iv_head);
+        if (socialPublicEntity.getIsPublic().equals(Constants.PEOPLE_STEALTH)){
+            Glide.with(getContext())
+                    .load(TextUtils.isEmpty(socialPublicEntity.getUserHead())? Gender.getImage(socialPublicEntity.getUserSex()): NetWorkService.homeUrl+socialPublicEntity.getUserHead())
+                    .apply(Constants.headOptions)
+                    .into(new SimpleTarget<Drawable>() {
+                        @Override
+                        public void onResourceReady(@NonNull Drawable resource, @androidx.annotation.Nullable Transition<? super Drawable> transition) {
+                            BitmapDrawable bd = (BitmapDrawable) resource;
+                            Bitmap bitmap = bd.getBitmap();
+                            imageHead.setImageBitmap(ShareApplication.BitmapMosaic(bitmap,80));
+                        }
+                    });
+        }else {
+            Glide.with(getContext())
+                    .load(TextUtils.isEmpty(socialPublicEntity.getUserHead())? Gender.getImage(socialPublicEntity.getUserSex()): NetWorkService.homeUrl+socialPublicEntity.getUserHead())
+                    .apply(Constants.headOptions)
+                .into(imageHead);
+        }
         baseViewHolder.setText(R.id.tv_name,socialPublicEntity.getUserName());
         if (socialPublicEntity.getType().equals(Constants.SHARE_MUSIC)) {
             baseViewHolder.setVisible(R.id.ll_share_music,true);

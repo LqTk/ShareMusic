@@ -7,6 +7,7 @@ import android.os.Environment;
 import com.bumptech.glide.request.RequestOptions;
 
 import java.io.File;
+import java.util.regex.Pattern;
 
 import tk.com.sharemusic.R;
 
@@ -98,4 +99,6 @@ public class Constants {
                 .placeholder(R.drawable.default_head_girl)
                 .error(R.drawable.default_head_girl);
 
+
+    public static final Pattern MOBILE_PHONE_NUMBER_PATTERN = Pattern.compile("1[0-9]{10}");
 }

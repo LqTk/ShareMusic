@@ -47,6 +47,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint=""
+                    android:inputType="textPassword"
                     android:textColor="@color/picture_color_black"
                     android:text="1"/>
             </LinearLayout>
