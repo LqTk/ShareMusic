@@ -37,7 +37,7 @@ public class ChatListAdapter extends BaseQuickAdapter<ChatEntity, BaseViewHolder
                     .apply(Constants.headOptions)
                     .into((CircleImage) baseViewHolder.getView(R.id.iv_partner_head));
         }
-        baseViewHolder.setText(R.id.tv_partner_name,chatEntity.senderName);
+        baseViewHolder.setText(R.id.tv_partner_name,TextUtils.isEmpty(chatEntity.setName)?chatEntity.senderName:chatEntity.setName);
         if (chatEntity.msgType.equals(Constants.MODE_IMAGE)) {
             baseViewHolder.setText(R.id.tv_partner_chat, "[图片]");
         }else if (chatEntity.msgType.equals(Constants.MODE_VOICE)){

@@ -2,6 +2,7 @@ package tk.com.sharemusic.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,6 +47,7 @@ import tk.com.sharemusic.network.RxSchedulers;
 import tk.com.sharemusic.network.response.PartnerVo;
 import tk.com.sharemusic.network.response.PeopleVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
+import tk.com.sharemusic.utils.Config;
 import tk.com.sharemusic.utils.ToastUtil;
 
 /**
@@ -142,6 +144,7 @@ public class ConcernFragment extends Fragment {
                             peopleEntities.clear();
                             adapter.addData(data);
                         }
+                        saveData();
                     }
 
                     @Override
@@ -166,6 +169,10 @@ public class ConcernFragment extends Fragment {
 
         rcvPart.setLayoutManager(linearLayoutManager);
 
+        peopleEntities = ShareApplication.getInstance().getConfig().getArrayList(Config.PARTNER_CONCERN_DATA,MsgEntity.class);
+        if (peopleEntities==null){
+            peopleEntities = new ArrayList<>();
+        }
         adapter = new PartnerAdapter(R.layout.partner_item_layout, peopleEntities);
         rcvPart.setAdapter(adapter);
 
@@ -176,9 +183,15 @@ public class ConcernFragment extends Fragment {
                 Intent intent1 = new Intent(getContext(), PeopleProfileActivity.class);
                 intent1.putExtra("peopleId",peopleEntities.get(position).getPeopleId());
                 intent1.putExtra("from","public");
+                intent1.putExtra("partnerName", TextUtils.isEmpty(peopleEntities.get(position).getSetName())?peopleEntities.get(position).getPeopleName():peopleEntities.get(position).getSetName());
+                intent1.putExtra("head",peopleEntities.get(position).getPeopleHead());
                 getContext().startActivity(intent1);
             }
         });
+    }
+
+    private void saveData(){
+        ShareApplication.getInstance().getConfig().setObject(Config.PARTNER_CONCERN_DATA,peopleEntities);
     }
 
     @Subscribe
@@ -204,6 +217,7 @@ public class ConcernFragment extends Fragment {
                                 @Override
                                 public void onSuccess(PeopleVo peopleVo) {
                                     adapter.setData(finalI, peopleVo.getData());
+                                    saveData();
                                 }
 
                                 @Override

@@ -24,6 +24,8 @@ import butterknife.OnClick;
 import butterknife.Unbinder;
 import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
+import tk.com.sharemusic.event.NotifyPartInfoEvent;
+import tk.com.sharemusic.event.RefreshChatAdapterEvent;
 import tk.com.sharemusic.event.RefreshPartnerEvent;
 import tk.com.sharemusic.network.BaseResult;
 import tk.com.sharemusic.network.HttpMethod;
@@ -48,6 +50,7 @@ public class SetNameActivity extends CommonActivity {
     private String friendId;
     private NetWorkService service;
     private Context context;
+    private String myId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +61,7 @@ public class SetNameActivity extends CommonActivity {
         service = HttpMethod.getInstance().create(NetWorkService.class);
 
         friendId = getIntent().getStringExtra("id");
+        myId = getIntent().getStringExtra("myId");
         String name = getIntent().getStringExtra("name");
         initView();
         etName.setText(name);
@@ -108,6 +112,8 @@ public class SetNameActivity extends CommonActivity {
 
                     @Override
                     public void onSuccess(BaseResult baseResult) {
+                        EventBus.getDefault().post(new RefreshChatAdapterEvent(TextUtils.isEmpty(myId)?"":myId));
+                        EventBus.getDefault().post(new RefreshPartnerEvent());
                         Intent intent = new Intent();
                         intent.putExtra("name",etName.getText().toString().trim());
                         EventBus.getDefault().post(new RefreshPartnerEvent());

@@ -82,6 +82,7 @@ public class PeopleProfileActivity extends CommonActivity {
     private String headUrl;
     private final int CODE_SETNAME = 1000;//跳转到设置备注页面
     private String friendId;
+    private String myId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,6 +124,7 @@ public class PeopleProfileActivity extends CommonActivity {
                                 .load(TextUtils.isEmpty(headUrl) ? Gender.getImage(data.getPeopleSex()) : NetWorkService.homeUrl + data.getPeopleHead())
                                 .apply(Constants.headOptions)
                                 .into(ivHead);
+                        myId = data.getPeopleId();
                         tvSetName.setText(TextUtils.isEmpty(data.getSetName()) ? data.getPeopleName() : data.getSetName());
                         tvName.setText(data.getPeopleName());
                         tvSex.setText(Gender.getName(data.getPeopleSex()));
@@ -178,6 +180,7 @@ public class PeopleProfileActivity extends CommonActivity {
                 if (!isOpenedChat) {
                     intent = new Intent(this, ChatActivity.class);
                     intent.putExtra("partnerId", peopleId);
+                    intent.putExtra("partnerName",tvSetName.getText().toString());
                     startActivity(intent);
                 }
                 this.finish();
@@ -204,10 +207,11 @@ public class PeopleProfileActivity extends CommonActivity {
                 break;
             case R.id.ll_edit_name:
                 if (TextUtils.isEmpty(friendId)){
-                    ToastUtil.showShortMessage(context,"需要先关注");
+                    ToastUtil.showShortMessage(context,"请先关注好友");
                     return;
                 }
                 startActivityForResult(new Intent(this, SetNameActivity.class)
+                        .putExtra("myId",myId)
                         .putExtra("id",friendId)
                         .putExtra("name",tvSetName.getText().toString()), CODE_SETNAME);
                 break;
@@ -222,6 +226,7 @@ public class PeopleProfileActivity extends CommonActivity {
         switch (requestCode) {
             case CODE_SETNAME:
                 tvSetName.setText(data.getStringExtra("name"));
+                setResult(Activity.RESULT_OK,data);
                 break;
         }
     }
@@ -267,7 +272,7 @@ public class PeopleProfileActivity extends CommonActivity {
                 .subscribe(new BaseObserver<AddPartnerVo>() {
                     @Override
                     public void onSuccess(AddPartnerVo baseResult) {
-                        ToastUtil.showShortMessage(PeopleProfileActivity.this, baseResult.getMsg());
+                        ToastUtil.showShortMessage(PeopleProfileActivity.this, "关注成功");
                         EventBus.getDefault().post(new RefreshPartnerEvent());
                         friendId = (String) baseResult.getData().get("friendId");
                         if (tvAdd != null)

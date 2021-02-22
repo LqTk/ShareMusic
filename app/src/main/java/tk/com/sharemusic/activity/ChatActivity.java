@@ -178,6 +178,8 @@ public class ChatActivity extends CommonActivity {
     private List<ChatEntity> sendEntityList = new ArrayList<>();
     private List<Integer> sending = new ArrayList<>();
     int page = 0;
+    private String setName;
+    private final static int CODE_TOPROFILE = 1112;
 
     class CountdownHandler extends Handler {
         private final WeakReference<ChatActivity> mActivity;
@@ -215,9 +217,9 @@ public class ChatActivity extends CommonActivity {
         user = ShareApplication.getUser();
         reLogin();
         partnerId = getIntent().getStringExtra("partnerId");
-        String name = getIntent().getStringExtra("partnerName");
-        if (!TextUtils.isEmpty(name)) {
-            tvName.setText(name);
+        setName = getIntent().getStringExtra("partnerName");
+        if (!TextUtils.isEmpty(setName)) {
+            tvName.setText(setName);
             tvTitle.setText("");
         }
         localChatLists = preferenceConfig.getArrayList(user.getUserId()+partnerId+Config.CHAT_PARTNER_LIST,ChatEntity.class);
@@ -497,7 +499,9 @@ public class ChatActivity extends CommonActivity {
                         }
                         if (tvName==null)
                             return;
-                        tvName.setText(peopleVo.getData().getPeopleName());
+                        if (TextUtils.isEmpty(setName)) {
+                            tvName.setText(peopleVo.getData().getPeopleName());
+                        }
                         tvTitle.setText(peopleVo.getData().getPeopleDes());
                         chatAdapter.setPartnerHead(partnerInfo.getPeopleId(),partnerInfo.getPeopleHead());
                     }
@@ -646,6 +650,7 @@ public class ChatActivity extends CommonActivity {
         sendEntity.setMsgType(msgType);
         sendEntity.setSenderId(ShareApplication.user.getUserId());
         sendEntity.setMsgContent(content);
+        sendEntity.setSetName(tvName.getText().toString());
         map.put("talkid",user.getUserId());
         map.put("toid",partnerInfo.getPeopleId());
         map.put("msgtype",msgType);
@@ -887,7 +892,7 @@ public class ChatActivity extends CommonActivity {
                 Intent intent1 = new Intent(mContext, PeopleProfileActivity.class);
                 intent1.putExtra("peopleId", partnerId);
                 intent1.putExtra("from","chat");
-                startActivity(intent1);
+                startActivityForResult(intent1,CODE_TOPROFILE);
                 break;
             case R.id.refresh_view:
                 break;
@@ -1010,6 +1015,9 @@ public class ChatActivity extends CommonActivity {
                     }
                 }
                 break;
+            case CODE_TOPROFILE:
+                tvName.setText(data.getStringExtra("name"));
+                break;
         }
     }
 
@@ -1029,6 +1037,7 @@ public class ChatActivity extends CommonActivity {
             sendEntity.setSenderAvatar(ShareApplication.user.getHeadImg());
             sendEntity.setSenderName(ShareApplication.user.getUserName());
             sendEntity.setLocalPath(imgPath);
+            sendEntity.setSetName(tvName.getText().toString());
             if (fileType.contains("image/")) {
                 sendEntity.setMsgType(Constants.MODE_IMAGE);
                 BitmapFactory.Options options = new BitmapFactory.Options();
@@ -1176,4 +1185,5 @@ public class ChatActivity extends CommonActivity {
         bind.unbind();
         EventBus.getDefault().unregister(this);
     }
+
 }

@@ -37,7 +37,7 @@ import tk.com.sharemusic.network.response.UpLoadHeadVo;
 
 public interface NetWorkService {
 //    public static String homeUrl = "http://192.168.2.196:8080/";
-    public static String homeUrl = "http://192.168.2.180:8080/";
+    public static String homeUrl = "http://192.168.2.199:8080/";
     public static String BaseUrl = homeUrl+"SocialService/";
 
     //登录

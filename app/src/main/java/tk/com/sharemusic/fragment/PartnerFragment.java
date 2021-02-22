@@ -2,6 +2,7 @@ package tk.com.sharemusic.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,6 +46,7 @@ import tk.com.sharemusic.network.RxSchedulers;
 import tk.com.sharemusic.network.response.PartnerVo;
 import tk.com.sharemusic.network.response.PeopleVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
+import tk.com.sharemusic.utils.Config;
 import tk.com.sharemusic.utils.ToastUtil;
 
 /**
@@ -141,6 +143,7 @@ public class PartnerFragment extends Fragment {
                             peopleEntities.clear();
                             adapter.addData(data);
                         }
+                        savePartner();
                     }
 
                     @Override
@@ -165,6 +168,10 @@ public class PartnerFragment extends Fragment {
 
         rcvPart.setLayoutManager(linearLayoutManager);
 
+        peopleEntities = ShareApplication.getInstance().getConfig().getArrayList(Config.PARTNER_DATA,MsgEntity.class);
+        if (peopleEntities==null){
+            peopleEntities = new ArrayList<>();
+        }
         adapter = new PartnerAdapter(R.layout.partner_item_layout, peopleEntities);
         rcvPart.setAdapter(adapter);
 
@@ -174,6 +181,8 @@ public class PartnerFragment extends Fragment {
             public void onItemClick(@NonNull BaseQuickAdapter<?, ?> adapter, @NonNull View view, int position) {
                 Intent intent = new Intent(getContext(), ChatActivity.class);
                 intent.putExtra("partnerId", peopleEntities.get(position).getPeopleId());
+                intent.putExtra("partnerName", TextUtils.isEmpty(peopleEntities.get(position).getSetName())?peopleEntities.get(position).getPeopleName():peopleEntities.get(position).getSetName());
+                intent.putExtra("head",peopleEntities.get(position).getPeopleHead());
                 startActivity(intent);
             }
         });
@@ -202,6 +211,7 @@ public class PartnerFragment extends Fragment {
                                 @Override
                                 public void onSuccess(PeopleVo peopleVo) {
                                     adapter.setData(finalI, peopleVo.getData());
+                                    savePartner();
                                 }
 
                                 @Override
@@ -213,6 +223,10 @@ public class PartnerFragment extends Fragment {
                 i++;
             }
         }
+    }
+
+    private void savePartner(){
+        ShareApplication.getInstance().getConfig().setObject(Config.PARTNER_DATA,peopleEntities);
     }
 
     @Override

@@ -48,6 +48,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/edit_reg_bg"
+        android:textSize="@dimen/sp_12"
         android:hint="备注名"
         android:maxLength="12"/>
 

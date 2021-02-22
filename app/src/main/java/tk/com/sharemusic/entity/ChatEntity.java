@@ -17,6 +17,7 @@ public class ChatEntity {
     public String localPath;
     public long chatTime;
     public int count;
+    public String setName;
 
     public int width;
 
@@ -26,7 +27,7 @@ public class ChatEntity {
     private boolean sendSuccess = true;
 
     public ChatEntity(String chatId, String msgContent, String msgType, String voiceTime,
-                      String senderId, String senderAvatar, String senderName, int width, int height, long chatTime) {
+                      String senderId, String senderAvatar, String senderName,  String setName, int width, int height, long chatTime) {
         this.chatId = chatId;
         this.msgContent = msgContent;
         this.msgType = msgType;
@@ -34,13 +35,14 @@ public class ChatEntity {
         this.senderId = senderId;
         this.senderAvatar = senderAvatar;
         this.senderName = senderName;
+        this.setName = setName;
         this.width = width;
         this.height = height;
         this.chatTime = chatTime;
     }
 
     public ChatEntity(String chatId, String msgContent, String msgType, String voiceTime,
-                      String senderId, String senderAvatar, String senderName, long chatTime) {
+                      String senderId, String senderAvatar, String senderName,  String setName, long chatTime) {
         this.chatId = chatId;
         this.msgContent = msgContent;
         this.msgType = msgType;
@@ -48,7 +50,16 @@ public class ChatEntity {
         this.senderId = senderId;
         this.senderAvatar = senderAvatar;
         this.senderName = senderName;
+        this.setName = setName;
         this.chatTime = chatTime;
+    }
+
+    public String getSetName() {
+        return setName;
+    }
+
+    public void setSetName(String setName) {
+        this.setName = setName;
     }
 
     public int getWidth() {

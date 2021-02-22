@@ -59,6 +59,7 @@ import tk.com.sharemusic.event.MsgCountEvent;
 import tk.com.sharemusic.event.MsgReadEvent;
 import tk.com.sharemusic.event.MyChatEntityEvent;
 import tk.com.sharemusic.event.NotifyPartInfoEvent;
+import tk.com.sharemusic.event.RefreshChatAdapterEvent;
 import tk.com.sharemusic.event.RefreshChatListEvent;
 import tk.com.sharemusic.event.RefreshMyInfoEvent;
 import tk.com.sharemusic.myview.CircleImage;
@@ -203,6 +204,10 @@ public class ChatFragment extends Fragment {
                                 chatEntity.setSenderAvatar(peopleVo.getData().getPeopleHead());
                                 change = true;
                             }
+                            if (!TextUtils.isEmpty(peopleVo.getData().getSetName())&&!peopleVo.getData().getSetName().equals(chatEntity.setName)){
+                                chatEntity.setSetName(peopleVo.getData().getSetName());
+                                change = true;
+                            }
                             if (change) {
                                 chatListAdapter.notifyItemChanged(finalI);
                                 EventBus.getDefault().post(new NotifyPartInfoEvent(peopleVo.getData().getPeopleId()));
@@ -233,7 +238,7 @@ public class ChatFragment extends Fragment {
                 EventBus.getDefault().post(new MsgCountEvent(MainActivity.PAGE_MESSAGE,chatListAdapter.getAllMsgCount()));
                 Intent intent = new Intent(getContext(), ChatActivity.class);
                 intent.putExtra("partnerId",chatLists.get(position).senderId);
-                intent.putExtra("partnerName",chatLists.get(position).senderName);
+                intent.putExtra("partnerName",TextUtils.isEmpty(chatLists.get(position).setName)?chatLists.get(position).senderName:chatLists.get(position).setName);
                 intent.putExtra("head",chatLists.get(position).senderAvatar);
                 startActivity(intent);
                 saveData();
@@ -470,6 +475,9 @@ public class ChatFragment extends Fragment {
                     @Override
                     public void onSuccess(ChatListVo chatListVo) {
                         List<ChatEntity> voData = chatListVo.getData();
+                        /*List<ChatEntity> localChatLists = preferenceConfig.getArrayList(user.getUserId() + talkId + Config.CHAT_PARTNER_LIST, ChatEntity.class);
+                        localChatLists.addAll(voData);
+                        preferenceConfig.setObject(user.getUserId()+talkId+Config.CHAT_PARTNER_LIST,localChatLists);*/
                         int count = voData.size();
                         if (count<=0)
                             return;
@@ -511,7 +519,23 @@ public class ChatFragment extends Fragment {
                                 }
                             }
                         }else {
-                            chatListAdapter.addData(0,chatEntity);
+                            Map map = new HashMap();
+                            map.put("userId",ShareApplication.user.getUserId());
+                            map.put("peopleId",chatEntity.senderId);
+                            service.getPeopleInfo(map)
+                                    .compose(RxSchedulers.<PeopleVo>compose(getContext()))
+                                    .subscribe(new BaseObserver<PeopleVo>() {
+                                        @Override
+                                        public void onSuccess(PeopleVo peopleVo) {
+                                            chatEntity.setSetName(peopleVo.getData().getSetName());
+                                            chatListAdapter.addData(0,chatEntity);
+                                        }
+
+                                        @Override
+                                        public void onFailed(String msg) {
+                                            chatListAdapter.addData(0,chatEntity);
+                                        }
+                                    });
                         }
                         EventBus.getDefault().post(new MsgCountEvent(MainActivity.PAGE_MESSAGE,chatListAdapter.getAllMsgCount()));
                         saveData();
@@ -568,11 +592,30 @@ public class ChatFragment extends Fragment {
                 }
             }
             if (!ishave){
-                ChatEntity chatEntity = new ChatEntity(entity.chatId,entity.msgContent,entity.msgType,
-                        entity.voiceTime,partner.getPeopleId(),partner.getPeopleHead(),partner.getPeopleName(),entity.chatTime);
-                chatListAdapter.addData(0,chatEntity);
+                Map map = new HashMap();
+                map.put("userId",ShareApplication.user.getUserId());
+                map.put("peopleId",partner.getPeopleId());
+                service.getPeopleInfo(map)
+                        .compose(RxSchedulers.<PeopleVo>compose(getContext()))
+                        .subscribe(new BaseObserver<PeopleVo>() {
+                                       @Override
+                                       public void onSuccess(PeopleVo peopleVo) {
+                                           ChatEntity chatEntity = new ChatEntity(entity.chatId,entity.msgContent,entity.msgType,
+                                                   entity.voiceTime,partner.getPeopleId(),partner.getPeopleHead(),partner.getPeopleName(),entity.setName, entity.chatTime);
+                                           chatListAdapter.addData(0,chatEntity);
+                                           saveData();
+                                       }
+
+                                       @Override
+                                       public void onFailed(String msg) {
+                                           ChatEntity chatEntity = new ChatEntity(entity.chatId,entity.msgContent,entity.msgType,
+                                                   entity.voiceTime,partner.getPeopleId(),partner.getPeopleHead(),partner.getPeopleName(),entity.setName, entity.chatTime);
+                                           chatListAdapter.addData(0,chatEntity);
+                                           saveData();
+                                       }
+                                   });
+
             }
-            saveData();
         }
     }
 
@@ -617,4 +660,54 @@ public class ChatFragment extends Fragment {
             }
         }
     }
+
+    /**
+     * 刷新adapter
+     */
+    private int pos = 0;
+    @Subscribe
+    public void refreshAdapter(RefreshChatAdapterEvent event){
+        if (event==null)
+            return;
+        pos = 0;
+        for (ChatEntity chatEntity:chatLists){
+            if (chatEntity.senderId.equals(event.partnerId)){
+                Map map = new HashMap();
+                map.put("userId",ShareApplication.user.getUserId());
+                map.put("peopleId",chatEntity.senderId);
+                service.getPeopleInfo(map)
+                        .compose(RxSchedulers.<PeopleVo>compose(getContext()))
+                        .subscribe(new BaseObserver<PeopleVo>() {
+                            @Override
+                            public void onSuccess(PeopleVo peopleVo) {
+                                boolean change = false;
+                                if (!peopleVo.getData().getPeopleName().equals(chatEntity.senderName)){
+                                    chatEntity.setSenderName(peopleVo.getData().getPeopleName());
+                                    change = true;
+                                }
+                                if (!peopleVo.getData().getPeopleHead().equals(chatEntity.senderAvatar)){
+                                    chatEntity.setSenderAvatar(peopleVo.getData().getPeopleHead());
+                                    change = true;
+                                }
+                                if (!TextUtils.isEmpty(peopleVo.getData().getSetName())&&!peopleVo.getData().getSetName().equals(chatEntity.setName)){
+                                    chatEntity.setSetName(peopleVo.getData().getSetName());
+                                    change = true;
+                                }
+                                if (change) {
+                                    chatListAdapter.notifyItemChanged(pos);
+                                    EventBus.getDefault().post(new NotifyPartInfoEvent(peopleVo.getData().getPeopleId()));
+                                }
+                            }
+
+                            @Override
+                            public void onFailed(String msg) {
+
+                            }
+                        });
+                break;
+            }
+            pos++;
+        }
+    }
+
 }
