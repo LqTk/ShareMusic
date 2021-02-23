@@ -131,7 +131,8 @@
                         android:scaleType="fitXY"
                         android:minHeight="@dimen/dp_40"
                         android:minWidth="@dimen/dp_40"
-                        android:adjustViewBounds="true"/>
+                        android:adjustViewBounds="true"
+                        android:background="@color/color_f4f4f4"/>
                     <TextView
                         android:id="@+id/tv_long_pic"
                         android:visibility="gone"
@@ -267,7 +268,8 @@
                         android:minHeight="@dimen/dp_40"
                         android:minWidth="@dimen/dp_40"
                         android:adjustViewBounds="true"
-                        android:scaleType="fitXY"/>
+                        android:scaleType="fitXY"
+                        android:background="@color/color_f4f4f4"/>
                     <TextView
                         android:id="@+id/tv_long_pic_left"
                         android:visibility="gone"

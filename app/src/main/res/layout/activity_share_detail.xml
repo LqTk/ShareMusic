@@ -131,7 +131,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/dp_130"
                 android:minHeight="@dimen/dp_130"
-                android:adjustViewBounds="true"/>
+                android:adjustViewBounds="true"
+                android:background="@color/color_f4f4f4"/>
             <LinearLayout
                 android:visibility="gone"
                 android:id="@+id/ll_iv4"
@@ -149,7 +150,8 @@
                         android:layout_width="0dp"
                         android:layout_height="@dimen/dp_100"
                         android:scaleType="centerCrop"
-                        android:layout_weight="1"/>
+                        android:layout_weight="1"
+                        android:background="@color/color_f4f4f4"/>
                     <com.shehuan.niv.NiceImageView
                         app:corner_radius="@dimen/dp_10"
                         android:id="@+id/iv2"
@@ -157,7 +159,8 @@
                         android:layout_width="0dp"
                         android:layout_height="@dimen/dp_100"
                         android:scaleType="centerCrop"
-                        android:layout_weight="1"/>
+                        android:layout_weight="1"
+                        android:background="@color/color_f4f4f4"/>
                     <View
                         android:layout_width="0dp"
                         android:layout_height="@dimen/dp_100"
@@ -174,7 +177,8 @@
                         android:layout_width="0dp"
                         android:layout_height="@dimen/dp_100"
                         android:scaleType="centerCrop"
-                        android:layout_weight="1"/>
+                        android:layout_weight="1"
+                        android:background="@color/color_f4f4f4"/>
                     <com.shehuan.niv.NiceImageView
                         app:corner_radius="@dimen/dp_10"
                         android:id="@+id/iv4"
@@ -182,7 +186,8 @@
                         android:layout_width="0dp"
                         android:layout_height="@dimen/dp_100"
                         android:scaleType="centerCrop"
-                        android:layout_weight="1"/>
+                        android:layout_weight="1"
+                        android:background="@color/color_f4f4f4"/>
                     <View
                         android:layout_width="0dp"
                         android:layout_height="@dimen/dp_100"

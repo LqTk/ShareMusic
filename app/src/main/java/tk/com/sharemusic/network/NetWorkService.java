@@ -36,8 +36,8 @@ import tk.com.sharemusic.network.response.UpLoadFileVo;
 import tk.com.sharemusic.network.response.UpLoadHeadVo;
 
 public interface NetWorkService {
-//    public static String homeUrl = "http://192.168.2.196:8080/";
-    public static String homeUrl = "http://192.168.2.199:8080/";
+//    public static String homeUrl = "http://192.168.2.199:8080/";
+    public static String homeUrl = "https://7163c17c.cpolar.io"+"/";
     public static String BaseUrl = homeUrl+"SocialService/";
 
     //登录
@@ -151,9 +151,27 @@ public interface NetWorkService {
     @POST("user/chat/sendMsg")
     Observable<SendMsgVo> sendMsg(@QueryMap Map<String,String> msgEntity, @Part MultipartBody.Part part);
 
+    /**
+     * 上传发布文件
+     * @param part
+     * @return
+     */
     @Multipart
     @POST("spublic/uploadFile")
     Observable<UpLoadFileVo> upLoadFile(@Part MultipartBody.Part part);
+
+    /**
+     * 上传举报文件
+     * @param part
+     * @return
+     */
+    @Multipart
+    @POST("spublic/reportFile")
+    Observable<UpLoadFileVo> reportFile(@Part MultipartBody.Part part);
+
+    //举报发布内容
+    @POST("spublic/reportPublish")
+    Observable<BaseResult> reportPublish(@Body Map<String,Object> map);
 
     //获取聊天消息列表
     @GET("user/chat/getAllChat/{userId}")

@@ -40,9 +40,11 @@ import butterknife.Unbinder;
 import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.activity.MainActivity;
+import tk.com.sharemusic.activity.MyPublishActivity;
 import tk.com.sharemusic.activity.PeopleProfileActivity;
 import tk.com.sharemusic.activity.PlayerSongActivity;
 import tk.com.sharemusic.activity.PublishMsgActivity;
+import tk.com.sharemusic.activity.ReportActivity;
 import tk.com.sharemusic.activity.ShareActivity;
 import tk.com.sharemusic.activity.ShareDetailActivity;
 import tk.com.sharemusic.adapter.PublicSocialAdapter;
@@ -290,7 +292,7 @@ public class SocialPublishFragment extends Fragment {
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         cyclerView.setLayoutManager(linearLayoutManager);
 
-        socialAdapter = new PublicSocialAdapter(R.layout.social_public_item_layout, entityList);
+        socialAdapter = new PublicSocialAdapter(R.layout.social_public_item_layout, entityList, service);
 
         cyclerView.setAdapter(socialAdapter);
 
@@ -456,6 +458,9 @@ public class SocialPublishFragment extends Fragment {
 
             @Override
             public void report() {
+                Intent intent = new Intent(getActivity(), ReportActivity.class);
+                intent.putExtra("publishId",socialPublicEntity.getShareId());
+                startActivity(intent);
                 uiPopWinUtil.dismissMenu();
             }
 

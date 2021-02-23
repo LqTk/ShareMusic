@@ -169,19 +169,31 @@ public class MyPublishActivity extends CommonActivity {
                 .subscribe(new BaseObserver<GetPublicDataTenVo>(this) {
                     @Override
                     public void onSuccess(GetPublicDataTenVo getPublicDataTenVo) {
-                        if (getPublicDataTenVo.getData() != null) {
+                        List<SocialPublicEntity> data = getPublicDataTenVo.getData();
+                        if (data != null) {
+                            if (!userId.equals(ShareApplication.user.getUserId())) {
+                                List<SocialPublicEntity> templist = new ArrayList<>();
+                                for (SocialPublicEntity entity : data) {
+                                    if (entity.getIsPublic().equals(Constants.PEOPLE_STEALTH)){
+                                        templist.add(entity);
+                                    }
+                                }
+                                if (!templist.isEmpty())
+                                    data.removeAll(templist);
+                                templist = null;
+                            }
                             if (entityList==null)
                                 return;
                             if (isRefresh) {
                                 entityList.clear();
-                                entityList.addAll(getPublicDataTenVo.getData());
+                                entityList.addAll(data);
                                 socialAdapter.notifyDataSetChanged();
                                 srf.finishRefresh();
                             } else {
-                                if (getPublicDataTenVo.getData().size() == 0) {
+                                if (data.size() == 0) {
                                     noMore = true;
                                 }
-                                entityList.addAll(getPublicDataTenVo.getData());
+                                entityList.addAll(data);
                                 socialAdapter.notifyDataSetChanged();
                                 srf.finishLoadMore();
                             }
@@ -205,7 +217,7 @@ public class MyPublishActivity extends CommonActivity {
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         cyclerView.setLayoutManager(linearLayoutManager);
 
-        socialAdapter = new PublicSocialAdapter(R.layout.social_public_item_layout, entityList);
+        socialAdapter = new PublicSocialAdapter(R.layout.social_public_item_layout, entityList, service);
 
         cyclerView.setAdapter(socialAdapter);
 
@@ -352,6 +364,9 @@ public class MyPublishActivity extends CommonActivity {
 
             @Override
             public void report() {
+                Intent intent = new Intent(MyPublishActivity.this,ReportActivity.class);
+                intent.putExtra("publishId",socialPublicEntity.getShareId());
+                startActivity(intent);
                 uiPopWinUtil.dismissMenu();
             }
 

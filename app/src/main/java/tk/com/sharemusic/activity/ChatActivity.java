@@ -293,6 +293,7 @@ public class ChatActivity extends CommonActivity {
                         List<ChatEntity> voData = chatListVo.getData();
                         if (voData!=null && voData.size()>0) {
                             chatLists.addAll(voData);
+                            localChatLists.addAll(voData);
                             saveData();
                         }
                         EventBus.getDefault().post(new MsgReadEvent(partnerId));
@@ -312,7 +313,7 @@ public class ChatActivity extends CommonActivity {
     }
 
     private void saveData(){
-        preferenceConfig.setObject(user.getUserId()+partnerId+Config.CHAT_PARTNER_LIST,chatLists);
+        preferenceConfig.setObject(user.getUserId()+partnerId+Config.CHAT_PARTNER_LIST,localChatLists);
     }
 
     private void initView() {
@@ -694,14 +695,14 @@ public class ChatActivity extends CommonActivity {
         sendEntity.setChatTime(System.currentTimeMillis());
         if (!isReSend) {
             chatAdapter.addData(sendEntity);
+            localChatLists.add(sendEntity);
             sendEntityList.add(sendEntity);
-            saveData();
 
             sending.add(chatLists.size());
             saveData();
         }
         rcvChat.smoothScrollToPosition(chatLists.size());
-        EventBus.getDefault().post(new MyChatEntityEvent(sendEntity, partnerInfo));
+//        EventBus.getDefault().post(new MyChatEntityEvent(sendEntity, partnerInfo));
         startSending(sending.size()-1);
         /*baseResultObservable.compose(RxSchedulers.<SendMsgVo>compose(mContext))
                 .subscribe(new BaseObserver<SendMsgVo>() {
@@ -1055,6 +1056,7 @@ public class ChatActivity extends CommonActivity {
             sendEntity.setChatTime(System.currentTimeMillis());
             sendEntityList.add(sendEntity);
             chatAdapter.addData(sendEntity);
+            localChatLists.add(sendEntity);
             sending.add(chatLists.size());
             saveData();
 

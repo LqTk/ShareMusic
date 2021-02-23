@@ -34,7 +34,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.SetNameActivity"></activity>
+        <activity android:name=".activity.ReportActivity"></activity>
+        <activity android:name=".activity.SetNameActivity" />
         <activity android:name=".activity.ResetPasswordActivity" />
         <activity android:name=".activity.ForgetPassWordActivity" />
         <activity
@@ -135,7 +136,7 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".activity.MainActivity"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".activity.LoginActivity"
             android:screenOrientation="portrait" />

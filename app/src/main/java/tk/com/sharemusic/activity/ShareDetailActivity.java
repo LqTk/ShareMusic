@@ -48,6 +48,7 @@ import org.greenrobot.eventbus.Subscribe;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -79,6 +80,7 @@ import tk.com.sharemusic.network.response.AddReviewVo;
 import tk.com.sharemusic.network.response.ChatReviewVo;
 import tk.com.sharemusic.network.response.GetPublicDataShareIdVo;
 import tk.com.sharemusic.network.response.GoodsResultVo;
+import tk.com.sharemusic.network.response.PeopleVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
 import tk.com.sharemusic.utils.DateUtil;
 import tk.com.sharemusic.utils.PopWinUtil;
@@ -289,6 +291,7 @@ public class ShareDetailActivity extends CommonActivity {
                 if (review.getPeopleId().equals(ShareApplication.user.getUserId())) {
                     inputManager.hideSoftInputFromWindow(etReview.getWindowToken(), 0);
                     ClickMenuView menuView = new ClickMenuView(mContext);
+                    menuView.setShowItemReport(false);
                     menuView.setClickListener(new ClickMenuView.ItemClickListener() {
                         @Override
                         public void cancel() {
@@ -316,6 +319,7 @@ public class ShareDetailActivity extends CommonActivity {
                     if (publicEntity.getUserId().equals(ShareApplication.user.getUserId())) {
                         ClickMenuView menuView = new ClickMenuView(mContext);
                         menuView.showReplay(View.VISIBLE);
+                        menuView.setShowItemReport(false);
                         menuView.setClickListener(new ClickMenuView.ItemClickListener() {
                             @Override
                             public void cancel() {
@@ -429,13 +433,34 @@ public class ShareDetailActivity extends CommonActivity {
                             ivHead.setImageBitmap(ShareApplication.BitmapMosaic(bitmap,80));
                         }
                     });
+            tvName.setText(ShareApplication.generateName());
         }else {
             Glide.with(mContext)
                     .load(TextUtils.isEmpty(publicEntity.getUserHead()) ? Gender.getImage(publicEntity.getUserSex()) : NetWorkService.homeUrl + publicEntity.getUserHead())
                     .apply(Constants.headOptions)
                     .into(ivHead);
+            tvName.setText(publicEntity.getUserName());
+            Map map = new HashMap();
+            map.put("userId",ShareApplication.user.getUserId());
+            map.put("peopleId",publicEntity.getUserId());
+            service.getPeopleInfo(map)
+                    .compose(RxSchedulers.<PeopleVo>compose(mContext))
+                    .subscribe(new BaseObserver<PeopleVo>() {
+                        @Override
+                        public void onSuccess(PeopleVo peopleVo) {
+                            String setName = peopleVo.getData().getSetName();
+                            if (!TextUtils.isEmpty(setName)) {
+                                tvName.setText(setName);
+                            }
+                        }
+
+                        @Override
+                        public void onFailed(String msg) {
+
+                        }
+                    });
         }
-        tvName.setText(publicEntity.getUserName());
+
         tvTime.setText(DateUtil.getPublicTime(publicEntity.getCreateTime()));
         if (publicEntity.getType().equals(Constants.SHARE_MUSIC)) {
             llShareMusic.setVisibility(View.VISIBLE);
@@ -946,6 +971,7 @@ public class ShareDetailActivity extends CommonActivity {
             ChatReviewEntity chatReviewEntity = event.chatReviewEntity;
             inputManager.hideSoftInputFromWindow(etReview.getWindowToken(), 0);
             ClickMenuView menuView = new ClickMenuView(mContext);
+            menuView.setShowItemReport(false);
             menuView.setClickListener(new ClickMenuView.ItemClickListener() {
                 @Override
                 public void cancel() {

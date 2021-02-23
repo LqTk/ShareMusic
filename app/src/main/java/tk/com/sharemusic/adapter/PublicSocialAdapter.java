@@ -34,13 +34,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import tk.com.sharemusic.R;
 import tk.com.sharemusic.ShareApplication;
 import tk.com.sharemusic.activity.MainActivity;
 import tk.com.sharemusic.activity.PeopleProfileActivity;
 import tk.com.sharemusic.config.Constants;
+import tk.com.sharemusic.entity.ChatEntity;
 import tk.com.sharemusic.entity.GoodsEntity;
 import tk.com.sharemusic.entity.ShareGvEntity;
 import tk.com.sharemusic.entity.SocialPublicEntity;
@@ -50,16 +53,22 @@ import tk.com.sharemusic.myview.CircleImage;
 import tk.com.sharemusic.myview.MyGridView;
 import tk.com.sharemusic.myview.dialog.ImgPreviewDialog;
 import tk.com.sharemusic.network.NetWorkService;
+import tk.com.sharemusic.network.RxSchedulers;
+import tk.com.sharemusic.network.response.PeopleVo;
+import tk.com.sharemusic.network.rxjava.BaseObserver;
 import tk.com.sharemusic.utils.DateUtil;
 
 public class PublicSocialAdapter extends BaseQuickAdapter<SocialPublicEntity, BaseViewHolder> {
+
+    private NetWorkService service;
 
     public PublicSocialAdapter(int layoutResId, @Nullable List<SocialPublicEntity> data) {
         super(layoutResId, data);
     }
 
-    public PublicSocialAdapter(int layoutResId) {
-        super(layoutResId);
+    public PublicSocialAdapter(int layoutResId, List<SocialPublicEntity> entityList, NetWorkService service) {
+        super(layoutResId, entityList);
+        this.service = service;
     }
 
     @Override
@@ -77,13 +86,34 @@ public class PublicSocialAdapter extends BaseQuickAdapter<SocialPublicEntity, Ba
                             imageHead.setImageBitmap(ShareApplication.BitmapMosaic(bitmap,80));
                         }
                     });
+            baseViewHolder.setText(R.id.tv_name,ShareApplication.generateName());
         }else {
             Glide.with(getContext())
                     .load(TextUtils.isEmpty(socialPublicEntity.getUserHead())? Gender.getImage(socialPublicEntity.getUserSex()): NetWorkService.homeUrl+socialPublicEntity.getUserHead())
                     .apply(Constants.headOptions)
                 .into(imageHead);
+            baseViewHolder.setText(R.id.tv_name,socialPublicEntity.getUserName());
+            Map map = new HashMap();
+            map.put("userId",ShareApplication.user.getUserId());
+            map.put("peopleId",socialPublicEntity.getUserId());
+            service.getPeopleInfo(map)
+                    .compose(RxSchedulers.<PeopleVo>compose(getContext()))
+                    .subscribe(new BaseObserver<PeopleVo>() {
+                        @Override
+                        public void onSuccess(PeopleVo peopleVo) {
+                            String setName = peopleVo.getData().getSetName();
+                            if (!TextUtils.isEmpty(setName)) {
+                                baseViewHolder.setText(R.id.tv_name, setName);
+                            }
+                        }
+
+                        @Override
+                        public void onFailed(String msg) {
+
+                        }
+                    });
         }
-        baseViewHolder.setText(R.id.tv_name,socialPublicEntity.getUserName());
+
         if (socialPublicEntity.getType().equals(Constants.SHARE_MUSIC)) {
             baseViewHolder.setVisible(R.id.ll_share_music,true);
             baseViewHolder.setGone(R.id.rl_text,true);

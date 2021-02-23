@@ -16,6 +16,7 @@ public class ClickMenuView {
     private ItemClickListener clickListener;
     private LinearLayout llDeleteItem;
     private LinearLayout llItemReplay;
+    private LinearLayout llReport;
 
     public ClickMenuView(Context context) {
         this.context = context;
@@ -33,7 +34,7 @@ public class ClickMenuView {
         llItemReplay = view.findViewById(R.id.ll_item_replay);
         llDeleteItem.setVisibility(View.VISIBLE);
         llItemReplay.setVisibility(View.GONE);
-        LinearLayout llReport = view.findViewById(R.id.ll_report);
+        llReport = view.findViewById(R.id.ll_report);
         LinearLayout llDelete = view.findViewById(R.id.ll_delete);
         TextView tvCancel = view.findViewById(R.id.tv_cancel);
         llDown.setOnClickListener(new View.OnClickListener() {
@@ -87,6 +88,13 @@ public class ClickMenuView {
             if (isShowing) llDeleteItem.setVisibility(View.VISIBLE);
             else llDeleteItem.setVisibility(View.GONE);
     }
+
+    public void setShowItemReport(boolean isShowing){
+        if (llReport!=null)
+            if (isShowing) llReport.setVisibility(View.VISIBLE);
+            else llReport.setVisibility(View.GONE);
+    }
+
 
     public interface ItemClickListener{
         void cancel();
