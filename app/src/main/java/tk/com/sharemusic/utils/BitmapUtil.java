@@ -11,6 +11,7 @@ import android.graphics.PorterDuffXfermode;
 import android.media.ExifInterface;
 import android.os.Environment;
 import android.text.format.DateFormat;
+import android.util.Log;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -22,6 +23,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Calendar;
 import java.util.Locale;
+
+import javax.activation.MimetypesFileTypeMap;
 
 /**
  * 关于图片的工具类压缩等
@@ -93,6 +96,10 @@ public class BitmapUtil {
     }
 
 
+    private static String getFileType(String path){
+        String contentType = new MimetypesFileTypeMap().getContentType(path);
+        return contentType;
+    }
 
     /**
      * 图片压缩-质量压缩
@@ -102,15 +109,37 @@ public class BitmapUtil {
      * @return 压缩后的路径
      */
 
-    public static String compressImage(String filePath, int quality) {
-
+    public static String compressImage(String filePath, int quality, int kb, Context context) {
+        String fileType = getFileType(filePath);
+        if (!fileType.contains("image/")) {
+            return "";
+        }
         //原文件
         File oldFile = new File(filePath);
 
+        try {
+            FileInputStream fis = null;
+            fis = new FileInputStream(oldFile);
+            int size = fis.available();//单位B
+            if (size/1024<kb)
+                return "";
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         //压缩文件路径 照片路径/
-        String targetPath = oldFile.getPath();
+        String sdPath = getDiskCacheDir(context);
+        String targetPath = sdPath + "/" + oldFile.getName();
         Bitmap bm = getSmallBitmap(filePath);//获取一定尺寸的图片
+
+        if (bm==null){
+            return "";
+        }
+
+        bm = compressImage(bm,kb);
+
         int degree = getRotateAngle(filePath);//获取相片拍摄角度
 
         if (degree != 0) {//旋转照片角度，防止头像横着显示

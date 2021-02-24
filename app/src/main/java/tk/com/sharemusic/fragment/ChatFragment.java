@@ -635,6 +635,7 @@ public class ChatFragment extends Fragment {
     public void refreshInfo(RefreshMyInfoEvent event){
         if (event!=null){
             user = ShareApplication.user;
+            ShareApplication.getInstance().getConfig().setObject("userInfo",ShareApplication.user);
             Glide.with(getContext())
                     .load(TextUtils.isEmpty(user.getHeadImg()) ? Gender.getImage(user.getSex()) : NetWorkService.homeUrl + user.getHeadImg())
                     .apply(Constants.headOptions)

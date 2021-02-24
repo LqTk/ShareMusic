@@ -350,7 +350,6 @@ public class MineFragment extends Fragment {
                                 break;
                         }
                         EventBus.getDefault().post(new RefreshMyInfoEvent());
-                        ShareApplication.getInstance().getConfig().setObject("userInfo",ShareApplication.user);
                     }
 
                     @Override

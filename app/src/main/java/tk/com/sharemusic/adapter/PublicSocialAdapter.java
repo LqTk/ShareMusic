@@ -209,6 +209,7 @@ public class PublicSocialAdapter extends BaseQuickAdapter<SocialPublicEntity, Ba
             Glide.with(getContext())
                     .load(url)
                     .apply(Constants.picLoadOptions)
+                    .override(600,1000)
                     .into((ImageView) baseViewHolder.getView(R.id.iv_video));
         }
 

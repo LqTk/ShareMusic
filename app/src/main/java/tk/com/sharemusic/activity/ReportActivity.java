@@ -45,6 +45,7 @@ import tk.com.sharemusic.network.NetWorkService;
 import tk.com.sharemusic.network.RxSchedulers;
 import tk.com.sharemusic.network.response.UpLoadFileVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
+import tk.com.sharemusic.utils.BitmapUtil;
 import tk.com.sharemusic.utils.GlideEngine;
 import tk.com.sharemusic.utils.ToastUtil;
 
@@ -85,7 +86,7 @@ public class ReportActivity extends CommonActivity {
     private List<ShareGvEntity> upLoadPicLists = new ArrayList<>();
     private ShareGvAdapter adapter;
     private boolean isHaveAdd;
-    private String shareUrl;
+    private String shareUrl="";
     private String publishId;
 
     @Override
@@ -181,6 +182,7 @@ public class ReportActivity extends CommonActivity {
                     ToastUtil.showShortMessage(context,"请选择举报原因");
                 }
                 upLoadPicLists.clear();
+                shareUrl="";
                 if (shareLists.size()>1) {
                     for (ShareGvEntity entity:shareLists){
                         if (entity.type.equals("file")){
@@ -188,6 +190,8 @@ public class ReportActivity extends CommonActivity {
                         }
                     }
                     upLoadFile(upLoadPicLists.get(0).path);
+                }else {
+                    startReport();
                 }
                 break;
         }
@@ -217,6 +221,7 @@ public class ReportActivity extends CommonActivity {
 
                     @Override
                     public void onFailed(String msg) {
+                        upLoadPicLists.clear();
                         ToastUtil.showShortMessage(context,msg);
                     }
                 });
@@ -245,8 +250,19 @@ public class ReportActivity extends CommonActivity {
                 });
     }
 
+    String tempImgPath = "";
     private MultipartBody.Part getFilePart(String path) {
-        File file = new File(path);
+        File tempFile = new File(tempImgPath);
+        if (tempFile.exists()){
+            tempFile.delete();
+        }
+        tempImgPath = BitmapUtil.compressImage(path,100,512,context);
+        File file;
+        if (TextUtils.isEmpty(tempImgPath)){
+            file = new File(path);
+        }else {
+            file = new File(tempImgPath);
+        }
         RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
         MultipartBody.Part part = MultipartBody.Part.createFormData("file", file.getName(), requestFile);
         return part;

@@ -37,7 +37,7 @@ import tk.com.sharemusic.network.response.UpLoadHeadVo;
 
 public interface NetWorkService {
 //    public static String homeUrl = "http://192.168.2.199:8080/";
-    public static String homeUrl = "https://7163c17c.cpolar.io"+"/";
+    public static String homeUrl = "http://26e68801.cpolar.io"+"/";
     public static String BaseUrl = homeUrl+"SocialService/";
 
     //登录

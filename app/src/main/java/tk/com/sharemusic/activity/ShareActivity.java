@@ -60,6 +60,7 @@ import tk.com.sharemusic.network.RxSchedulers;
 import tk.com.sharemusic.network.response.GetPublicDataShareIdVo;
 import tk.com.sharemusic.network.response.UpLoadFileVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
+import tk.com.sharemusic.utils.BitmapUtil;
 import tk.com.sharemusic.utils.GlideEngine;
 import tk.com.sharemusic.utils.PopWinUtil;
 import tk.com.sharemusic.utils.ToastUtil;
@@ -630,8 +631,23 @@ public class ShareActivity extends CommonActivity {
                 });
     }
 
+    String tempImgPath="";
     private MultipartBody.Part getFilePart(String path) {
-        File file = new File(path);
+        File tempFile = new File(tempImgPath);
+        if (tempFile.exists()){
+            tempFile.delete();
+        }
+        File file;
+        if (path.equalsIgnoreCase(".gif")){
+            file = new File(path);
+        }else {
+            tempImgPath = BitmapUtil.compressImage(path,100,1024,mContext);
+            if (TextUtils.isEmpty(tempImgPath)) {
+                file = new File(path);
+            } else {
+                file = new File(tempImgPath);
+            }
+        }
         RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
         MultipartBody.Part part = MultipartBody.Part.createFormData("file", file.getName(), requestFile);
         return part;
@@ -695,6 +711,8 @@ public class ShareActivity extends CommonActivity {
                 .circleDimmedLayer(false)// 是否圆形裁剪 true or false
                 .showCropFrame(false)// 是否显示裁剪矩形边框 圆形裁剪时建议设为false   true or false
                 .showCropGrid(false)// 是否显示裁剪矩形网格 圆形裁剪时建议设为false    true or false
+                .queryMaxFileSize(30)
+                .videoQuality(80)
                 .forResult(PictureConfig.CHOOSE_REQUEST);//结果回调onActivityResult code
     }
 

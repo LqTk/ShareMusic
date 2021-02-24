@@ -92,6 +92,7 @@ import tk.com.sharemusic.network.response.ChatListVo;
 import tk.com.sharemusic.network.response.PeopleVo;
 import tk.com.sharemusic.network.response.SendMsgVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
+import tk.com.sharemusic.utils.BitmapUtil;
 import tk.com.sharemusic.utils.Config;
 import tk.com.sharemusic.utils.DownloadVoiceManager;
 import tk.com.sharemusic.utils.PopWinUtil;
@@ -742,8 +743,23 @@ public class ChatActivity extends CommonActivity {
                 });*/
     }
 
+    String tempImgPath="";
     private MultipartBody.Part getFilePart(String path) {
-        File file = new File(path);
+        File tempFile = new File(tempImgPath);
+        if (tempFile.exists()){
+            tempFile.delete();
+        }
+        File file;
+        if (path.equalsIgnoreCase(".gif")){
+            file = new File(path);
+        }else {
+            tempImgPath = BitmapUtil.compressImage(path,100,1024,mContext);
+            if (TextUtils.isEmpty(tempImgPath)) {
+                file = new File(path);
+            } else {
+                file = new File(tempImgPath);
+            }
+        }
         RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
         MultipartBody.Part part = MultipartBody.Part.createFormData("file", file.getName(), requestFile);
         return part;
