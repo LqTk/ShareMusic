@@ -37,7 +37,7 @@ import tk.com.sharemusic.network.response.UpLoadHeadVo;
 
 public interface NetWorkService {
 //    public static String homeUrl = "http://192.168.2.199:8080/";
-    public static String homeUrl = "http://26e68801.cpolar.io"+"/";
+    public static String homeUrl = "https://77464f38.cpolar.io"+"/";
     public static String BaseUrl = homeUrl+"SocialService/";
 
     //登录
@@ -157,8 +157,8 @@ public interface NetWorkService {
      * @return
      */
     @Multipart
-    @POST("spublic/uploadFile")
-    Observable<UpLoadFileVo> upLoadFile(@Part MultipartBody.Part part);
+    @POST("spublic/uploadFile/{userId}")
+    Observable<UpLoadFileVo> upLoadFile(@Part MultipartBody.Part part, @Path("userId")String userId);
 
     /**
      * 上传举报文件
@@ -166,8 +166,8 @@ public interface NetWorkService {
      * @return
      */
     @Multipart
-    @POST("spublic/reportFile")
-    Observable<UpLoadFileVo> reportFile(@Part MultipartBody.Part part);
+    @POST("spublic/reportFile/{userId}")
+    Observable<UpLoadFileVo> reportFile(@Part MultipartBody.Part part, @Path("userId")String userId);
 
     //举报发布内容
     @POST("spublic/reportPublish")

@@ -244,6 +244,8 @@ public class SocialPublishFragment extends Fragment {
                         List<SocialPublicEntity> data = getPublicDataTenVo.getData();
                         if (isRefresh) {
                             entityList.clear();
+                            entityList.addAll(data);
+                            socialAdapter.notifyDataSetChanged();
                         }
                         if (data.size() < 10 || data.size()==0) {
                             page--;
@@ -252,13 +254,30 @@ public class SocialPublishFragment extends Fragment {
                             noMore = false;
                         }
                         if (!isRefresh) {
+                            List<SocialPublicEntity> tempList = new ArrayList<>();
                             for (SocialPublicEntity item : data) {
-                                if (entityList.contains(item)) {
-                                    socialAdapter.remove(item);
+                                if (socialAdapter.getData().contains(item)) {
+                                    tempList.add(item);
                                 }
                             }
+                            entityList.removeAll(tempList);
+                            data.removeAll(tempList);
+                            if (data.isEmpty()){
+                                page--;
+                                noMore = false;
+                            }else {
+                                tempList.addAll(data);
+                            }
+                            if (tempList.size()>0) {
+                                entityList.addAll(tempList);
+                                socialAdapter.notifyDataSetChanged();
+                                if (!data.isEmpty()) {
+                                    cyclerView.scrollToPosition(socialAdapter.getData().indexOf(data.get(0)));
+                                }
+                            }
+                            tempList.clear();
+                            tempList=null;
                         }
-                        socialAdapter.addData(data);
                         ShareApplication.getInstance().getConfig().setObject(Config.SOCIAL_PUBLISH, data);
                         if (srf==null)
                             return;

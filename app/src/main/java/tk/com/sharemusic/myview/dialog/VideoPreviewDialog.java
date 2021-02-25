@@ -4,14 +4,12 @@ import android.app.Dialog;
 import android.content.Context;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageView;
 import android.widget.MediaController;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.VideoView;
 
@@ -31,6 +29,8 @@ public class VideoPreviewDialog extends Dialog {
     private TextView tvError;
     private boolean isLoading = true;
     private HttpProxyCacheServer proxy;
+    private int setTime = 0;
+    private DismissListener dismissListener;
 
     public VideoPreviewDialog(@NonNull Context context) {
         this(context, R.style.imgPreviewDialog);
@@ -74,6 +74,9 @@ public class VideoPreviewDialog extends Dialog {
                 });
                 ivLoading.setVisibility(View.GONE);
                 tvError.setVisibility(View.GONE);
+                if (setTime>0){
+                    videoView.seekTo(setTime);
+                }
                 videoView.start();
             }
         });
@@ -90,14 +93,30 @@ public class VideoPreviewDialog extends Dialog {
         setContentView(v);
     }
 
+    public void setVideo(String url, int time){
+        isLoading = true;
+        if (videoView!=null){
+            tvError.setVisibility(View.GONE);
+            String proxyUrl = proxy.getProxyUrl(url);
+            videoView.setVideoPath(proxyUrl);
+            setTime = time;
+//            videoView.setVideoURI(Uri.parse(url));
+        }
+    }
+
     public void setVideo(String url){
         isLoading = true;
+        setTime = 0;
         if (videoView!=null){
             tvError.setVisibility(View.GONE);
             String proxyUrl = proxy.getProxyUrl(url);
             videoView.setVideoPath(proxyUrl);
 //            videoView.setVideoURI(Uri.parse(url));
         }
+    }
+
+    public void setDismissListener(DismissListener dismissListener) {
+        this.dismissListener = dismissListener;
     }
 
     public void setLocalVideo(String path){
@@ -108,4 +127,20 @@ public class VideoPreviewDialog extends Dialog {
         }
     }
 
+    @Override
+    public void setOnDismissListener(@Nullable OnDismissListener listener) {
+        super.setOnDismissListener(listener);
+    }
+
+    @Override
+    public void dismiss() {
+        if (dismissListener!=null){
+            dismissListener.OnDismiss(videoView.getCurrentPosition());
+        }
+        super.dismiss();
+    }
+
+    public interface DismissListener{
+        void OnDismiss(int pos);
+    }
 }

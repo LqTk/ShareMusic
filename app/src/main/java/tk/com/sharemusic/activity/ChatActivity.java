@@ -1202,6 +1202,12 @@ public class ChatActivity extends CommonActivity {
         super.onDestroy();
         bind.unbind();
         EventBus.getDefault().unregister(this);
+        if (!TextUtils.isEmpty(tempImgPath)) {
+            File tempFile = new File(tempImgPath);
+            if (tempFile.exists()) {
+                tempFile.delete();
+            }
+        }
     }
 
 }

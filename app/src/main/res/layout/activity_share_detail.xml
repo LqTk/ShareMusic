@@ -380,16 +380,16 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dp_45"
+        android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:padding="@dimen/dp_5">
         <EditText
             android:id="@+id/et_review"
             android:layout_centerVertical="true"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:hint="评论"
-            android:padding="@dimen/dp_3"
+            android:padding="@dimen/dp_5"
             android:background="@drawable/round_white_boder_rectangle_bg"
             android:textColorHint="@color/main_grey"
             android:lineSpacingExtra="@dimen/dp_2"

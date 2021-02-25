@@ -597,7 +597,7 @@ public class ShareActivity extends CommonActivity {
             return;
         MultipartBody.Part part = null;
         part = getFilePart(path);
-        service.upLoadFile(part)
+        service.upLoadFile(part, ShareApplication.user.getUserId())
                 .compose(RxSchedulers.compose(mContext))
                 .subscribe(new BaseObserver<UpLoadFileVo>() {
                     @Override
@@ -638,7 +638,7 @@ public class ShareActivity extends CommonActivity {
             tempFile.delete();
         }
         File file;
-        if (path.equalsIgnoreCase(".gif")){
+        if (path.toLowerCase().endsWith(".gif")){
             file = new File(path);
         }else {
             tempImgPath = BitmapUtil.compressImage(path,100,1024,mContext);
@@ -912,6 +912,12 @@ public class ShareActivity extends CommonActivity {
         }//销毁定位客户端，同时销毁本地定位服务。
         if (ShareApplication.activityList.isEmpty()){
             startActivity(new Intent(this,LoginActivity.class));
+        }
+        if (!TextUtils.isEmpty(tempImgPath)) {
+            File tempFile = new File(tempImgPath);
+            if (tempFile.exists()) {
+                tempFile.delete();
+            }
         }
     }
 }

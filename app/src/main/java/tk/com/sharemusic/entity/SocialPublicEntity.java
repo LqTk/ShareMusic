@@ -220,4 +220,11 @@ public class SocialPublicEntity implements Serializable {
     public void setReviewEntities(List<ReviewEntity> reviewEntities) {
         this.reviewEntities = reviewEntities;
     }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        SocialPublicEntity partnerEntity = (SocialPublicEntity) obj;
+        return this.shareId.equals(partnerEntity.getShareId());
+    }
 }

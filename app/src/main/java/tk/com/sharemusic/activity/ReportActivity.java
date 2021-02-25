@@ -191,7 +191,8 @@ public class ReportActivity extends CommonActivity {
                     }
                     upLoadFile(upLoadPicLists.get(0).path);
                 }else {
-                    startReport();
+                    ToastUtil.showShortMessage(context,"请上传证明图片");
+//                    startReport();
                 }
                 break;
         }
@@ -205,7 +206,7 @@ public class ReportActivity extends CommonActivity {
             return;
         MultipartBody.Part part = null;
         part = getFilePart(path);
-        service.reportFile(part)
+        service.reportFile(part, ShareApplication.user.getUserId())
                 .compose(RxSchedulers.compose(context))
                 .subscribe(new BaseObserver<UpLoadFileVo>(context) {
                     @Override
@@ -256,7 +257,7 @@ public class ReportActivity extends CommonActivity {
         if (tempFile.exists()){
             tempFile.delete();
         }
-        tempImgPath = BitmapUtil.compressImage(path,100,512,context);
+        tempImgPath = BitmapUtil.compressImage(path,100,256,context);
         File file;
         if (TextUtils.isEmpty(tempImgPath)){
             file = new File(path);
@@ -283,11 +284,11 @@ public class ReportActivity extends CommonActivity {
             }
             shareLists.add(new ShareGvEntity(imgPath, "file"));
         }
-        if (shareLists.size() > 9) {
+        if (shareLists.size() > 3) {
             shareLists.remove(0);
             isHaveAdd = false;
         }
-        if (shareLists.size() < 9 && !isHaveAdd) {
+        if (shareLists.size() < 3 && !isHaveAdd) {
             shareLists.add(0, new ShareGvEntity(R.drawable.add_pic + "", "pic"));
             isHaveAdd = true;
         }

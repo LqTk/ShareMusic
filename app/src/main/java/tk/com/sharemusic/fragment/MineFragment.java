@@ -72,6 +72,7 @@ import tk.com.sharemusic.network.NetWorkService;
 import tk.com.sharemusic.network.RxSchedulers;
 import tk.com.sharemusic.network.response.UpLoadHeadVo;
 import tk.com.sharemusic.network.rxjava.BaseObserver;
+import tk.com.sharemusic.utils.BitmapUtil;
 import tk.com.sharemusic.utils.DateUtil;
 import tk.com.sharemusic.utils.GlideEngine;
 import tk.com.sharemusic.utils.StringUtils;
@@ -482,6 +483,7 @@ public class MineFragment extends Fragment {
         }
     }
 
+    String tempImgPath = "";
     private void uploadAvatar() {
         if (TextUtils.isEmpty(protraitPath)){
             return;
@@ -492,7 +494,22 @@ public class MineFragment extends Fragment {
             return;
         }
 
-        File file = new File(protraitPath);
+        File tempFile = new File(tempImgPath);
+        if (tempFile.exists()){
+            tempFile.delete();
+        }
+
+        File file;
+        if (protraitPath.equalsIgnoreCase(".gif")){
+            file = new File(protraitPath);
+        }else {
+            tempImgPath = BitmapUtil.compressImage(protraitPath,100,512,getContext());
+            if (TextUtils.isEmpty(tempImgPath)) {
+                file = new File(protraitPath);
+            } else {
+                file = new File(tempImgPath);
+            }
+        }
         RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"),file);
         MultipartBody.Part part = MultipartBody.Part.createFormData("img",file.getName(),requestFile);
         service.uploadHead(part, StringUtils.toRequestBody(user.getUserId()))
@@ -512,10 +529,19 @@ public class MineFragment extends Fragment {
                         }else {
                             ToastUtil.showShortMessage(getContext(),"头像上传失败");
                         }
+
+                        File tempFile = new File(tempImgPath);
+                        if (tempFile.exists()){
+                            tempFile.delete();
+                        }
                     }
 
                     @Override
                     public void onFailed(String msg) {
+                        File tempFile = new File(tempImgPath);
+                        if (tempFile.exists()){
+                            tempFile.delete();
+                        }
                         ToastUtil.showShortMessage(getContext(),msg);
                     }
                 });

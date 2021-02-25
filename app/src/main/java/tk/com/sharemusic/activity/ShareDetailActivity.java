@@ -1,6 +1,7 @@
 package tk.com.sharemusic.activity;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -12,6 +13,7 @@ import android.os.Handler;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
@@ -762,6 +764,7 @@ public class ShareDetailActivity extends CommonActivity {
                     sendReview();
                 } else {
                     HashMap map = new HashMap();
+                    map.put("publishId",publicEntity.getShareId());
                     if (isReviewChatItem) {
                         if (chatReviewEntity == null)
                             return;
@@ -781,8 +784,24 @@ public class ShareDetailActivity extends CommonActivity {
                 break;
             case R.id.rl_play:
                 VideoPreviewDialog dialog2 = new VideoPreviewDialog(this);
+                /*dialog2.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        Log.d("dialogDissmiss","tr");
+                    }
+                });*/
+                dialog2.setDismissListener(new VideoPreviewDialog.DismissListener() {
+                    @Override
+                    public void OnDismiss(int pos) {
+                        if (videoView!=null){
+                            videoView.seekTo(pos);
+                            videoView.start();
+                        }
+                    }
+                });
                 String path = publicEntity.getShareUrl();
-                dialog2.setVideo(NetWorkService.homeUrl + path);
+                dialog2.setVideo(NetWorkService.homeUrl + path, videoView.getCurrentPosition());
+                videoView.pause();
                 dialog2.show();
                 break;
             case R.id.iv_img:
